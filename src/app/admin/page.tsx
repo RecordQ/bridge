@@ -72,7 +72,7 @@ export default async function AdminDashboardPage() {
                         <p className="text-muted-foreground">Manage your site content and settings here.</p>
                     </div>
                      <Button asChild variant="outline">
-                        <Link href="/">
+                        <Link href="/admin/login">
                             <LogOut className="mr-2" /> Log Out
                         </Link>
                     </Button>
@@ -85,17 +85,18 @@ export default async function AdminDashboardPage() {
                                 <CardTitle>Product Management</CardTitle>
                                 <CardDescription>View and manage your product catalog.</CardDescription>
                             </div>
-                            <Button size="sm">
-                                <PlusCircle className="mr-2" />
-                                Add Product
+                            <Button asChild size="sm">
+                                <Link href="/admin/add-product">
+                                    <PlusCircle className="mr-2" />
+                                    Add Product
+                                </Link>
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Product ID</TableHead>
-                                        <TableHead>Name</TableHead>
+                                        <TableHead>Product Name</TableHead>
                                         <TableHead>Stock</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -104,8 +105,7 @@ export default async function AdminDashboardPage() {
                                 <TableBody>
                                     {products.length > 0 ? products.map((product) => (
                                         <TableRow key={product.id}>
-                                            <TableCell className="font-medium">{product.id}</TableCell>
-                                            <TableCell>{product.name}</TableCell>
+                                            <TableCell className="font-medium">{product.name}</TableCell>
                                             <TableCell>{product.stock}</TableCell>
                                             <TableCell>
                                                 <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
@@ -120,7 +120,7 @@ export default async function AdminDashboardPage() {
                                         </TableRow>
                                     )) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
+                                            <TableCell colSpan={4} className="text-center">No products found. Add one to get started.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>

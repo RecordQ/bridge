@@ -49,13 +49,10 @@ export default async function PricingPage() {
   const pricingTiers = await getPricingTiers();
 
   return (
-    <div className="bg-background">
+    <div className="bg-transparent">
       <section 
-        className="relative py-24 md:py-40 bg-cover bg-center"
-        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
-        data-ai-hint="abstract galaxy"
+        className="relative py-24 md:py-40"
       >
-        <div className="absolute inset-0 bg-black/70"></div>
         <div className="container mx-auto text-center relative z-10">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Transparent Pricing</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
@@ -64,12 +61,12 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto">
           {pricingTiers.length > 0 ? (
             <div className="grid lg:grid-cols-3 gap-8 items-start">
               {pricingTiers.map((tier) => (
-                <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
+                <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300 bg-card/80 backdrop-blur-sm">
                   <CardHeader>
                     <div className="aspect-video mb-4 overflow-hidden rounded-lg">
                       <Image
@@ -107,10 +104,18 @@ export default async function PricingPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-                <h2 className="font-headline text-3xl font-bold">No Pricing Information Available</h2>
-                <p className="text-muted-foreground mt-4">Please check back later or contact us for a custom quote.</p>
-            </div>
+             <Card className="text-center py-12 bg-card/80 backdrop-blur-sm">
+                <CardContent>
+                    <h2 className="font-headline text-3xl font-bold">No Pricing Information Available</h2>
+                    <p className="text-muted-foreground mt-4">Products haven't been added to the database yet.
+                    <br/>
+                    Please log in to the admin panel to add products.
+                    </p>
+                    <Button asChild variant="outline" className="mt-6">
+                        <Link href="/admin/login">Go to Admin Login</Link>
+                    </Button>
+                </CardContent>
+            </Card>
           )}
           <div className="text-center mt-16">
             <h3 className="font-headline text-2xl font-bold">Need a Custom Order?</h3>

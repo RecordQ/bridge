@@ -33,10 +33,8 @@ export default function Home() {
     <>
       {/* Hero Section */}
       <section 
-        className="relative py-24 md:py-40 bg-cover bg-center"
-        data-ai-hint="vibrant nebula"
+        className="relative py-32 md:py-48 flex items-center justify-center"
       >
-        <div className="absolute inset-0 bg-black/60"></div>
         <div className="container mx-auto text-center relative z-10 p-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
             Customize Your Universe
@@ -74,7 +72,7 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {products.map((product) => (
-              <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300">
+              <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <product.icon className="w-8 h-8 text-accent" />
@@ -101,7 +99,7 @@ export default function Home() {
       </section>
       
       {/* CTA Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Ready to Create Something Amazing?</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">

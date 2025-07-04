@@ -10,57 +10,92 @@ const ThreeScene = () => {
     if (!mountRef.current) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-    camera.position.z = 5;
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
+    camera.position.z = 1000;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
     mountRef.current.appendChild(renderer.domElement);
 
-    // Starfield
-    const starVertices: number[] = [];
-    const starColors: number[] = [];
-    const starBaseColors = [
-        new THREE.Color(0xffffff), // white
-        new THREE.Color(0xffd2a1), // pale yellow
-        new THREE.Color(0xa1c2ff), // pale blue
-    ];
+    // Galaxy parameters
+    const galaxyParameters = {
+        count: 150000,
+        size: 0.01,
+        radius: 600,
+        branches: 5,
+        spin: 1.5,
+        randomness: 1.2,
+        randomnessPower: 3,
+        insideColor: '#ff6030',
+        outsideColor: '#1b3984'
+    };
 
-    for (let i = 0; i < 20000; i++) {
-      const x = THREE.MathUtils.randFloatSpread(3000);
-      const y = THREE.MathUtils.randFloatSpread(3000);
-      const z = THREE.MathUtils.randFloatSpread(3000);
-      starVertices.push(x, y, z);
+    let galaxyGeometry: THREE.BufferGeometry | null = null;
+    let galaxyMaterial: THREE.PointsMaterial | null = null;
+    let galaxyPoints: THREE.Points | null = null;
 
-      const color = starBaseColors[Math.floor(Math.random() * starBaseColors.length)];
-      starColors.push(color.r, color.g, color.b);
-    }
+    const generateGalaxy = () => {
+        if (galaxyPoints !== null) {
+            galaxyGeometry?.dispose();
+            galaxyMaterial?.dispose();
+            scene.remove(galaxyPoints);
+        }
 
-    const starGeometry = new THREE.BufferGeometry();
-    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-    starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
-    
-    const starMaterial = new THREE.PointsMaterial({ 
-        size: 0.2,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.9
-    });
+        galaxyGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(galaxyParameters.count * 3);
+        const colors = new Float32Array(galaxyParameters.count * 3);
+        const colorInside = new THREE.Color(galaxyParameters.insideColor);
+        const colorOutside = new THREE.Color(galaxyParameters.outsideColor);
 
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
+        for (let i = 0; i < galaxyParameters.count; i++) {
+            const i3 = i * 3;
+            const radius = Math.random() * galaxyParameters.radius;
+            const spinAngle = radius * galaxyParameters.spin;
+            const branchAngle = (i % galaxyParameters.branches) / galaxyParameters.branches * Math.PI * 2;
+            
+            const randomX = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
+            const randomY = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
+            const randomZ = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
+
+            positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+            positions[i3 + 1] = randomY;
+            positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+
+            const mixedColor = colorInside.clone();
+            mixedColor.lerp(colorOutside, radius / galaxyParameters.radius);
+            colors[i3] = mixedColor.r;
+            colors[i3 + 1] = mixedColor.g;
+            colors[i3 + 2] = mixedColor.b;
+        }
+
+        galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        galaxyMaterial = new THREE.PointsMaterial({
+            size: galaxyParameters.size,
+            sizeAttenuation: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            vertexColors: true
+        });
+
+        galaxyPoints = new THREE.Points(galaxyGeometry, galaxyMaterial);
+        scene.add(galaxyPoints);
+    };
+
+    generateGalaxy();
 
     // Nebula Cloud
     const nebulaVertices: number[] = [];
     const nebulaColors: number[] = [];
-    const nebulaBaseColor1 = new THREE.Color(0xee82ee); // violet
+    const nebulaBaseColor1 = new THREE.Color(0x6a0dad); // purple
     const nebulaBaseColor2 = new THREE.Color(0xff00ff); // magenta/pink
     
-    for (let i = 0; i < 5000; i++) {
-        const x = THREE.MathUtils.randFloatSpread(400) - 150;
-        const y = THREE.MathUtils.randFloatSpread(300);
-        const z = THREE.MathUtils.randFloatSpread(400) - 200;
+    for (let i = 0; i < 15000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(1200);
+        const y = THREE.MathUtils.randFloatSpread(1200);
+        const z = THREE.MathUtils.randFloatSpread(1200) - 300;
         nebulaVertices.push(x, y, z);
         
         const color = new THREE.Color().lerpColors(nebulaBaseColor1, nebulaBaseColor2, Math.random());
@@ -72,17 +107,17 @@ const ThreeScene = () => {
     nebulaGeometry.setAttribute('color', new THREE.Float32BufferAttribute(nebulaColors, 3));
     
     const nebulaMaterial = new THREE.PointsMaterial({
-        size: 0.5,
+        size: 2,
         vertexColors: true,
         transparent: true,
-        opacity: 0.05,
+        opacity: 0.1,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
     });
     
     const nebula = new THREE.Points(nebulaGeometry, nebulaMaterial);
+    nebula.position.set(-200, 100, -400);
     scene.add(nebula);
-
 
     let mouseX = 0;
     let mouseY = 0;
@@ -99,10 +134,10 @@ const ThreeScene = () => {
       
       const elapsedTime = clock.getElapsedTime();
 
-      stars.rotation.x = elapsedTime * 0.02;
-      stars.rotation.y = elapsedTime * 0.02;
-      
-      nebula.rotation.y = elapsedTime * 0.05;
+      if (galaxyPoints) {
+        galaxyPoints.rotation.y = elapsedTime * 0.05;
+      }
+      nebula.rotation.y = elapsedTime * 0.08;
 
       camera.position.x += (mouseX - camera.position.x) * 0.02;
       camera.position.y += (-mouseY - camera.position.y) * 0.02;

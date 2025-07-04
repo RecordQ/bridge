@@ -59,13 +59,10 @@ export default function ContactPage() {
   }, [state, reset]);
 
   return (
-    <div className="bg-background">
+    <div className="bg-transparent">
       <section 
-        className="relative py-24 md:py-40 bg-cover bg-center"
-        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
-        data-ai-hint="star cluster"
+        className="relative py-24 md:py-40"
       >
-        <div className="absolute inset-0 bg-black/70"></div>
         <div className="container mx-auto text-center relative z-10">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
@@ -74,7 +71,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto grid md:grid-cols-2 gap-16">
           <div>
             <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
@@ -105,7 +102,7 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-          <Card>
+          <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
               <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>

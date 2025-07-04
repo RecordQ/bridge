@@ -22,14 +22,11 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-background">
+    <div className="bg-transparent">
       {/* Hero Section */}
       <section 
-        className="relative py-24 md:py-40 bg-cover bg-center bg-fixed" 
-        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
-        data-ai-hint="starry nebula"
+        className="relative py-24 md:py-40" 
       >
-        <div className="absolute inset-0 bg-black/60"></div>
         <div className="container mx-auto text-center relative z-10">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">About Bridge Ltd</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
@@ -39,7 +36,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company History Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Our Cosmic Journey</h2>
@@ -73,7 +70,7 @@ export default function AboutPage() {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {values.map((value) => (
-              <Card key={value.title} className="text-center">
+              <Card key={value.title} className="text-center bg-card/80 backdrop-blur-sm">
                 <CardHeader>
                   <div className="mx-auto bg-accent/20 text-accent rounded-full w-16 h-16 flex items-center justify-center mb-4">
                     <value.icon className="w-8 h-8"/>
