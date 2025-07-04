@@ -3,53 +3,51 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { db } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
-const pricingTiers = [
-  {
-    name: "Custom USB Drives",
-    image: "https://placehold.co/600x400.png",
-    aiHint: "custom usb",
-    description: "Perfect for corporate giveaways and data storage.",
-    price: "$5.99",
-    priceUnit: "/ unit",
-    features: [
-      "8GB - 128GB Capacity",
-      "Logo Printing/Engraving",
-      "Variety of Materials",
-      "Data Preloading Service",
-    ],
-  },
-  {
-    name: "Branded Gift Boxes",
-    image: "https://placehold.co/600x400.png",
-    aiHint: "gift box",
-    description: "Elegant packaging for any occasion.",
-    price: "$12.49",
-    priceUnit: "/ unit",
-    features: [
-      "Premium Cardboard/Wood",
-      "Custom Inserts",
-      "Full-Color Printing",
-      "Magnetic Closure",
-    ],
-  },
-  {
-    name: "Promotional Pens",
-    image: "https://placehold.co/600x400.png",
-    aiHint: "promotional pen",
-    description: "A classic and effective marketing tool.",
-    price: "$2.99",
-    priceUnit: "/ unit",
-    features: [
-      "Metal or Plastic Body",
-      "Smooth Black/Blue Ink",
-      "Laser Engraving/Printing",
-      "Comfort Grip",
-    ],
-  },
-];
+type PricingTier = {
+    id: string;
+    name: string;
+    image: string;
+    aiHint: string;
+    description: string;
+    price: string;
+    priceUnit: string;
+    features: string[];
+};
 
-export default function PricingPage() {
+
+async function getPricingTiers(): Promise<PricingTier[]> {
+    try {
+        const productsCol = collection(db, 'products');
+        const snapshot = await getDocs(productsCol);
+        if (snapshot.empty) {
+            return [];
+        }
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                name: data.name || 'Unnamed Product',
+                image: data.image || 'https://placehold.co/600x400.png',
+                aiHint: data.aiHint || 'product',
+                description: data.description || 'No description available.',
+                price: data.price ? `$${data.price}` : 'N/A',
+                priceUnit: data.priceUnit || '/ unit',
+                features: data.features || [],
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching pricing tiers:", error);
+        return [];
+    }
+}
+
+
+export default async function PricingPage() {
+  const pricingTiers = await getPricingTiers();
+
   return (
     <div className="bg-background">
       <section 
@@ -68,45 +66,52 @@ export default function PricingPage() {
 
       <section className="py-16 md:py-24">
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8 items-start">
-            {pricingTiers.map((tier) => (
-              <Card key={tier.name} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
-                <CardHeader>
-                  <div className="aspect-video mb-4 overflow-hidden rounded-lg">
-                    <Image
-                      src={tier.image}
-                      alt={tier.name}
-                      width={600}
-                      height={400}
-                      data-ai-hint={tier.aiHint}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardTitle className="font-headline text-2xl">{tier.name}</CardTitle>
-                  <CardDescription>{tier.description}</CardDescription>
-                  <div>
-                    <span className="text-4xl font-bold">{tier.price}</span>
-                    <span className="text-muted-foreground">{tier.priceUnit}</span>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <ul className="space-y-3">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-accent" />
-                        <span className="text-muted-foreground">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/contact">Get a Quote</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {pricingTiers.length > 0 ? (
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+              {pricingTiers.map((tier) => (
+                <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
+                  <CardHeader>
+                    <div className="aspect-video mb-4 overflow-hidden rounded-lg">
+                      <Image
+                        src={tier.image}
+                        alt={tier.name}
+                        width={600}
+                        height={400}
+                        data-ai-hint={tier.aiHint}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <CardTitle className="font-headline text-2xl">{tier.name}</CardTitle>
+                    <CardDescription>{tier.description}</CardDescription>
+                    <div>
+                      <span className="text-4xl font-bold">{tier.price}</span>
+                      <span className="text-muted-foreground">{tier.priceUnit}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <ul className="space-y-3">
+                      {tier.features.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-accent" />
+                          <span className="text-muted-foreground">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Link href="/contact">Get a Quote</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+                <h2 className="font-headline text-3xl font-bold">No Pricing Information Available</h2>
+                <p className="text-muted-foreground mt-4">Please check back later or contact us for a custom quote.</p>
+            </div>
+          )}
           <div className="text-center mt-16">
             <h3 className="font-headline text-2xl font-bold">Need a Custom Order?</h3>
             <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">

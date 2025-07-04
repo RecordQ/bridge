@@ -34,7 +34,6 @@ export default function Home() {
       {/* Hero Section */}
       <section 
         className="relative py-24 md:py-40 bg-cover bg-center"
-        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
         data-ai-hint="vibrant nebula"
       >
         <div className="absolute inset-0 bg-black/60"></div>

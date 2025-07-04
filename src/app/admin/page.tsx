@@ -27,14 +27,7 @@ async function getProducts(): Promise<Product[]> {
         const productsCol = collection(db, 'products');
         const productSnapshot = await getDocs(productsCol);
         if (productSnapshot.empty) {
-            // Seeding some data if the collection is empty for demo purposes.
-            // In a real app, you would have a separate seeding script or admin interface to add products.
-            return [
-                { id: 'PROD-001', name: 'Custom USB Drive', stock: 1500, status: 'Active' },
-                { id: 'PROD-002', name: 'Branded Gift Box', stock: 750, status: 'Active' },
-                { id: 'PROD-003', name: 'Promotional Pen', stock: 3200, status: 'Active' },
-                { id: 'PROD-004', name: 'Legacy Pen Model', stock: 0, status: 'Archived' },
-            ];
+            return [];
         }
         return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
     } catch (error) {
