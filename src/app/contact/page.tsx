@@ -1,0 +1,138 @@
+"use client";
+
+import { useFormState, useFormStatus } from "react-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
+
+import { submitContactForm, type ContactFormState } from "@/lib/actions";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
+
+const contactFormSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+});
+
+type ContactFormData = z.infer<typeof contactFormSchema>;
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={pending}>
+      {pending ? <LoaderCircle className="animate-spin" /> : "Send Message"}
+    </Button>
+  );
+}
+
+export default function ContactPage() {
+  const [state, formAction] = useFormState<ContactFormState, FormData>(submitContactForm, {
+    message: "",
+    status: "idle",
+  });
+  
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+  });
+
+  useEffect(() => {
+    if (state.status === "success") {
+      toast({
+        title: "Success!",
+        description: state.message,
+      });
+      reset();
+    } else if (state.status === "error") {
+      toast({
+        title: "Error",
+        description: state.message,
+        variant: "destructive",
+      });
+    }
+  }, [state, reset]);
+
+  return (
+    <div className="bg-background">
+      <section 
+        className="relative py-24 md:py-40 bg-cover bg-center"
+        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
+        data-ai-hint="star cluster"
+      >
+        <div className="absolute inset-0 bg-black/70"></div>
+        <div className="container mx-auto text-center relative z-10">
+          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
+          <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+            Have a question or a project in mind? We'd love to hear from you.
+          </p>
+        </div>
+      </section>
+
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto grid md:grid-cols-2 gap-16">
+          <div>
+            <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
+            <p className="text-muted-foreground mb-8">
+              Reach out to us directly through any of the channels below. We're ready to assist you.
+            </p>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <Mail className="w-6 h-6 text-accent" />
+                <div>
+                  <h3 className="font-semibold">Email</h3>
+                  <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <Phone className="w-6 h-6 text-accent" />
+                <div>
+                  <h3 className="font-semibold">Phone</h3>
+                  <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <MapPin className="w-6 h-6 text-accent" />
+                <div>
+                  <h3 className="font-semibold">Office</h3>
+                  <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
+              <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={formAction} className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" {...register("name")} placeholder="Your Name" />
+                  {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" {...register("email")} placeholder="your.email@example.com" />
+                  {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea id="message" {...register("message")} placeholder="How can we help you today?" rows={6} />
+                  {errors.message && <p className="text-destructive text-sm mt-1">{errors.message.message}</p>}
+                </div>
+                <SubmitButton />
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </div>
+  );
+}
