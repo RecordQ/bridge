@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Chatbot } from '@/components/Chatbot';
+import ThreeScene from '@/components/ThreeScene';
 
 export const metadata: Metadata = {
   title: 'Bridge Ltd - Customizable Products',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"></link>
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
+        <ThreeScene />
         <div className="relative flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>

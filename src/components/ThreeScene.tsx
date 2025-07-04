@@ -24,21 +24,32 @@ const ThreeScene = () => {
 
     // Starfield
     const starVertices: number[] = [];
-    for (let i = 0; i < 10000; i++) {
+    const starColors: number[] = [];
+    const colors = [
+        new THREE.Color(0xffffff),
+        new THREE.Color(0xffd2a1),
+        new THREE.Color(0xa1c2ff),
+    ];
+
+    for (let i = 0; i < 15000; i++) {
       const x = (Math.random() - 0.5) * 2000;
       const y = (Math.random() - 0.5) * 2000;
       const z = (Math.random() - 0.5) * 2000;
       starVertices.push(x, y, z);
+
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      starColors.push(color.r, color.g, color.b);
     }
 
     const starGeometry = new THREE.BufferGeometry();
     starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    starGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
     
     const starMaterial = new THREE.PointsMaterial({ 
-        color: 0xffffff,
-        size: 0.1,
+        size: 0.15,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
     });
 
     const stars = new THREE.Points(starGeometry, starMaterial);
@@ -86,7 +97,7 @@ const ThreeScene = () => {
     };
   }, []);
 
-  return <div ref={mountRef} className="absolute top-0 left-0 w-full h-full -z-10" />;
+  return <div ref={mountRef} className="fixed top-0 left-0 w-full h-full -z-10" />;
 };
 
 export default ThreeScene;
