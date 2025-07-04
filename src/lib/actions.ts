@@ -1,6 +1,8 @@
 "use server";
 
 import { z } from "zod";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -24,18 +26,31 @@ export async function submitContactForm(
   });
 
   if (!validatedFields.success) {
+    const errorMessages = validatedFields.error.issues.map(issue => issue.message).join(", ");
     return {
-      message: "There was an error with your submission.",
+      message: `There was an error with your submission: ${errorMessages}`,
       status: "error",
     };
   }
 
-  // In a real app, you would send an email, save to a database, etc.
-  console.log("Contact form submitted successfully:");
-  console.log(validatedFields.data);
-
-  return {
-    message: "Thank you for your message! We will get back to you soon.",
-    status: "success",
-  };
+  try {
+    await addDoc(collection(db, "submissions"), {
+      ...validatedFields.data,
+      createdAt: serverTimestamp(),
+      status: 'New',
+    });
+    
+    console.log("Contact form submitted successfully to Firestore.");
+    
+    return {
+      message: "Thank you for your message! We will get back to you soon.",
+      status: "success",
+    };
+  } catch (error) {
+    console.error("Error writing document: ", error);
+    return {
+      message: "Failed to submit your message. Please try again later.",
+      status: "error",
+    };
+  }
 }

@@ -4,20 +4,72 @@ import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { LogOut, PlusCircle, Settings, FileText } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
 
-const mockProducts = [
-    { id: 'PROD-001', name: 'Custom USB Drive', stock: 1500, status: 'Active' },
-    { id: 'PROD-002', name: 'Branded Gift Box', stock: 750, status: 'Active' },
-    { id: 'PROD-003', name: 'Promotional Pen', stock: 3200, status: 'Active' },
-    { id: 'PROD-004', name: 'Legacy Pen Model', stock: 0, status: 'Archived' },
-];
+type Product = {
+    id: string;
+    name: string;
+    stock: number;
+    status: 'Active' | 'Archived';
+};
 
-const mockSubmissions = [
-    { id: 'SUB-001', name: 'Alice Johnson', email: 'alice@example.com', date: '2024-07-29', status: 'New' },
-    { id: 'SUB-002', name: 'Bob Williams', email: 'bob@example.com', date: '2024-07-28', status: 'Contacted' },
-];
+type Submission = {
+    id: string;
+    name: string;
+    email: string;
+    date: string;
+    status: 'New' | 'Contacted';
+};
 
-export default function AdminDashboardPage() {
+async function getProducts(): Promise<Product[]> {
+    try {
+        const productsCol = collection(db, 'products');
+        const productSnapshot = await getDocs(productsCol);
+        if (productSnapshot.empty) {
+            // Seeding some data if the collection is empty for demo purposes.
+            // In a real app, you would have a separate seeding script or admin interface to add products.
+            return [
+                { id: 'PROD-001', name: 'Custom USB Drive', stock: 1500, status: 'Active' },
+                { id: 'PROD-002', name: 'Branded Gift Box', stock: 750, status: 'Active' },
+                { id: 'PROD-003', name: 'Promotional Pen', stock: 3200, status: 'Active' },
+                { id: 'PROD-004', name: 'Legacy Pen Model', stock: 0, status: 'Archived' },
+            ];
+        }
+        return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        return [];
+    }
+}
+
+
+async function getSubmissions(): Promise<Submission[]> {
+    try {
+        const submissionsCol = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
+        const submissionSnapshot = await getDocs(submissionsCol);
+        return submissionSnapshot.docs.map(doc => {
+            const data = doc.data();
+            const createdAt = (data.createdAt as Timestamp)?.toDate() || new Date();
+            return {
+                id: doc.id,
+                name: data.name,
+                email: data.email,
+                date: createdAt.toLocaleDateString(),
+                status: data.status,
+            };
+        }) as Submission[];
+    } catch (error) {
+        console.error("Error fetching submissions:", error);
+        return [];
+    }
+}
+
+
+export default async function AdminDashboardPage() {
+    const products = await getProducts();
+    const submissions = await getSubmissions();
+
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
             <div className="container mx-auto">
@@ -57,7 +109,7 @@ export default function AdminDashboardPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockProducts.map((product) => (
+                                    {products.length > 0 ? products.map((product) => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.id}</TableCell>
                                             <TableCell>{product.name}</TableCell>
@@ -73,7 +125,11 @@ export default function AdminDashboardPage() {
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
@@ -96,7 +152,7 @@ export default function AdminDashboardPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockSubmissions.map((submission) => (
+                                     {submissions.length > 0 ? submissions.map((submission) => (
                                         <TableRow key={submission.id}>
                                             <TableCell>{submission.name}</TableCell>
                                             <TableCell>{submission.email}</TableCell>
@@ -112,7 +168,11 @@ export default function AdminDashboardPage() {
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
-                                    ))}
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center">No submissions yet.</TableCell>
+                                        </TableRow>
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
