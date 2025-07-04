@@ -22,7 +22,7 @@ export function Header() {
         <Link
           key={link.href}
           href={link.href}
-          className="font-medium text-foreground/80 transition-colors hover:text-accent-foreground"
+          className="font-medium text-foreground/80 transition-colors hover:text-primary"
           onClick={() => setIsMenuOpen(false)}
         >
           {link.label}
@@ -36,7 +36,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <Rocket className="h-6 w-6 text-accent" />
+            <Rocket className="h-6 w-6 text-primary" />
             <span className="font-bold font-headline text-lg">Bridge Ltd</span>
           </Link>
         </div>
@@ -44,7 +44,7 @@ export function Header() {
           <NavLinkItems />
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <Button asChild className="hidden md:flex bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button asChild className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90">
              <Link href="/contact">Get a Quote</Link>
           </Button>
           <Button

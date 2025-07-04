@@ -70,7 +70,7 @@ export default function PricingPage() {
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-3 gap-8 items-start">
             {pricingTiers.map((tier) => (
-              <Card key={tier.name} className="flex flex-col h-full hover:border-accent transition-colors duration-300">
+              <Card key={tier.name} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
                 <CardHeader>
                   <div className="aspect-video mb-4 overflow-hidden rounded-lg">
                     <Image
@@ -100,7 +100,7 @@ export default function PricingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button asChild className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                     <Link href="/contact">Get a Quote</Link>
                   </Button>
                 </CardFooter>

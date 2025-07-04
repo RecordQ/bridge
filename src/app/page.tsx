@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ThreeScene from "@/components/ThreeScene";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Usb, Box, PenTool } from "lucide-react";
@@ -33,9 +32,13 @@ export default function Home() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative w-full h-[80vh] min-h-[600px] flex items-center justify-center text-center overflow-hidden">
-        <ThreeScene />
-        <div className="relative z-10 p-4">
+      <section 
+        className="relative py-24 md:py-40 bg-cover bg-center"
+        style={{backgroundImage: 'url(https://placehold.co/1920x1080.png)'}}
+        data-ai-hint="vibrant nebula"
+      >
+        <div className="absolute inset-0 bg-black/60"></div>
+        <div className="container mx-auto text-center relative z-10 p-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
             Customize Your Universe
           </h1>
@@ -43,7 +46,7 @@ export default function Home() {
             Bridge Ltd offers premium, customizable products to help your brand shine. From tech gadgets to elegant gift solutions, we bring your vision to life.
           </p>
           <div className="flex justify-center gap-4">
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Link href="/#products">Explore Products</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
@@ -72,7 +75,7 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {products.map((product) => (
-              <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-accent transition-all duration-300">
+              <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <product.icon className="w-8 h-8 text-accent" />
@@ -105,7 +108,7 @@ export default function Home() {
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
                 Let's collaborate on your next project. Our team is ready to help you design the perfect custom products.
             </p>
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Link href="/contact">
                     Contact Us <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>

@@ -1,10 +1,10 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useActionState } from "react";
 import { toast } from "@/hooks/use-toast";
 
 import { submitContactForm, type ContactFormState } from "@/lib/actions";
@@ -26,14 +26,14 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" disabled={pending}>
+    <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={pending}>
       {pending ? <LoaderCircle className="animate-spin" /> : "Send Message"}
     </Button>
   );
 }
 
 export default function ContactPage() {
-  const [state, formAction] = useFormState<ContactFormState, FormData>(submitContactForm, {
+  const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
     status: "idle",
   });
