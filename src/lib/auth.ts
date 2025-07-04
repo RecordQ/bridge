@@ -1,10 +1,9 @@
-
 'use server'
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
-import bcrypt from "bcryptjs";
+import { createHmac, randomBytes } from "crypto";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -45,8 +44,9 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const userSnapshot = await getDocs(usersCol);
         if (userSnapshot.empty) {
             console.log("No users found. Seeding default admin user.");
-            const hashedPassword = await bcrypt.hash('password', 10);
-            await addDoc(usersCol, { username: 'admin', password: hashedPassword });
+            const salt = randomBytes(16).toString('hex');
+            const passwordHash = createHmac('sha512', salt).update('password').digest('hex');
+            await addDoc(usersCol, { username: 'admin', password: passwordHash, salt: salt });
         }
 
         const q = query(usersCol, where("username", "==", username));
@@ -59,7 +59,13 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const userDoc = querySnapshot.docs[0];
         const user = userDoc.data();
         
-        const passwordMatch = await bcrypt.compare(password, user.password);
+        // Ensure user document has a salt, otherwise authentication cannot proceed
+        if (!user.salt) {
+             return { status: "error", message: "Authentication failed. User data is missing security elements." };
+        }
+
+        const passwordHash = createHmac('sha512', user.salt).update(password).digest('hex');
+        const passwordMatch = passwordHash === user.password;
 
         if (!passwordMatch) {
             return { status: "error", message: "Invalid username or password." };

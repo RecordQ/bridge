@@ -11,7 +11,7 @@ const ThreeScene = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
-    camera.position.z = 1000;
+    camera.position.z = 1200;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -20,15 +20,15 @@ const ThreeScene = () => {
 
     // Galaxy parameters
     const galaxyParameters = {
-        count: 150000,
-        size: 0.01,
-        radius: 600,
-        branches: 5,
-        spin: 1.5,
-        randomness: 1.2,
-        randomnessPower: 3,
-        insideColor: '#ff6030',
-        outsideColor: '#1b3984'
+        count: 200000,
+        size: 1.0,
+        radius: 700,
+        branches: 6,
+        spin: 2.0,
+        randomness: 1.5,
+        randomnessPower: 3.5,
+        insideColor: '#ff8833',
+        outsideColor: '#3355cc'
     };
 
     let galaxyGeometry: THREE.BufferGeometry | null = null;
@@ -89,13 +89,13 @@ const ThreeScene = () => {
     // Nebula Cloud
     const nebulaVertices: number[] = [];
     const nebulaColors: number[] = [];
-    const nebulaBaseColor1 = new THREE.Color(0x6a0dad); // purple
-    const nebulaBaseColor2 = new THREE.Color(0xff00ff); // magenta/pink
+    const nebulaBaseColor1 = new THREE.Color(0x8a2be2); // blueviolet
+    const nebulaBaseColor2 = new THREE.Color(0xff1493); // deeppink
     
-    for (let i = 0; i < 15000; i++) {
-        const x = THREE.MathUtils.randFloatSpread(1200);
-        const y = THREE.MathUtils.randFloatSpread(1200);
-        const z = THREE.MathUtils.randFloatSpread(1200) - 300;
+    for (let i = 0; i < 30000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(2000);
+        const y = THREE.MathUtils.randFloatSpread(2000);
+        const z = THREE.MathUtils.randFloatSpread(2000) - 400;
         nebulaVertices.push(x, y, z);
         
         const color = new THREE.Color().lerpColors(nebulaBaseColor1, nebulaBaseColor2, Math.random());
@@ -107,16 +107,16 @@ const ThreeScene = () => {
     nebulaGeometry.setAttribute('color', new THREE.Float32BufferAttribute(nebulaColors, 3));
     
     const nebulaMaterial = new THREE.PointsMaterial({
-        size: 2,
+        size: 3.0,
         vertexColors: true,
         transparent: true,
-        opacity: 0.1,
+        opacity: 0.2,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
     });
     
     const nebula = new THREE.Points(nebulaGeometry, nebulaMaterial);
-    nebula.position.set(-200, 100, -400);
+    nebula.position.set(-300, 150, -600);
     scene.add(nebula);
 
     let mouseX = 0;
