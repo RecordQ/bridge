@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, Search, Package } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
+import Link from 'next/link';
 
 
 async function getProductTiers(): Promise<Product[]> {
@@ -67,6 +68,7 @@ export default function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -86,6 +88,11 @@ export default function ProductsPage() {
     );
     setFilteredProducts(results);
   }, [searchTerm, products]);
+  
+  const handleQuoteClick = (productId: string) => {
+    localStorage.setItem('selectedProductIdForQuote', productId);
+    router.push('/contact');
+  };
 
   return (
     <div className="bg-transparent">
@@ -153,8 +160,8 @@ export default function ProductsPage() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Link href={`/contact?productId=${tier.id}`}>Get a Quote</Link>
+                    <Button onClick={() => handleQuoteClick(tier.id)} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                      Get a Quote
                     </Button>
                   </CardFooter>
                 </Card>

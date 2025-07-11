@@ -1,60 +1,69 @@
+// src/app/page.tsx
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
+import { useEffect, useState } from "react";
 
-async function getTopProducts(): Promise<Product[]> {
-    try {
+function getIconForProduct(name: string) {
+  const lowerCaseName = name.toLowerCase();
+  if (lowerCaseName.includes('usb')) return Usb;
+  if (lowerCaseName.includes('box')) return Box;
+  if (lowerCaseName.includes('pen')) return PenTool;
+  return Package;
+}
+
+export default function Home() {
+  const [topProducts, setTopProducts] = useState<Product[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function getTopProducts() {
+      try {
         const productsCol = collection(db, 'products');
         const q = query(productsCol, where('status', '==', 'Active'), orderBy('createdAt', 'desc'), limit(3));
         const productSnapshot = await getDocs(q);
         
         if (productSnapshot.empty) {
-            return [];
+          setTopProducts([]);
+          return;
         }
         
-        return productSnapshot.docs.map(doc => {
-            const data = doc.data();
-            const features = Array.isArray(data.features) ? data.features : [];
-            return {
-                id: doc.id,
-                name: data.name || '',
-                price: data.price || 0,
-                status: data.status || 'Archived',
-                priceUnit: data.priceUnit || '',
-                image: data.image || '',
-                description: data.description || '',
-                features: features,
-                createdAt: data.createdAt,
-            }
+        const products = productSnapshot.docs.map(doc => {
+          const data = doc.data();
+          const features = Array.isArray(data.features) ? data.features : [];
+          return {
+            id: doc.id,
+            name: data.name || '',
+            price: data.price || 0,
+            status: data.status || 'Archived',
+            priceUnit: data.priceUnit || '',
+            image: data.image || '',
+            description: data.description || '',
+            features: features,
+            createdAt: data.createdAt,
+          }
         }) as Product[];
-    } catch (error) {
+        setTopProducts(products);
+      } catch (error) {
         console.error("Error fetching top products:", error);
-        return [];
+        setTopProducts([]);
+      }
     }
-}
+    getTopProducts();
+  }, []);
 
-const iconMap = {
-  default: Package,
-  usb: Usb,
-  box: Box,
-  pen: PenTool,
-};
-
-function getIconForProduct(name: string) {
-  const lowerCaseName = name.toLowerCase();
-  if (lowerCaseName.includes('usb')) return iconMap.usb;
-  if (lowerCaseName.includes('box')) return iconMap.box;
-  if (lowerCaseName.includes('pen')) return iconMap.pen;
-  return iconMap.default;
-}
-
-export default async function Home() {
-  const topProducts = await getTopProducts();
+  const handleQuoteClick = (productId: string) => {
+    localStorage.setItem('selectedProductIdForQuote', productId);
+    router.push('/contact');
+  };
 
   return (
     <>
@@ -98,7 +107,7 @@ export default async function Home() {
             {topProducts.map((product) => {
               const Icon = getIconForProduct(product.name);
               return (
-                <Link key={product.id} href={`/contact?productId=${product.id}`} className="block group">
+                <div key={product.id} className="block group cursor-pointer" onClick={() => handleQuoteClick(product.id)}>
                   <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
                     <CardHeader>
                       <div className="flex items-center gap-4">
@@ -119,7 +128,7 @@ export default async function Home() {
                       <CardDescription>{product.description}</CardDescription>
                     </CardContent>
                   </Card>
-                </Link>
+                </div>
               )
             })}
           </div>
