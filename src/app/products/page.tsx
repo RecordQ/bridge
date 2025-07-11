@@ -99,7 +99,7 @@ export default function ProductsPage() {
       <section 
         className="relative py-24 md:py-40"
       >
-        <div className="container mx-auto text-center relative z-10">
+        <div className="container mx-auto text-center relative z-10 px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Our Products</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
             Find the perfect customizable products for your budget. No hidden fees, just stellar value.
@@ -108,7 +108,7 @@ export default function ProductsPage() {
       </section>
 
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
             <div className="mb-12 max-w-lg mx-auto">
                  <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

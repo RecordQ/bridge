@@ -145,7 +145,7 @@ export default function ContactPage() {
       <section 
         className="relative py-24 md:py-40"
       >
-        <div className="container mx-auto text-center relative z-10">
+        <div className="container mx-auto text-center relative z-10 px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
             Have a question or a project in mind? We'd love to hear from you.
@@ -154,7 +154,7 @@ export default function ContactPage() {
       </section>
 
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto grid md:grid-cols-2 gap-16">
+        <div className="container mx-auto grid md:grid-cols-2 gap-16 px-4">
           <div>
             <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
             <p className="text-muted-foreground mb-8">

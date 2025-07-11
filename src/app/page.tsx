@@ -91,7 +91,7 @@ export default function Home() {
 
       {/* Introduction Section */}
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto text-center">
+        <div className="container mx-auto text-center px-4">
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Quality That Speaks Volumes</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
                 We believe in the power of a lasting impression. That's why we source only the highest-quality materials for our products, ensuring your brand is represented with the excellence it deserves.
@@ -101,7 +101,7 @@ export default function Home() {
 
       {/* Products Section */}
       <section id="products" className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
           <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">Our Top Products</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {topProducts.map((product) => {
@@ -146,7 +146,7 @@ export default function Home() {
       
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto text-center">
+        <div className="container mx-auto text-center px-4">
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Ready to Create Something Amazing?</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
                 Let's collaborate on your next project. Our team is ready to help you design the perfect custom products.

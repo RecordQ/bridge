@@ -27,7 +27,7 @@ export default function AboutPage() {
       <section 
         className="relative py-24 md:py-40" 
       >
-        <div className="container mx-auto text-center relative z-10">
+        <div className="container mx-auto text-center relative z-10 px-4">
           <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">About Bridge Ltd</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
             Connecting brands to their audience through stellar customized products.
@@ -37,7 +37,7 @@ export default function AboutPage() {
 
       {/* Company History Section */}
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center px-4">
           <div>
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Our Cosmic Journey</h2>
             <div className="space-y-4 text-muted-foreground">
@@ -67,7 +67,7 @@ export default function AboutPage() {
 
       {/* Mission, Vision, Values Section */}
       <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8">
             {values.map((value) => (
               <Card key={value.title} className="text-center bg-card/50 backdrop-blur-sm border border-border/20">
