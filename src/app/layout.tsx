@@ -27,7 +27,7 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <ThreeScene />
-        <div className="relative flex min-h-screen flex-col">
+        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
