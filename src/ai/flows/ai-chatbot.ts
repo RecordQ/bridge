@@ -11,6 +11,39 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { db } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
+
+type Product = {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+};
+
+// Helper function to fetch products from Firestore
+async function getProducts(): Promise<Product[]> {
+    try {
+        const productsCol = collection(db, 'products');
+        const productSnapshot = await getDocs(productsCol);
+        if (productSnapshot.empty) {
+            return [];
+        }
+        return productSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                name: data.name,
+                description: data.description,
+                price: data.price,
+                stock: data.stock,
+            };
+        }) as Product[];
+    } catch (error) {
+        console.error("Error fetching products for AI:", error);
+        return [];
+    }
+}
+
 
 const AskQuestionInputSchema = z.object({
   question: z.string().describe('The question to ask the chatbot.'),
@@ -32,7 +65,11 @@ export async function askQuestion(input: AskQuestionInput): Promise<AskQuestionO
 
 const prompt = ai.definePrompt({
   name: 'askQuestionPrompt',
-  input: {schema: AskQuestionInputSchema},
+  input: {schema: z.object({
+    question: AskQuestionInputSchema.shape.question,
+    chatHistory: AskQuestionInputSchema.shape.chatHistory,
+    products: z.string().describe("A JSON string of available products."),
+  })},
   output: {schema: AskQuestionOutputSchema},
   prompt: `You are a chatbot for Bridge Ltd, a company specializing in customizable products like USBs, gift boxes, and pens.
   Your goal is to answer questions about the company's products and services.
@@ -41,12 +78,15 @@ const prompt = ai.definePrompt({
   - We pride ourselves on high-quality products and excellent customer service.
   - Our products are perfect for corporate gifts, promotional items, and personal use.
 
-  {% if chatHistory %}
+  Here is the list of available products in JSON format. Use this as the primary source of truth for product information, including stock levels and pricing.
+  {{{products}}}
+
+  {{#if chatHistory}}
   Here's the chat history:
-  {% each chatHistory %}
+  {{#each chatHistory}}
   {{role}}: {{content}}
-  {% endeach %}
-  {% endif %}
+  {{/each}}
+  {{/if}}
 
   Question: {{{question}}}
   Answer:`, 
@@ -59,7 +99,13 @@ const askQuestionFlow = ai.defineFlow(
     outputSchema: AskQuestionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const products = await getProducts();
+    const productsJson = JSON.stringify(products);
+    
+    const {output} = await prompt({
+        ...input,
+        products: productsJson,
+    });
     return output!;
   }
 );

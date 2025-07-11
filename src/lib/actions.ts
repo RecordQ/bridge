@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -60,9 +60,9 @@ export async function submitContactForm(
 }
 
 
-// ========= ADD PRODUCT ACTION =========
+// ========= PRODUCT ACTIONS =========
 
-const addProductSchema = z.object({
+const productSchema = z.object({
     name: z.string().min(3, "Product name must be at least 3 characters."),
     stock: z.coerce.number().int().min(0, "Stock must be a positive number."),
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
@@ -73,14 +73,14 @@ const addProductSchema = z.object({
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
 
-export type AddProductState = {
+type ProductActionState = {
     status: "success" | "error" | "idle";
     message: string;
-    errors?: Record<keyof z.infer<typeof addProductSchema>, string>;
+    errors?: Record<string, string>;
 }
 
-export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const validatedFields = addProductSchema.safeParse({
+export async function addProductAction(prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
+    const validatedFields = productSchema.safeParse({
         name: formData.get("name"),
         stock: formData.get("stock"),
         price: formData.get("price"),
@@ -111,7 +111,6 @@ export async function addProductAction(prevState: AddProductState, formData: For
             createdAt: serverTimestamp(),
         });
 
-        // Revalidate paths to show new data
         revalidatePath('/admin');
         revalidatePath('/pricing');
 
@@ -124,13 +123,66 @@ export async function addProductAction(prevState: AddProductState, formData: For
         }
     }
     
-    // Redirect to admin dashboard on success
     redirect('/admin');
+}
 
-    // This return is technically unreachable due to redirect, but satisfies TypeScript
-    return {
-        status: "success",
-        message: "Product added successfully!",
-        errors: {},
+
+export async function editProductAction(productId: string, prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
+    const validatedFields = productSchema.safeParse({
+        name: formData.get("name"),
+        stock: formData.get("stock"),
+        price: formData.get("price"),
+        priceUnit: formData.get("priceUnit"),
+        status: formData.get("status"),
+        image: formData.get("image"),
+        description: formData.get("description"),
+        features: formData.get("features"),
+    });
+
+    if (!validatedFields.success) {
+         const fieldErrors: Record<string, string> = {};
+        for (const issue of validatedFields.error.issues) {
+            if (issue.path[0]) {
+                fieldErrors[issue.path[0] as string] = issue.message;
+            }
+        }
+        return {
+            status: "error",
+            message: "Please correct the errors below.",
+            errors: fieldErrors,
+        }
+    }
+
+    try {
+        const productRef = doc(db, 'products', productId);
+        await updateDoc(productRef, validatedFields.data);
+
+        revalidatePath('/admin');
+        revalidatePath('/pricing');
+        
+        return {
+            status: 'success',
+            message: 'Product updated successfully!',
+        };
+
+    } catch (error) {
+        console.error("Error updating product: ", error);
+        return {
+            status: "error",
+            message: "Failed to update product. Please try again.",
+        }
+    }
+}
+
+
+export async function deleteProductAction(productId: string) {
+    try {
+        await deleteDoc(doc(db, "products", productId));
+        revalidatePath('/admin');
+        revalidatePath('/pricing');
+        return { status: "success", message: "Product deleted successfully." };
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        return { status: "error", message: "Failed to delete product." };
     }
 }

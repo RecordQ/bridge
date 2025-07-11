@@ -11,7 +11,7 @@ const ThreeScene = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
-    camera.position.z = 1200;
+    camera.position.z = 1000;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -21,15 +21,35 @@ const ThreeScene = () => {
     // Galaxy parameters
     const galaxyParameters = {
         count: 200000,
-        size: 1.0,
-        radius: 700,
-        branches: 6,
-        spin: 2.0,
-        randomness: 1.5,
-        randomnessPower: 3.5,
-        insideColor: '#ff8833',
-        outsideColor: '#3355cc'
+        size: 2.0,
+        radius: 600,
+        branches: 5,
+        spin: 1.5,
+        randomness: 1.8,
+        randomnessPower: 3,
+        insideColor: '#ff6030',
+        outsideColor: '#1b3984'
     };
+    
+    // Background Stars
+    const bgStarsGeometry = new THREE.BufferGeometry();
+    const bgStarsVertices = [];
+    for (let i = 0; i < 50000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(3000);
+        const y = THREE.MathUtils.randFloatSpread(3000);
+        const z = THREE.MathUtils.randFloatSpread(3000);
+        bgStarsVertices.push(x, y, z);
+    }
+    bgStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bgStarsVertices, 3));
+    const bgStarsMaterial = new THREE.PointsMaterial({
+        size: 0.7,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.5,
+    });
+    const backgroundStars = new THREE.Points(bgStarsGeometry, bgStarsMaterial);
+    scene.add(backgroundStars);
+
 
     let galaxyGeometry: THREE.BufferGeometry | null = null;
     let galaxyMaterial: THREE.PointsMaterial | null = null;
@@ -55,7 +75,7 @@ const ThreeScene = () => {
             const branchAngle = (i % galaxyParameters.branches) / galaxyParameters.branches * Math.PI * 2;
             
             const randomX = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
-            const randomY = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
+            const randomY = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius / 2;
             const randomZ = Math.pow(Math.random(), galaxyParameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParameters.randomness * radius;
 
             positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
@@ -89,13 +109,13 @@ const ThreeScene = () => {
     // Nebula Cloud
     const nebulaVertices: number[] = [];
     const nebulaColors: number[] = [];
-    const nebulaBaseColor1 = new THREE.Color(0x8a2be2); // blueviolet
-    const nebulaBaseColor2 = new THREE.Color(0xff1493); // deeppink
+    const nebulaBaseColor1 = new THREE.Color(0x6a0dad); // purple
+    const nebulaBaseColor2 = new THREE.Color(0xdc143c); // crimson
     
-    for (let i = 0; i < 30000; i++) {
-        const x = THREE.MathUtils.randFloatSpread(2000);
-        const y = THREE.MathUtils.randFloatSpread(2000);
-        const z = THREE.MathUtils.randFloatSpread(2000) - 400;
+    for (let i = 0; i < 50000; i++) {
+        const x = THREE.MathUtils.randFloatSpread(2500);
+        const y = THREE.MathUtils.randFloatSpread(2500);
+        const z = THREE.MathUtils.randFloatSpread(2500) - 500;
         nebulaVertices.push(x, y, z);
         
         const color = new THREE.Color().lerpColors(nebulaBaseColor1, nebulaBaseColor2, Math.random());
@@ -107,23 +127,23 @@ const ThreeScene = () => {
     nebulaGeometry.setAttribute('color', new THREE.Float32BufferAttribute(nebulaColors, 3));
     
     const nebulaMaterial = new THREE.PointsMaterial({
-        size: 3.0,
+        size: 4.0,
         vertexColors: true,
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.15,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
     });
     
     const nebula = new THREE.Points(nebulaGeometry, nebulaMaterial);
-    nebula.position.set(-300, 150, -600);
+    nebula.position.set(-400, 200, -700);
     scene.add(nebula);
 
     let mouseX = 0;
     let mouseY = 0;
     const onMouseMove = (event: MouseEvent) => {
-        mouseX = (event.clientX - window.innerWidth / 2) / 200;
-        mouseY = (event.clientY - window.innerHeight / 2) / 200;
+        mouseX = (event.clientX - window.innerWidth / 2) / 250;
+        mouseY = (event.clientY - window.innerHeight / 2) / 250;
     };
     document.addEventListener('mousemove', onMouseMove);
 
@@ -135,9 +155,10 @@ const ThreeScene = () => {
       const elapsedTime = clock.getElapsedTime();
 
       if (galaxyPoints) {
-        galaxyPoints.rotation.y = elapsedTime * 0.05;
+        galaxyPoints.rotation.y = elapsedTime * 0.04;
       }
-      nebula.rotation.y = elapsedTime * 0.08;
+      nebula.rotation.y = elapsedTime * 0.06;
+      backgroundStars.rotation.y = elapsedTime * 0.01;
 
       camera.position.x += (mouseX - camera.position.x) * 0.02;
       camera.position.y += (-mouseY - camera.position.y) * 0.02;
