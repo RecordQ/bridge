@@ -20,14 +20,14 @@ const ThreeScene = () => {
     renderer.setClearColor(0x000000, 0);
     mountRef.current.appendChild(renderer.domElement);
 
-    // Sun
-    const sunLight = new THREE.PointLight(0xffddaa, 1.5, 2000);
-    scene.add(sunLight);
-    const sunGeometry = new THREE.SphereGeometry(70, 32, 32);
-    const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffddaa, map: createGlowTexture() });
-    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    sun.position.set(-800, 200, 200);
-    scene.add(sun);
+    // // Sun
+    // const sunLight = new THREE.PointLight(0xffddaa, 1.5, 2000);
+    // scene.add(sunLight);
+    // const sunGeometry = new THREE.SphereGeometry(70, 32, 32);
+    // const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffddaa, map: createGlowTexture() });
+    // const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    // sun.position.set(-800, 200, 200);
+    // scene.add(sun);
 
 
     // Planet
@@ -55,11 +55,11 @@ const ThreeScene = () => {
 
 
     const galaxyParameters = {
-        count: 200000,
-        size: 2.0,
+        count: 3000000,
+        size: 0.5,
         radius: 600,
         branches: 5,
-        spin: 1.5,
+        spin: 1,
         randomness: 1.8,
         randomnessPower: 3,
         insideColor: '#ff6030',
@@ -96,7 +96,7 @@ const ThreeScene = () => {
     }
     nearStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(nearStarsVertices, 3));
     const nearStarsMaterial = new THREE.PointsMaterial({
-        size: 1.2,
+        size: 0.3,
         color: 0xffffff,
         transparent: true,
         opacity: 0.8,
@@ -180,7 +180,7 @@ const ThreeScene = () => {
     nebulaGeometry.setAttribute('color', new THREE.Float32BufferAttribute(nebulaColors, 3));
     
     const nebulaMaterial = new THREE.PointsMaterial({
-        size: 4.0,
+        size: 1.0,
         vertexColors: true,
         transparent: true,
         opacity: 0.15,
@@ -202,9 +202,9 @@ const ThreeScene = () => {
 
     const onScroll = () => {
         const t = document.body.getBoundingClientRect().top;
-        camera.position.z = 1000 + t * 0.5;
-        camera.position.y = t * 0.02;
-        camera.position.x = t * 0.01;
+        camera.position.z = 1000 + t * 0.35;
+        camera.position.y = t * 0.1;
+        camera.position.x = t * 0.05;
     };
     document.addEventListener('scroll', onScroll);
 

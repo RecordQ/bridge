@@ -36,7 +36,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company History Section */}
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Our Cosmic Journey</h2>
@@ -66,11 +66,11 @@ export default function AboutPage() {
       </section>
 
       {/* Mission, Vision, Values Section */}
-      <section className="py-16 md:py-24 bg-card/50">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
             {values.map((value) => (
-              <Card key={value.title} className="text-center bg-card/80 backdrop-blur-sm">
+              <Card key={value.title} className="text-center bg-card/50 backdrop-blur-sm border border-border/20">
                 <CardHeader>
                   <div className="mx-auto bg-accent/20 text-accent rounded-full w-16 h-16 flex items-center justify-center mb-4">
                     <value.icon className="w-8 h-8"/>

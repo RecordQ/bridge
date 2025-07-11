@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore";
+
 export type Product = {
     id: string;
     name: string;
@@ -7,6 +9,7 @@ export type Product = {
     image: string;
     description: string;
     features: string[];
+    createdAt?: Timestamp;
 };
 
 export type Submission = {

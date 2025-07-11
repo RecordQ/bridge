@@ -71,7 +71,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto grid md:grid-cols-2 gap-16">
           <div>
             <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
@@ -102,7 +102,7 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-          <Card className="bg-card/80 backdrop-blur-sm">
+          <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
             <CardHeader>
               <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
               <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>

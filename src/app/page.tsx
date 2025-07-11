@@ -2,33 +2,60 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Usb, Box, PenTool } from "lucide-react";
+import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
+import type { Product } from "@/lib/types";
 
-const products = [
-  {
-    name: "Custom USB Drives",
-    description: "High-speed, reliable USB drives available in various styles and capacities. Perfect for branding.",
-    icon: Usb,
-    image: "https://placehold.co/600x400.png",
-    aiHint: "custom usb"
-  },
-  {
-    name: "Branded Gift Boxes",
-    description: "Elegant gift boxes to present your items with a touch of class. Fully customizable designs.",
-    icon: Box,
-    image: "https://placehold.co/600x400.png",
-    aiHint: "gift box"
-  },
-  {
-    name: "Promotional Pens",
-    description: "Sleek and professional pens that make a statement. A classic promotional item.",
-    icon: PenTool,
-    image: "https://placehold.co/600x400.png",
-    aiHint: "promotional pen"
-  },
-];
+async function getTopProducts(): Promise<Product[]> {
+    try {
+        const productsCol = collection(db, 'products');
+        const q = query(productsCol, where('status', '==', 'Active'), orderBy('createdAt', 'desc'), limit(3));
+        const productSnapshot = await getDocs(q);
+        
+        if (productSnapshot.empty) {
+            return [];
+        }
+        
+        return productSnapshot.docs.map(doc => {
+            const data = doc.data();
+            const features = Array.isArray(data.features) ? data.features : [];
+            return {
+                id: doc.id,
+                name: data.name || '',
+                price: data.price || 0,
+                status: data.status || 'Archived',
+                priceUnit: data.priceUnit || '',
+                image: data.image || '',
+                description: data.description || '',
+                features: features,
+                createdAt: data.createdAt,
+            }
+        }) as Product[];
+    } catch (error) {
+        console.error("Error fetching top products:", error);
+        return [];
+    }
+}
 
-export default function Home() {
+const iconMap = {
+  default: Package,
+  usb: Usb,
+  box: Box,
+  pen: PenTool,
+};
+
+function getIconForProduct(name: string) {
+  const lowerCaseName = name.toLowerCase();
+  if (lowerCaseName.includes('usb')) return iconMap.usb;
+  if (lowerCaseName.includes('box')) return iconMap.box;
+  if (lowerCaseName.includes('pen')) return iconMap.pen;
+  return iconMap.default;
+}
+
+export default async function Home() {
+  const topProducts = await getTopProducts();
+
   return (
     <>
       {/* Hero Section */}
@@ -66,31 +93,44 @@ export default function Home() {
       {/* Products Section */}
       <section id="products" className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">Our Top Products</h2>
           <div className="grid md:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/80 backdrop-blur-sm">
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <product.icon className="w-8 h-8 text-accent" />
-                    <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video overflow-hidden rounded-md mb-4">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={600}
-                      height={400}
-                      data-ai-hint={product.aiHint}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <CardDescription>{product.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
+            {topProducts.map((product) => {
+              const Icon = getIconForProduct(product.name);
+              return (
+                <Card key={product.id} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      <Icon className="w-8 h-8 text-accent" />
+                      <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="aspect-video overflow-hidden rounded-md mb-4">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        width={600}
+                        height={400}
+                        data-ai-hint={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <CardDescription>{product.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
+          {topProducts.length > 0 && (
+            <div className="text-center mt-12">
+               <Button asChild size="lg" variant="outline">
+                <Link href="/products">
+                    Show More Products <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </section>
       

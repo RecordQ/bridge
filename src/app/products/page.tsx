@@ -8,24 +8,17 @@ import { CheckCircle2, Search, Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { Skeleton } from '@/components/ui/skeleton';
+import { Product } from '@/lib/types';
 
-type ProductTier = {
-    id: string;
-    name: string;
-    image: string;
-    aiHint: string;
-    description: string;
-    price: string;
-    priceUnit: string;
-    features: string[];
-};
 
-async function getProductTiers(): Promise<ProductTier[]> {
+async function getProductTiers(): Promise<Product[]> {
     try {
         const productsCol = collection(db, 'products');
-        const snapshot = await getDocs(productsCol);
+        const q = query(productsCol, where("status", "==", "Active"), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        
         if (snapshot.empty) {
             return [];
         }
@@ -35,43 +28,43 @@ async function getProductTiers(): Promise<ProductTier[]> {
                 id: doc.id,
                 name: data.name || 'Unnamed Product',
                 image: data.image || 'https://placehold.co/600x400.png',
-                aiHint: data.aiHint || 'product',
                 description: data.description || 'No description available.',
-                price: data.price ? `$${data.price}` : 'N/A',
+                price: data.price || 0,
                 priceUnit: data.priceUnit || '/ unit',
                 features: data.features || [],
+                status: data.status,
             }
         });
     } catch (error) {
-        console.error("Error fetching pricing tiers:", error);
+        console.error("Error fetching product tiers:", error);
         return [];
     }
 }
 
 function ProductSkeleton() {
     return (
-        <Card className="flex flex-col h-full">
+        <Card className="flex flex-col h-full bg-card/50 backdrop-blur-sm border border-border/20">
             <CardHeader>
-                <Skeleton className="aspect-video w-full mb-4 rounded-lg" />
-                <Skeleton className="h-8 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-10 w-1/2 mt-2" />
+                <Skeleton className="aspect-video w-full mb-4 rounded-lg bg-muted/50" />
+                <Skeleton className="h-8 w-3/4 mb-2 bg-muted/50" />
+                <Skeleton className="h-4 w-full bg-muted/50" />
+                <Skeleton className="h-10 w-1/2 mt-2 bg-muted/50" />
             </CardHeader>
             <CardContent className="flex-grow space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full bg-muted/50" />
+                <Skeleton className="h-4 w-5/6 bg-muted/50" />
+                <Skeleton className="h-4 w-full bg-muted/50" />
             </CardContent>
             <CardFooter>
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full bg-muted/50" />
             </CardFooter>
         </Card>
     )
 }
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<ProductTier[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<ProductTier[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -107,7 +100,7 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto">
             <div className="mb-12 max-w-lg mx-auto">
                  <div className="relative">
@@ -131,7 +124,7 @@ export default function ProductsPage() {
           ) : filteredProducts.length > 0 ? (
             <div className="grid lg:grid-cols-3 gap-8 items-start">
               {filteredProducts.map((tier) => (
-                <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300 bg-card/80 backdrop-blur-sm">
+                <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
                   <CardHeader>
                     <div className="aspect-video mb-4 overflow-hidden rounded-lg">
                       <Image
@@ -139,14 +132,14 @@ export default function ProductsPage() {
                         alt={tier.name}
                         width={600}
                         height={400}
-                        data-ai-hint={tier.aiHint}
+                        data-ai-hint={tier.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <CardTitle className="font-headline text-2xl">{tier.name}</CardTitle>
                     <CardDescription>{tier.description}</CardDescription>
                     <div>
-                      <span className="text-4xl font-bold">{tier.price}</span>
+                      <span className="text-4xl font-bold">${tier.price.toFixed(2)}</span>
                       <span className="text-muted-foreground">{tier.priceUnit}</span>
                     </div>
                   </CardHeader>
@@ -169,7 +162,7 @@ export default function ProductsPage() {
               ))}
             </div>
           ) : (
-             <Card className="text-center py-12 bg-card/80 backdrop-blur-sm">
+             <Card className="text-center py-12 bg-card/50 backdrop-blur-sm border border-border/20">
                 <CardHeader>
                     <div className="mx-auto bg-muted rounded-full w-24 h-24 flex items-center justify-center mb-4">
                         <Package className="w-12 h-12 text-muted-foreground" />
