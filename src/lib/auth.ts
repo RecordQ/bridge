@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
-import { createHmac, randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -23,16 +23,18 @@ export type LoginState = {
 
 async function createSession(username: string): Promise<string> {
     const sessionToken = randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
 
     await addDoc(collection(db, 'sessions'), {
         username,
         sessionToken,
         expires,
+        createdAt: serverTimestamp(),
     });
 
     return sessionToken;
 }
+
 
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
     const validatedFields = loginSchema.safeParse({
@@ -56,9 +58,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
         // Seed default admin if no users exist
         if (userSnapshot.empty) {
-            const salt = randomBytes(16).toString('hex');
-            const passwordHash = createHmac('sha512', salt).update('password').digest('hex');
-            await addDoc(usersCol, { username: 'admin', password: passwordHash, salt: salt });
+            const passwordHash = createHash('sha512').update('password').digest('hex');
+            await addDoc(usersCol, { username: 'admin', password: passwordHash });
         }
 
         const q = query(usersCol, where("username", "==", username));
@@ -70,12 +71,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
         const userDoc = querySnapshot.docs[0];
         const user = userDoc.data();
-        
-        if (!user.salt) {
-             return { status: "error", message: "Authentication failed. User data is missing security elements." };
-        }
 
-        const passwordHash = createHmac('sha512', user.salt).update(password).digest('hex');
+        const passwordHash = createHash('sha512').update(password).digest('hex');
         const passwordMatch = passwordHash === user.password;
 
         if (!passwordMatch) {
@@ -107,36 +104,12 @@ export async function logoutAction(sessionToken: string | null) {
         const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
         const querySnapshot = await getDocs(q);
         
-        for (const doc of querySnapshot.docs) {
-            await deleteDoc(doc.ref);
-        }
+        // Use Promise.all to delete all matching sessions concurrently
+        const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+
     } catch(error) {
         console.error("Error during logout:", error);
+        // We can choose to not throw an error to the client on logout failure
     }
-}
-
-// This function can be used to verify a token on the server if needed,
-// but it won't be used for middleware-based route protection anymore.
-export async function verifySession(sessionToken: string) {
-    if (!sessionToken) {
-        return null;
-    }
-    
-    const sessionsCol = collection(db, 'sessions');
-    const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-        return null;
-    }
-
-    const sessionDoc = querySnapshot.docs[0];
-    const session = sessionDoc.data();
-    
-    if (session.expires.toDate() < new Date()) {
-        await deleteDoc(sessionDoc.ref);
-        return null;
-    }
-
-    return session;
 }
