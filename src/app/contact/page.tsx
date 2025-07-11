@@ -3,9 +3,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useFormStatus } from "react-dom";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useEffect, useActionState, useState, Suspense } from "react";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
@@ -22,15 +19,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 
-const contactFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  product: z.string().min(1, { message: "Please select a product." }),
-  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
-});
-
-type ContactFormData = z.infer<typeof contactFormSchema>;
-
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
@@ -46,22 +34,13 @@ function ContactPageForm() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [selectedProductName, setSelectedProductName] = useState<string | undefined>(undefined);
 
   const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
     status: "idle",
   });
   
-  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<ContactFormData>({
-    resolver: zodResolver(contactFormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      product: "",
-      message: "",
-    }
-  });
-
   useEffect(() => {
     async function fetchAndSetProducts() {
       setLoadingProducts(true);
@@ -75,7 +54,7 @@ function ContactPageForm() {
         if (preselectedProductId) {
           const productToSelect = productList.find(p => p.id === preselectedProductId);
           if (productToSelect) {
-            setValue("product", productToSelect.name);
+            setSelectedProductName(productToSelect.name);
           }
         }
       } catch (error) {
@@ -85,8 +64,6 @@ function ContactPageForm() {
       }
     }
     fetchAndSetProducts();
-    // NOTE: `setValue` is stable and doesn't need to be in the dependency array.
-    // Including it can cause an infinite loop in some cases.
   }, [preselectedProductId]);
 
 
@@ -96,7 +73,9 @@ function ContactPageForm() {
         title: "Success!",
         description: state.message,
       });
-      reset();
+      // Simple reset by clearing key state
+      setSelectedProductName(undefined); 
+      // This will not clear input fields, need to handle that if required
     } else if (state.status === "error") {
       toast({
         title: "Error",
@@ -104,7 +83,10 @@ function ContactPageForm() {
         variant: "destructive",
       });
     }
-  }, [state, reset]);
+  }, [state]);
+
+  // This key forces the form to re-render when a submission is successful
+  const formKey = state.status === 'success' ? new Date().getTime() : 'contact-form';
 
   return (
       <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
@@ -113,49 +95,42 @@ function ContactPageForm() {
           <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form key={formKey} action={formAction} className="space-y-4">
             <div>
               <Label htmlFor="name">Name</Label>
-              <Input id="name" {...register("name")} placeholder="Your Name" />
-              {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
+              <Input id="name" name="name" placeholder="Your Name" required />
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} placeholder="your.email@example.com" />
-              {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
+              <Input id="email" type="email" name="email" placeholder="your.email@example.com" required/>
             </div>
             <div>
               <Label htmlFor="product">Product of Interest</Label>
                 {loadingProducts ? (
                     <Skeleton className="h-10 w-full" />
                 ) : (
-                <Controller
-                  control={control}
-                  name="product"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a product" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map(product => (
-                          <SelectItem key={product.id} value={product.name}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+                <Select name="product" defaultValue={selectedProductName} required>
+                    <SelectTrigger>
+                    <SelectValue placeholder="Select a product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    {products.map(product => (
+                        <SelectItem key={product.id} value={product.name}>
+                        {product.name}
+                        </SelectItem>
+                    ))}
+                    </SelectContent>
+                </Select>
                 )}
-                {errors.product && <p className="text-destructive text-sm mt-1">{errors.product.message}</p>}
             </div>
             <div>
               <Label htmlFor="message">Message</Label>
-              <Textarea id="message" {...register("message")} placeholder="How can we help you today?" rows={6} />
-              {errors.message && <p className="text-destructive text-sm mt-1">{errors.message.message}</p>}
+              <Textarea id="message" name="message" placeholder="How can we help you today?" rows={6} required minLength={10} />
             </div>
             <SubmitButton />
+             {state.status === 'error' && state.message && (
+                <p className="text-destructive text-sm mt-2">{state.message}</p>
+            )}
           </form>
         </CardContent>
       </Card>
