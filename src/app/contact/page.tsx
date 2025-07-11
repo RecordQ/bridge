@@ -3,7 +3,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useFormStatus } from "react-dom";
-import { useEffect, useActionState, useState, Suspense } from "react";
+import { useActionState, useEffect, Suspense, Key } from "react";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -31,40 +31,38 @@ function SubmitButton() {
 function ContactPageForm() {
   const searchParams = useSearchParams();
   const preselectedProductId = searchParams.get('productId');
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
-  const [selectedProductName, setSelectedProductName] = useState<string | undefined>(undefined);
-
   const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
     status: "idle",
   });
+   const [products, setProducts] = useState<Product[]>([]);
+   const [loadingProducts, setLoadingProducts] = useState(true);
+
+  // This key forces the form to re-render when a submission is successful
+  const formKey: Key = state.status === 'success' ? new Date().getTime() : 'contact-form';
   
   useEffect(() => {
-    async function fetchAndSetProducts() {
-      setLoadingProducts(true);
-      try {
-        const productsCol = collection(db, 'products');
-        const q = query(productsCol, where("status", "==", "Active"));
-        const snapshot = await getDocs(q);
-        const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-        setProducts(productList);
-
-        if (preselectedProductId) {
-          const productToSelect = productList.find(p => p.id === preselectedProductId);
-          if (productToSelect) {
-            setSelectedProductName(productToSelect.name);
-          }
+    async function fetchProducts() {
+        setLoadingProducts(true);
+        try {
+            const productsCol = collection(db, 'products');
+            const q = query(productsCol, where("status", "==", "Active"));
+            const snapshot = await getDocs(q);
+            const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            setProducts(productList);
+        } catch (error) {
+            console.error("Failed to fetch products for contact form:", error);
+            toast({
+                title: "Error",
+                description: "Could not load products. Please try again later.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoadingProducts(false);
         }
-      } catch (error) {
-        console.error("Failed to fetch products for contact form:", error);
-      } finally {
-        setLoadingProducts(false);
-      }
     }
-    fetchAndSetProducts();
-  }, [preselectedProductId]);
+    fetchProducts();
+  }, []);
 
 
   useEffect(() => {
@@ -73,9 +71,6 @@ function ContactPageForm() {
         title: "Success!",
         description: state.message,
       });
-      // Simple reset by clearing key state
-      setSelectedProductName(undefined); 
-      // This will not clear input fields, need to handle that if required
     } else if (state.status === "error") {
       toast({
         title: "Error",
@@ -85,8 +80,7 @@ function ContactPageForm() {
     }
   }, [state]);
 
-  // This key forces the form to re-render when a submission is successful
-  const formKey = state.status === 'success' ? new Date().getTime() : 'contact-form';
+  const preselectedProduct = products.find(p => p.id === preselectedProductId);
 
   return (
       <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
@@ -109,7 +103,7 @@ function ContactPageForm() {
                 {loadingProducts ? (
                     <Skeleton className="h-10 w-full" />
                 ) : (
-                <Select name="product" defaultValue={selectedProductName} required>
+                <Select name="product" defaultValue={preselectedProduct?.name} required>
                     <SelectTrigger>
                     <SelectValue placeholder="Select a product" />
                     </SelectTrigger>
