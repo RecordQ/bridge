@@ -85,7 +85,9 @@ function ContactPageForm() {
       }
     }
     fetchAndSetProducts();
-  }, [preselectedProductId, setValue]);
+    // NOTE: `setValue` is stable and doesn't need to be in the dependency array.
+    // Including it can cause an infinite loop in some cases.
+  }, [preselectedProductId]);
 
 
   useEffect(() => {
@@ -213,5 +215,3 @@ export default function ContactPage() {
         </div>
     )
 }
-
-    
