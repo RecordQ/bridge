@@ -11,15 +11,20 @@ import { LoaderCircle, LogIn } from "lucide-react";
 import { loginAction, type LoginState } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
 
-const SESSION_TOKEN_KEY = "app_session_token";
-
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(loginAction, {
     status: "idle",
     message: "",
   });
+
+  useEffect(() => {
+    // If user is already authenticated, redirect them away from login page
+    if (isAuthenticated) {
+        router.replace('/admin');
+    }
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
     if (state.status === "success" && state.sessionToken) {
@@ -27,8 +32,7 @@ export default function AdminLoginPage() {
         title: "Login Successful",
         description: "Redirecting to admin dashboard...",
       });
-      login(state.sessionToken); // Save token to context and local storage
-      router.push("/admin");
+      login(state.sessionToken); // This will save token and update context state
     } else if (state.status === "error") {
       toast({
         title: "Login Failed",
@@ -36,7 +40,7 @@ export default function AdminLoginPage() {
         variant: "destructive",
       });
     }
-  }, [state, router, login]);
+  }, [state, login]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -46,7 +50,7 @@ export default function AdminLoginPage() {
           <CardDescription>Enter your credentials to access the dashboard.
            <br/>
            <span className="text-xs text-muted-foreground">(Default: admin/password)</span>
-          </CardDescription>
+          </Description>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">

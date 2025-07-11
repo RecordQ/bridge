@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/lib/auth";
-import { LoaderCircle } from "lucide-react";
 
 const SESSION_TOKEN_KEY = "app_session_token";
 
@@ -29,20 +28,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem(SESSION_TOKEN_KEY);
-    if (token) {
-      // In a real app, you'd also verify the token with the server here.
-      // For this implementation, we trust the token's existence.
-      setIsAuthenticated(true);
+    try {
+      const token = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (token) {
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error("Could not access local storage:", error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const login = (token: string) => {
+  const login = useCallback((token: string) => {
     localStorage.setItem(SESSION_TOKEN_KEY, token);
     setIsAuthenticated(true);
     router.push("/admin");
-  };
+  }, [router]);
 
   const logout = useCallback(async () => {
     const token = localStorage.getItem(SESSION_TOKEN_KEY);
@@ -53,15 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     router.push("/admin/login");
   }, [router]);
-
-  // If loading, show a full-screen spinner
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <LoaderCircle className="h-10 w-10 animate-spin" />
-      </div>
-    );
-  }
 
   const value = {
     isAuthenticated,
