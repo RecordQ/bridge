@@ -98,7 +98,7 @@ export default async function Home() {
             {topProducts.map((product) => {
               const Icon = getIconForProduct(product.name);
               return (
-                <Link key={product.id} href={`/contact?product=${encodeURIComponent(product.name)}`} className="block group">
+                <Link key={product.id} href={`/contact?productId=${product.id}`} className="block group">
                   <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
                     <CardHeader>
                       <div className="flex items-center gap-4">
@@ -113,7 +113,6 @@ export default async function Home() {
                           alt={product.name}
                           width={600}
                           height={400}
-                          data-ai-hint={product.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>

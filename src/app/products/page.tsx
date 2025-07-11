@@ -132,7 +132,6 @@ export default function ProductsPage() {
                         alt={tier.name}
                         width={600}
                         height={400}
-                        data-ai-hint={tier.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -155,7 +154,7 @@ export default function ProductsPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Link href={`/contact?product=${encodeURIComponent(tier.name)}`}>Get a Quote</Link>
+                      <Link href={`/contact?productId=${tier.id}`}>Get a Quote</Link>
                     </Button>
                   </CardFooter>
                 </Card>

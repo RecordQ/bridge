@@ -40,9 +40,9 @@ function SubmitButton() {
   );
 }
 
-function ContactPageContent() {
+function ContactPageForm() {
   const searchParams = useSearchParams();
-  const preselectedProduct = searchParams.get('product');
+  const preselectedProductId = searchParams.get('productId');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -57,7 +57,7 @@ function ContactPageContent() {
     defaultValues: {
       name: "",
       email: "",
-      product: preselectedProduct || "",
+      product: "",
       message: "",
     }
   });
@@ -81,10 +81,13 @@ function ContactPageContent() {
   }, []);
 
   useEffect(() => {
-    if (preselectedProduct) {
-      setValue("product", preselectedProduct);
+    if (preselectedProductId && products.length > 0) {
+        const productToSelect = products.find(p => p.id === preselectedProductId);
+        if (productToSelect) {
+            setValue("product", productToSelect.name);
+        }
     }
-  }, [preselectedProduct, setValue]);
+  }, [preselectedProductId, products, setValue]);
 
 
   useEffect(() => {
@@ -104,111 +107,111 @@ function ContactPageContent() {
   }, [state, reset]);
 
   return (
-    <div className="bg-transparent">
-      <section 
-        className="relative py-24 md:py-40"
-      >
-        <div className="container mx-auto text-center relative z-10">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
-          <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-            Have a question or a project in mind? We'd love to hear from you.
-          </p>
-        </div>
-      </section>
-
-      <section className="py-16 md:py-24 bg-transparent">
-        <div className="container mx-auto grid md:grid-cols-2 gap-16">
-          <div>
-            <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
-            <p className="text-muted-foreground mb-8">
-              Reach out to us directly through any of the channels below. We're ready to assist you.
-            </p>
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <Mail className="w-6 h-6 text-accent" />
-                <div>
-                  <h3 className="font-semibold">Email</h3>
-                  <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Phone className="w-6 h-6 text-accent" />
-                <div>
-                  <h3 className="font-semibold">Phone</h3>
-                  <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <MapPin className="w-6 h-6 text-accent" />
-                <div>
-                  <h3 className="font-semibold">Office</h3>
-                  <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
-                </div>
-              </div>
+      <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
+          <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" {...register("name")} placeholder="Your Name" />
+              {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
             </div>
-          </div>
-          <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
-              <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form action={formAction} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" {...register("name")} placeholder="Your Name" />
-                  {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" {...register("email")} placeholder="your.email@example.com" />
-                  {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="product">Product of Interest</Label>
-                    {loadingProducts ? (
-                        <Skeleton className="h-10 w-full" />
-                    ) : (
-                    <Controller
-                      control={control}
-                      name="product"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a product" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {products.map(product => (
-                              <SelectItem key={product.id} value={product.name}>
-                                {product.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    )}
-                    {errors.product && <p className="text-destructive text-sm mt-1">{errors.product.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" {...register("message")} placeholder="How can we help you today?" rows={6} />
-                  {errors.message && <p className="text-destructive text-sm mt-1">{errors.message.message}</p>}
-                </div>
-                <SubmitButton />
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </div>
-  );
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" {...register("email")} placeholder="your.email@example.com" />
+              {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="product">Product of Interest</Label>
+                {loadingProducts ? (
+                    <Skeleton className="h-10 w-full" />
+                ) : (
+                <Controller
+                  control={control}
+                  name="product"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map(product => (
+                          <SelectItem key={product.id} value={product.name}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                )}
+                {errors.product && <p className="text-destructive text-sm mt-1">{errors.product.message}</p>}
+            </div>
+            <div>
+              <Label htmlFor="message">Message</Label>
+              <Textarea id="message" {...register("message")} placeholder="How can we help you today?" rows={6} />
+              {errors.message && <p className="text-destructive text-sm mt-1">{errors.message.message}</p>}
+            </div>
+            <SubmitButton />
+          </form>
+        </CardContent>
+      </Card>
+  )
 }
 
 export default function ContactPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ContactPageContent />
-        </Suspense>
+        <div className="bg-transparent">
+        <section 
+            className="relative py-24 md:py-40"
+        >
+            <div className="container mx-auto text-center relative z-10">
+            <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
+            <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+                Have a question or a project in mind? We'd love to hear from you.
+            </p>
+            </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-transparent">
+            <div className="container mx-auto grid md:grid-cols-2 gap-16">
+            <div>
+                <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
+                <p className="text-muted-foreground mb-8">
+                Reach out to us directly through any of the channels below. We're ready to assist you.
+                </p>
+                <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <Mail className="w-6 h-6 text-accent" />
+                    <div>
+                    <h3 className="font-semibold">Email</h3>
+                    <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Phone className="w-6 h-6 text-accent" />
+                    <div>
+                    <h3 className="font-semibold">Phone</h3>
+                    <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <MapPin className="w-6 h-6 text-accent" />
+                    <div>
+                    <h3 className="font-semibold">Office</h3>
+                    <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
+                <ContactPageForm />
+            </Suspense>
+            </div>
+        </section>
+        </div>
     )
 }
