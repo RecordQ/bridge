@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { login, isAuthenticated } = useAuth();
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(loginAction, {
     status: "idle",
@@ -40,7 +41,7 @@ export default function AdminLoginPage() {
         variant: "destructive",
       });
     }
-  }, [state, login]);
+  }, [state, login, toast]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
