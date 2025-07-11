@@ -53,6 +53,7 @@ async function getSubmissions(): Promise<Submission[]> {
                 id: doc.id,
                 name: data.name,
                 email: data.email,
+                product: data.product,
                 message: data.message,
                 date: createdAt.toLocaleDateString(),
                 status: data.status,
@@ -149,6 +150,7 @@ export default async function AdminDashboardPage() {
                                     <TableRow>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Email</TableHead>
+                                        <TableHead>Product</TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -159,6 +161,7 @@ export default async function AdminDashboardPage() {
                                         <TableRow key={submission.id}>
                                             <TableCell>{submission.name}</TableCell>
                                             <TableCell>{submission.email}</TableCell>
+                                            <TableCell>{submission.product}</TableCell>
                                             <TableCell>{submission.date}</TableCell>
                                             <TableCell>
                                                 <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
@@ -171,7 +174,7 @@ export default async function AdminDashboardPage() {
                                         </TableRow>
                                     )) : (
                                         <TableRow>
-                                            <TableCell colSpan={5} className="text-center">No submissions yet.</TableCell>
+                                            <TableCell colSpan={6} className="text-center">No submissions yet.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>

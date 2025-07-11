@@ -16,6 +16,7 @@ export type Submission = {
     id: string;
     name: string;
     email: string;
+    product: string;
     message: string;
     date: string;
     status: 'New' | 'Contacted';

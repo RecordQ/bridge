@@ -1,11 +1,16 @@
+// src/app/contact/page.tsx
 "use client";
 
+import { useSearchParams } from 'next/navigation';
 import { useFormStatus } from "react-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect, useActionState } from "react";
+import { useEffect, useActionState, useState, Suspense } from "react";
 import { toast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import type { Product } from '@/lib/types';
 
 import { submitContactForm, type ContactFormState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
@@ -13,11 +18,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
+import { Skeleton } from '@/components/ui/skeleton';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+  product: z.string().min(1, { message: "Please select a product." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -32,15 +40,52 @@ function SubmitButton() {
   );
 }
 
-export default function ContactPage() {
+function ContactPageContent() {
+  const searchParams = useSearchParams();
+  const preselectedProduct = searchParams.get('product');
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
   const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
     status: "idle",
   });
   
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ContactFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, control, setValue } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      product: preselectedProduct || "",
+      message: "",
+    }
   });
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoadingProducts(true);
+      try {
+        const productsCol = collection(db, 'products');
+        const q = query(productsCol, where("status", "==", "Active"));
+        const snapshot = await getDocs(q);
+        const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        setProducts(productList);
+      } catch (error) {
+        console.error("Failed to fetch products for contact form:", error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (preselectedProduct) {
+      setValue("product", preselectedProduct);
+    }
+  }, [preselectedProduct, setValue]);
+
 
   useEffect(() => {
     if (state.status === "success") {
@@ -120,6 +165,32 @@ export default function ContactPage() {
                   {errors.email && <p className="text-destructive text-sm mt-1">{errors.email.message}</p>}
                 </div>
                 <div>
+                  <Label htmlFor="product">Product of Interest</Label>
+                    {loadingProducts ? (
+                        <Skeleton className="h-10 w-full" />
+                    ) : (
+                    <Controller
+                      control={control}
+                      name="product"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a product" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {products.map(product => (
+                              <SelectItem key={product.id} value={product.name}>
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    )}
+                    {errors.product && <p className="text-destructive text-sm mt-1">{errors.product.message}</p>}
+                </div>
+                <div>
                   <Label htmlFor="message">Message</Label>
                   <Textarea id="message" {...register("message")} placeholder="How can we help you today?" rows={6} />
                   {errors.message && <p className="text-destructive text-sm mt-1">{errors.message.message}</p>}
@@ -132,4 +203,12 @@ export default function ContactPage() {
       </section>
     </div>
   );
+}
+
+export default function ContactPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ContactPageContent />
+        </Suspense>
+    )
 }

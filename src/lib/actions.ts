@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
+  product: z.string().min(1, "Please select a product."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
 
@@ -27,6 +28,7 @@ export async function submitContactForm(
   const validatedFields = contactFormSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
+    product: formData.get("product"),
     message: formData.get("message"),
   });
 
@@ -122,7 +124,7 @@ export async function addProductAction(prevState: ProductActionState, formData: 
         });
 
         revalidatePath('/admin');
-        revalidatePath('/pricing');
+        revalidatePath('/products');
 
     } catch (error) {
         console.error("Error adding product: ", error);
@@ -167,7 +169,7 @@ export async function editProductAction(productId: string, prevState: ProductAct
         await updateDoc(productRef, validatedFields.data);
 
         revalidatePath('/admin');
-        revalidatePath('/pricing');
+        revalidatePath('/products');
         
         return {
             status: 'success',
@@ -188,7 +190,7 @@ export async function deleteProductAction(productId: string) {
     try {
         await deleteDoc(doc(db, "products", productId));
         revalidatePath('/admin');
-        revalidatePath('/pricing');
+        revalidatePath('/products');
         return { status: "success", message: "Product deleted successfully." };
     } catch (error) {
         console.error("Error deleting product:", error);

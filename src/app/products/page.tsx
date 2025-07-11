@@ -155,7 +155,7 @@ export default function ProductsPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Link href="/contact">Get a Quote</Link>
+                      <Link href={`/contact?product=${encodeURIComponent(tier.name)}`}>Get a Quote</Link>
                     </Button>
                   </CardFooter>
                 </Card>
