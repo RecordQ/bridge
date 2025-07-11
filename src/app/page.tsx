@@ -71,14 +71,14 @@ export default function Home() {
       <section 
         className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
       >
-        <div className="container mx-auto text-center relative z-10 p-4">
+        <div className="container mx-auto text-center relative z-10 px-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
             Customize Your Universe
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
             Bridge Ltd offers premium, customizable products to help your brand shine. From tech gadgets to elegant gift solutions, we bring your vision to life.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
               <Link href="/products">Explore Products</Link>
             </Button>
@@ -123,6 +123,7 @@ export default function Home() {
                           width={600}
                           height={400}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          data-ai-hint="custom product"
                         />
                       </div>
                       <CardDescription>{product.description}</CardDescription>
