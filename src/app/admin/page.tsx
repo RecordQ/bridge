@@ -3,19 +3,14 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, PlusCircle, FileText, MoreVertical } from "lucide-react";
+import { PlusCircle, FileText, MoreVertical } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteProductDialog, EditProductDialog } from "@/components/admin/ProductActions";
+import LogoutButton from "@/components/admin/LogoutButton";
+import { Product } from "@/lib/types";
 
-type Product = {
-    id: string;
-    name: string;
-    stock: number;
-    price: number;
-    status: 'Active' | 'Archived';
-};
 
 type Submission = {
     id: string;
@@ -32,7 +27,21 @@ async function getProducts(): Promise<Product[]> {
         if (productSnapshot.empty) {
             return [];
         }
-        return productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return productSnapshot.docs.map(doc => {
+            const data = doc.data();
+            const features = Array.isArray(data.features) ? data.features : [];
+            return { 
+                id: doc.id,
+                name: data.name || '',
+                stock: data.stock || 0,
+                price: data.price || 0,
+                status: data.status || 'Archived',
+                priceUnit: data.priceUnit || '',
+                image: data.image || '',
+                description: data.description || '',
+                features: features,
+            }
+        });
     } catch (error) {
         console.error("Error fetching products:", error);
         return [];
@@ -74,11 +83,7 @@ export default async function AdminDashboardPage() {
                         <h1 className="font-headline text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
                         <p className="text-muted-foreground">Manage your site content and settings here.</p>
                     </div>
-                     <Button asChild variant="outline">
-                        <Link href="/admin/login">
-                            <LogOut className="mr-2" /> Log Out
-                        </Link>
-                    </Button>
+                     <LogoutButton />
                 </div>
 
                 <div className="grid gap-8">

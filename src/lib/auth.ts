@@ -4,6 +4,10 @@ import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { createHmac, randomBytes } from "crypto";
+import { cookies } from "next/headers";
+import { redirect } from 'next/navigation';
+
+const SESSION_COOKIE_NAME = "app_session";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -18,6 +22,24 @@ export type LoginState = {
         password?: string[];
     }
 };
+
+async function createSession(username: string) {
+    const sessionToken = randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await addDoc(collection(db, 'sessions'), {
+        username,
+        sessionToken,
+        expires,
+    });
+
+    cookies().set(SESSION_COOKIE_NAME, sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires,
+        path: '/',
+    });
+}
 
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
     const validatedFields = loginSchema.safeParse({
@@ -37,11 +59,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
     
     try {
         const usersCol = collection(db, 'users');
-
-        // For convenience in this prototype, we will seed a default admin user 
-        // if the 'users' collection is empty. In a real application, you would
-        // have a secure way to provision admin users.
         const userSnapshot = await getDocs(usersCol);
+
         if (userSnapshot.empty) {
             console.log("No users found. Seeding default admin user.");
             const salt = randomBytes(16).toString('hex');
@@ -59,7 +78,6 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const userDoc = querySnapshot.docs[0];
         const user = userDoc.data();
         
-        // Ensure user document has a salt, otherwise authentication cannot proceed
         if (!user.salt) {
              return { status: "error", message: "Authentication failed. User data is missing security elements." };
         }
@@ -71,12 +89,56 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             return { status: "error", message: "Invalid username or password." };
         }
         
-        // In a real app, you would create a session here (e.g., using JWTs or a session cookie)
-        // and protect the /admin route with middleware.
-        return { status: "success", message: "Login successful!" };
+        await createSession(username);
 
     } catch (error) {
         console.error("Authentication error:", error);
         return { status: "error", message: "An unexpected error occurred. Please try again." };
     }
+    
+    redirect("/admin");
+}
+
+export async function logoutAction() {
+    const sessionToken = cookies().get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionToken) {
+        return;
+    }
+
+    // Delete session from DB
+    const sessionsCol = collection(db, 'sessions');
+    const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
+    const querySnapshot = await getDocs(q);
+    
+    for (const doc of querySnapshot.docs) {
+        await deleteDoc(doc.ref);
+    }
+    
+    // Clear cookie
+    cookies().set(SESSION_COOKIE_NAME, "", { expires: new Date(0) });
+}
+
+export async function getSession() {
+    const sessionToken = cookies().get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionToken) {
+        return null;
+    }
+    
+    const sessionsCol = collection(db, 'sessions');
+    const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        return null;
+    }
+
+    const sessionDoc = querySnapshot.docs[0];
+    const session = sessionDoc.data();
+    
+    if (session.expires.toDate() < new Date()) {
+        await deleteDoc(sessionDoc.ref);
+        return null;
+    }
+
+    return session;
 }

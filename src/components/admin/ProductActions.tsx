@@ -13,19 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { LoaderCircle, Trash, Edit } from "lucide-react";
-import type { AddProductState } from "@/app/admin/add-product/page"; // Re-using state type for consistency
-
-type Product = {
-    id: string;
-    name: string;
-    stock: number;
-    price: number;
-    priceUnit: string;
-    status: 'Active' | 'Archived';
-    image: string;
-    description: string;
-    features: string[];
-};
+import { type Product } from "@/lib/types";
 
 function SubmitButton({ text, pendingText }: { text: string, pendingText: string }) {
     const { pending } = useFormStatus();
