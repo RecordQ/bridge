@@ -18,7 +18,6 @@ type Product = {
   name: string;
   description: string;
   price: number;
-  stock: number;
 };
 
 // Helper function to fetch products from Firestore
@@ -35,7 +34,6 @@ async function getProducts(): Promise<Product[]> {
                 name: data.name,
                 description: data.description,
                 price: data.price,
-                stock: data.stock,
             };
         }) as Product[];
     } catch (error) {
@@ -78,7 +76,7 @@ const prompt = ai.definePrompt({
   - We pride ourselves on high-quality products and excellent customer service.
   - Our products are perfect for corporate gifts, promotional items, and personal use.
 
-  Here is the list of available products in JSON format. Use this as the primary source of truth for product information, including stock levels and pricing.
+  Here is the list of available products in JSON format. Use this as the primary source of truth for product information, including pricing.
   {{{products}}}
 
   {{#if chatHistory}}

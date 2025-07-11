@@ -59,12 +59,23 @@ export async function submitContactForm(
   }
 }
 
+export async function updateSubmissionStatusAction(submissionId: string, status: 'New' | 'Contacted') {
+    try {
+        const submissionRef = doc(db, 'submissions', submissionId);
+        await updateDoc(submissionRef, { status });
+        revalidatePath('/admin');
+        return { status: "success", message: "Submission status updated." };
+    } catch (error) {
+        console.error("Error updating submission:", error);
+        return { status: "error", message: "Failed to update submission." };
+    }
+}
+
 
 // ========= PRODUCT ACTIONS =========
 
 const productSchema = z.object({
     name: z.string().min(3, "Product name must be at least 3 characters."),
-    stock: z.coerce.number().int().min(0, "Stock must be a positive number."),
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
     priceUnit: z.string().min(1, "Price unit is required."),
     status: z.enum(['Active', 'Archived']),
@@ -82,7 +93,6 @@ type ProductActionState = {
 export async function addProductAction(prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
     const validatedFields = productSchema.safeParse({
         name: formData.get("name"),
-        stock: formData.get("stock"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
@@ -130,7 +140,6 @@ export async function addProductAction(prevState: ProductActionState, formData: 
 export async function editProductAction(productId: string, prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
     const validatedFields = productSchema.safeParse({
         name: formData.get("name"),
-        stock: formData.get("stock"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),

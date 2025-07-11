@@ -73,11 +73,6 @@ export function EditProductDialog({ product }: { product: Product }) {
                         {state.errors?.name && <p className="text-sm text-destructive mt-1">{state.errors.name}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="stock">Stock Quantity</Label>
-                        <Input id="stock" name="stock" type="number" defaultValue={product.stock} disabled={isPending} />
-                        {state.errors?.stock && <p className="text-sm text-destructive mt-1">{state.errors.stock}</p>}
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="price">Price</Label>
                         <Input id="price" name="price" type="number" step="0.01" defaultValue={product.price} disabled={isPending} />
                         {state.errors?.price && <p className="text-sm text-destructive mt-1">{state.errors.price}</p>}
@@ -100,7 +95,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                         </Select>
                         {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
                     </div>
-                    <div className="space-y-2">
+                    <div className="md:col-span-2 space-y-2">
                         <Label htmlFor="image">Image URL</Label>
                         <Input id="image" name="image" defaultValue={product.image} disabled={isPending} />
                         {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
