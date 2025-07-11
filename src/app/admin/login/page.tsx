@@ -21,19 +21,18 @@ export default function AdminLoginPage() {
   });
 
   useEffect(() => {
-    // If user is already authenticated, redirect them away from login page
     if (isAuthenticated) {
         router.replace('/admin');
     }
   }, [isAuthenticated, router]);
 
   useEffect(() => {
-    if (state.status === "success" && state.sessionToken) {
+    if (state.status === "success" && state.username && state.passwordHash) {
       toast({
         title: "Login Successful",
         description: "Redirecting to admin dashboard...",
       });
-      login(state.sessionToken); // This will save token and update context state
+      login(state.username, state.passwordHash); 
     } else if (state.status === "error") {
       toast({
         title: "Login Failed",
@@ -41,7 +40,7 @@ export default function AdminLoginPage() {
         variant: "destructive",
       });
     }
-  }, [state, login, toast]);
+  }, [state, login, toast, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

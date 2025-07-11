@@ -9,14 +9,14 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
-import { logoutAction } from "@/lib/auth";
 
-const SESSION_TOKEN_KEY = "app_session_token";
+const USERNAME_KEY = "app_username";
+const PASSWORD_HASH_KEY = "app_password_hash";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (token: string) => void;
+  login: (username: string, passwordHash: string) => void;
   logout: () => void;
 }
 
@@ -29,8 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const token = localStorage.getItem(SESSION_TOKEN_KEY);
-      if (token) {
+      const username = localStorage.getItem(USERNAME_KEY);
+      const hash = localStorage.getItem(PASSWORD_HASH_KEY);
+      if (username && hash) {
         setIsAuthenticated(true);
       }
     } catch (error) {
@@ -40,18 +41,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback((token: string) => {
-    localStorage.setItem(SESSION_TOKEN_KEY, token);
+  const login = useCallback((username: string, passwordHash: string) => {
+    localStorage.setItem(USERNAME_KEY, username);
+    localStorage.setItem(PASSWORD_HASH_KEY, passwordHash);
     setIsAuthenticated(true);
     router.push("/admin");
   }, [router]);
 
   const logout = useCallback(async () => {
-    const token = localStorage.getItem(SESSION_TOKEN_KEY);
-    if (token) {
-      await logoutAction(token);
-    }
-    localStorage.removeItem(SESSION_TOKEN_KEY);
+    localStorage.removeItem(USERNAME_KEY);
+    localStorage.removeItem(PASSWORD_HASH_KEY);
     setIsAuthenticated(false);
     router.push("/admin/login");
   }, [router]);
