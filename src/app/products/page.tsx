@@ -1,12 +1,17 @@
+"use client";
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CheckCircle2, Search, Package } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { Skeleton } from '@/components/ui/skeleton';
 
-type PricingTier = {
+type ProductTier = {
     id: string;
     name: string;
     image: string;
@@ -17,8 +22,7 @@ type PricingTier = {
     features: string[];
 };
 
-
-async function getPricingTiers(): Promise<PricingTier[]> {
+async function getProductTiers(): Promise<ProductTier[]> {
     try {
         const productsCol = collection(db, 'products');
         const snapshot = await getDocs(productsCol);
@@ -44,9 +48,51 @@ async function getPricingTiers(): Promise<PricingTier[]> {
     }
 }
 
+function ProductSkeleton() {
+    return (
+        <Card className="flex flex-col h-full">
+            <CardHeader>
+                <Skeleton className="aspect-video w-full mb-4 rounded-lg" />
+                <Skeleton className="h-8 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-10 w-1/2 mt-2" />
+            </CardHeader>
+            <CardContent className="flex-grow space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-full" />
+            </CardContent>
+            <CardFooter>
+                <Skeleton className="h-10 w-full" />
+            </CardFooter>
+        </Card>
+    )
+}
 
-export default async function PricingPage() {
-  const pricingTiers = await getPricingTiers();
+export default function ProductsPage() {
+  const [products, setProducts] = useState<ProductTier[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductTier[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      const data = await getProductTiers();
+      setProducts(data);
+      setFilteredProducts(data);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const results = products.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredProducts(results);
+  }, [searchTerm, products]);
 
   return (
     <div className="bg-transparent">
@@ -54,7 +100,7 @@ export default async function PricingPage() {
         className="relative py-24 md:py-40"
       >
         <div className="container mx-auto text-center relative z-10">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Transparent Pricing</h1>
+          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Our Products</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
             Find the perfect customizable products for your budget. No hidden fees, just stellar value.
           </p>
@@ -63,9 +109,28 @@ export default async function PricingPage() {
 
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto">
-          {pricingTiers.length > 0 ? (
+            <div className="mb-12 max-w-lg mx-auto">
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Search for products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10"
+                    />
+                 </div>
+            </div>
+            
+          {loading ? (
+             <div className="grid lg:grid-cols-3 gap-8 items-start">
+                 <ProductSkeleton />
+                 <ProductSkeleton />
+                 <ProductSkeleton />
+             </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid lg:grid-cols-3 gap-8 items-start">
-              {pricingTiers.map((tier) => (
+              {filteredProducts.map((tier) => (
                 <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300 bg-card/80 backdrop-blur-sm">
                   <CardHeader>
                     <div className="aspect-video mb-4 overflow-hidden rounded-lg">
@@ -105,15 +170,23 @@ export default async function PricingPage() {
             </div>
           ) : (
              <Card className="text-center py-12 bg-card/80 backdrop-blur-sm">
+                <CardHeader>
+                    <div className="mx-auto bg-muted rounded-full w-24 h-24 flex items-center justify-center mb-4">
+                        <Package className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                    <CardTitle className="font-headline text-3xl font-bold">No Products Found</CardTitle>
+                </CardHeader>
                 <CardContent>
-                    <h2 className="font-headline text-3xl font-bold">No Pricing Information Available</h2>
-                    <p className="text-muted-foreground mt-4">Products haven't been added to the database yet.
-                    <br/>
-                    Please log in to the admin panel to add products.
+                    <p className="text-muted-foreground mt-2">
+                        Your search for "{searchTerm}" did not match any products.
+                        <br/>
+                        Try a different keyword or browse all products.
                     </p>
-                    <Button asChild variant="outline" className="mt-6">
-                        <Link href="/admin/login">Go to Admin Login</Link>
-                    </Button>
+                    {searchTerm && (
+                        <Button variant="outline" className="mt-6" onClick={() => setSearchTerm("")}>
+                            Clear Search
+                        </Button>
+                    )}
                 </CardContent>
             </Card>
           )}

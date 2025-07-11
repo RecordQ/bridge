@@ -33,7 +33,7 @@ export default function Home() {
     <>
       {/* Hero Section */}
       <section 
-        className="relative py-32 md:py-48 flex items-center justify-center"
+        className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
       >
         <div className="container mx-auto text-center relative z-10 p-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
@@ -44,7 +44,7 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/#products">Explore Products</Link>
+              <Link href="/products">Explore Products</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/contact">Request a Quote</Link>
@@ -54,7 +54,7 @@ export default function Home() {
       </section>
 
       {/* Introduction Section */}
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Quality That Speaks Volumes</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
@@ -64,12 +64,8 @@ export default function Home() {
       </section>
 
       {/* Products Section */}
-      <section id="products" className="py-16 md:py-24 bg-card/50">
+      <section id="products" className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold">Our Core Offerings</h2>
-            <p className="max-w-2xl mx-auto text-muted-foreground mt-2">Discover our range of customizable products designed to elevate your brand.</p>
-          </div>
           <div className="grid md:grid-cols-3 gap-8">
             {products.map((product) => (
               <Card key={product.name} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/80 backdrop-blur-sm">
@@ -99,7 +95,7 @@ export default function Home() {
       </section>
       
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-background">
+      <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto text-center">
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Ready to Create Something Amazing?</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
