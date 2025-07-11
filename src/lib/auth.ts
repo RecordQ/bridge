@@ -2,28 +2,26 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { createHmac, randomBytes } from "crypto";
-import { cookies } from "next/headers";
-import { redirect } from 'next/navigation';
-
-const SESSION_COOKIE_NAME = "app_session";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
+// The state now returns an optional session token on success
 export type LoginState = {
     status: "success" | "error" | "idle";
     message: string;
+    sessionToken?: string;
     errors?: {
         username?: string[];
         password?: string[];
     }
 };
 
-async function createSession(username: string) {
+async function createSession(username: string): Promise<string> {
     const sessionToken = randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
@@ -33,12 +31,7 @@ async function createSession(username: string) {
         expires,
     });
 
-    cookies().set(SESSION_COOKIE_NAME, sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires,
-        path: '/',
-    });
+    return sessionToken;
 }
 
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
@@ -61,8 +54,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const usersCol = collection(db, 'users');
         const userSnapshot = await getDocs(usersCol);
 
+        // Seed default admin if no users exist
         if (userSnapshot.empty) {
-            console.log("No users found. Seeding default admin user.");
             const salt = randomBytes(16).toString('hex');
             const passwordHash = createHmac('sha512', salt).update('password').digest('hex');
             await addDoc(usersCol, { username: 'admin', password: passwordHash, salt: salt });
@@ -89,37 +82,42 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             return { status: "error", message: "Invalid username or password." };
         }
         
-        await createSession(username);
+        // On successful login, create a session and return the token
+        const sessionToken = await createSession(username);
+
+        return {
+            status: "success",
+            message: "Login Successful",
+            sessionToken: sessionToken,
+        };
 
     } catch (error) {
         console.error("Authentication error:", error);
         return { status: "error", message: "An unexpected error occurred. Please try again." };
     }
-    
-    redirect("/admin");
 }
 
-export async function logoutAction() {
-    const sessionToken = cookies().get(SESSION_COOKIE_NAME)?.value;
+export async function logoutAction(sessionToken: string | null) {
     if (!sessionToken) {
         return;
     }
 
-    // Delete session from DB
-    const sessionsCol = collection(db, 'sessions');
-    const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
-    const querySnapshot = await getDocs(q);
-    
-    for (const doc of querySnapshot.docs) {
-        await deleteDoc(doc.ref);
+    try {
+        const sessionsCol = collection(db, 'sessions');
+        const q = query(sessionsCol, where("sessionToken", "==", sessionToken));
+        const querySnapshot = await getDocs(q);
+        
+        for (const doc of querySnapshot.docs) {
+            await deleteDoc(doc.ref);
+        }
+    } catch(error) {
+        console.error("Error during logout:", error);
     }
-    
-    // Clear cookie
-    cookies().set(SESSION_COOKIE_NAME, "", { expires: new Date(0) });
 }
 
-export async function getSession() {
-    const sessionToken = cookies().get(SESSION_COOKIE_NAME)?.value;
+// This function can be used to verify a token on the server if needed,
+// but it won't be used for middleware-based route protection anymore.
+export async function verifySession(sessionToken: string) {
     if (!sessionToken) {
         return null;
     }

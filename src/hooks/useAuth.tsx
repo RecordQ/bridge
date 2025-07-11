@@ -1,0 +1,82 @@
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+  useCallback,
+} from "react";
+import { useRouter } from "next/navigation";
+import { logoutAction } from "@/lib/auth";
+import { LoaderCircle } from "lucide-react";
+
+const SESSION_TOKEN_KEY = "app_session_token";
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (token: string) => void;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem(SESSION_TOKEN_KEY);
+    if (token) {
+      // In a real app, you'd also verify the token with the server here.
+      // For this implementation, we trust the token's existence.
+      setIsAuthenticated(true);
+    }
+    setIsLoading(false);
+  }, []);
+
+  const login = (token: string) => {
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
+    setIsAuthenticated(true);
+    router.push("/admin");
+  };
+
+  const logout = useCallback(async () => {
+    const token = localStorage.getItem(SESSION_TOKEN_KEY);
+    if (token) {
+      await logoutAction(token);
+    }
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+    setIsAuthenticated(false);
+    router.push("/admin/login");
+  }, [router]);
+
+  // If loading, show a full-screen spinner
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <LoaderCircle className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  const value = {
+    isAuthenticated,
+    isLoading,
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

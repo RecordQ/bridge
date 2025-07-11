@@ -2,27 +2,32 @@
 
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoaderCircle, LogIn } from "lucide-react";
 import { loginAction, type LoginState } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
+
+const SESSION_TOKEN_KEY = "app_session_token";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(loginAction, {
     status: "idle",
     message: "",
   });
 
   useEffect(() => {
-    if (state.status === "success") {
+    if (state.status === "success" && state.sessionToken) {
       toast({
         title: "Login Successful",
         description: "Redirecting to admin dashboard...",
       });
+      login(state.sessionToken); // Save token to context and local storage
       router.push("/admin");
     } else if (state.status === "error") {
       toast({
@@ -31,7 +36,7 @@ export default function AdminLoginPage() {
         variant: "destructive",
       });
     }
-  }, [state, router]);
+  }, [state, router, login]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
