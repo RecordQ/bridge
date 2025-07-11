@@ -63,7 +63,7 @@ function ContactPageForm() {
   });
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchAndSetProducts() {
       setLoadingProducts(true);
       try {
         const productsCol = collection(db, 'products');
@@ -71,23 +71,21 @@ function ContactPageForm() {
         const snapshot = await getDocs(q);
         const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
         setProducts(productList);
+
+        if (preselectedProductId) {
+          const productToSelect = productList.find(p => p.id === preselectedProductId);
+          if (productToSelect) {
+            setValue("product", productToSelect.name);
+          }
+        }
       } catch (error) {
         console.error("Failed to fetch products for contact form:", error);
       } finally {
         setLoadingProducts(false);
       }
     }
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    if (preselectedProductId && products.length > 0) {
-        const productToSelect = products.find(p => p.id === preselectedProductId);
-        if (productToSelect) {
-            setValue("product", productToSelect.name);
-        }
-    }
-  }, [preselectedProductId, products, setValue]);
+    fetchAndSetProducts();
+  }, [preselectedProductId, setValue]);
 
 
   useEffect(() => {
@@ -215,3 +213,5 @@ export default function ContactPage() {
         </div>
     )
 }
+
+    
