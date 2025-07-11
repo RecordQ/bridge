@@ -49,10 +49,10 @@ export function ViewSubmissionDialog({ submission }: { submission: Submission })
         <DialogHeader>
           <DialogTitle>Submission from {submission.name}</DialogTitle>
           <DialogDescription>
-            <p><strong>Email:</strong> {submission.email}</p>
-            <p><strong>Product:</strong> {submission.product}</p>
-            <p><strong>Date:</strong> {submission.date}</p>
-            <p><strong>Status:</strong> {submission.status}</p>
+            <div><strong>Email:</strong> {submission.email}</div>
+            <div><strong>Product:</strong> {submission.product}</div>
+            <div><strong>Date:</strong> {submission.date}</div>
+            <div><strong>Status:</strong> {submission.status}</div>
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 rounded-md border p-4 bg-muted/50">
