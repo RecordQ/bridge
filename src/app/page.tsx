@@ -98,27 +98,29 @@ export default async function Home() {
             {topProducts.map((product) => {
               const Icon = getIconForProduct(product.name);
               return (
-                <Card key={product.id} className="overflow-hidden group hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <Icon className="w-8 h-8 text-accent" />
-                      <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="aspect-video overflow-hidden rounded-md mb-4">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        width={600}
-                        height={400}
-                        data-ai-hint={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <CardDescription>{product.description}</CardDescription>
-                  </CardContent>
-                </Card>
+                <Link key={product.id} href={`/contact?product=${encodeURIComponent(product.name)}`} className="block group">
+                  <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
+                    <CardHeader>
+                      <div className="flex items-center gap-4">
+                        <Icon className="w-8 h-8 text-accent" />
+                        <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="aspect-video overflow-hidden rounded-md mb-4">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          width={600}
+                          height={400}
+                          data-ai-hint={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <CardDescription>{product.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
               )
             })}
           </div>
