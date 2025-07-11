@@ -12,6 +12,7 @@ import LogoutButton from "@/components/admin/LogoutButton";
 import { Product } from "@/lib/types";
 import { Submission } from "@/lib/types";
 import { ViewSubmissionDialog } from "@/components/admin/SubmissionActions";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 async function getProducts(): Promise<Product[]> {
@@ -65,10 +66,51 @@ async function getSubmissions(): Promise<Submission[]> {
     }
 }
 
+function SubmissionsTable({ submissions }: { submissions: Submission[] }) {
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                 {submissions.length > 0 ? submissions.map((submission) => (
+                    <TableRow key={submission.id}>
+                        <TableCell>{submission.name}</TableCell>
+                        <TableCell>{submission.email}</TableCell>
+                        <TableCell>{submission.product}</TableCell>
+                        <TableCell>{submission.date}</TableCell>
+                        <TableCell>
+                            <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
+                                {submission.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <ViewSubmissionDialog submission={submission} />
+                        </TableCell>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                        <TableCell colSpan={6} className="text-center h-24">No submissions in this category.</TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    )
+}
 
 export default async function AdminDashboardPage() {
     const products = await getProducts();
     const submissions = await getSubmissions();
+
+    const activeSubmissions = submissions.filter(sub => sub.status === 'New');
+    const contactedSubmissions = submissions.filter(sub => sub.status === 'Contacted');
 
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
@@ -145,40 +187,18 @@ export default async function AdminDashboardPage() {
                             <CardDescription>Recent messages from your customers.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Product</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                     {submissions.length > 0 ? submissions.map((submission) => (
-                                        <TableRow key={submission.id}>
-                                            <TableCell>{submission.name}</TableCell>
-                                            <TableCell>{submission.email}</TableCell>
-                                            <TableCell>{submission.product}</TableCell>
-                                            <TableCell>{submission.date}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
-                                                    {submission.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <ViewSubmissionDialog submission={submission} />
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={6} className="text-center">No submissions yet.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                           <Tabs defaultValue="active">
+                               <TabsList className="grid w-full grid-cols-2">
+                                   <TabsTrigger value="active">Active ({activeSubmissions.length})</TabsTrigger>
+                                   <TabsTrigger value="contacted">Contacted ({contactedSubmissions.length})</TabsTrigger>
+                               </TabsList>
+                               <TabsContent value="active">
+                                   <SubmissionsTable submissions={activeSubmissions} />
+                               </TabsContent>
+                               <TabsContent value="contacted">
+                                   <SubmissionsTable submissions={contactedSubmissions} />
+                               </TabsContent>
+                           </Tabs>
                         </CardContent>
                     </Card>
                 </div>
