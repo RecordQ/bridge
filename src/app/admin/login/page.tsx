@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
           <CardDescription>Enter your credentials to access the dashboard.
            <br/>
            <span className="text-xs text-muted-foreground">(Default: admin/password)</span>
-          </Description>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">
