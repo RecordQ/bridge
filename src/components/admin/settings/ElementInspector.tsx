@@ -50,13 +50,13 @@ export function ElementInspector({ element, onChange, onColorChange }: ElementIn
         <Label className="capitalize text-xs text-muted-foreground">{styleProp.replace(/([A-Z])/g, ' $1')}</Label>
         <div className="flex items-center gap-2">
           <Input 
-            value={t(styleKey) || '#000000'}
+            value={t(styleKey) || '#ffffff'}
             onChange={(e) => onColorChange(styleKey, e.target.value)}
             placeholder="#ffffff"
           />
           <input
             type="color"
-            value={t(styleKey) || '#000000'}
+            value={t(styleKey) || '#ffffff'}
             onChange={(e) => onColorChange(styleKey, e.target.value)}
             className="h-10 w-12 rounded-md border-input border"
           />
@@ -71,7 +71,7 @@ export function ElementInspector({ element, onChange, onColorChange }: ElementIn
         <Label className="text-sm font-semibold">{label}</Label>
         {renderField()}
       </div>
-      {style && <div className="flex flex-col gap-2">{renderStyles()}</div>}
+      {style && <div className="flex flex-col gap-4 mt-4 p-4 border-t">{renderStyles()}</div>}
     </div>
   );
 }

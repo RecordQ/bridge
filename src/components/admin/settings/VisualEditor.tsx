@@ -1,17 +1,16 @@
 // src/components/admin/settings/VisualEditor.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Monitor, Smartphone, Tablet, Pointer, Save } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useSiteData } from "@/hooks/useSiteData";
-import { saveTranslationsAction, saveThemeAction } from "@/lib/actions";
+import { saveTranslationsAction } from "@/lib/actions";
 import { toast } from "@/hooks/use-toast";
 import type { EditableElement, Translations } from "@/lib/types";
-import { ElementInspector } from "./ElementInspector";
 
 type Viewport = 'desktop' | 'tablet' | 'mobile';
 
@@ -21,14 +20,18 @@ const viewportClasses: Record<Viewport, string> = {
     mobile: 'w-[375px]',
 };
 
-export function VisualEditor() {
-    const { siteData, setSiteData } = useSiteData();
+interface VisualEditorProps {
+    setSelectedElement: Dispatch<SetStateAction<EditableElement | null>>;
+    pendingChanges: Partial<Translations>;
+    setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
+}
+
+export function VisualEditor({ setSelectedElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
+    const { siteData } = useSiteData();
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const [isEditMode, setIsEditMode] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [pendingChanges, setPendingChanges] = useState<Partial<Translations>>({});
-    const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
-
+    
     const handleMessage = useCallback((event: MessageEvent) => {
         if (event.data.type === 'ELEMENT_SELECTED') {
             const payload = event.data.payload;
@@ -37,7 +40,7 @@ export function VisualEditor() {
                 value: siteData?.translations[payload.key] || payload.value,
             });
         }
-    }, [siteData]);
+    }, [siteData, setSelectedElement]);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
@@ -63,28 +66,6 @@ export function VisualEditor() {
             }, '*');
         }
     }, [isEditMode]);
-
-    const handleInspectorChange = (key: string, value: string) => {
-        setPendingChanges(prev => ({...prev, [key]: value}));
-
-        setSiteData(prev => {
-            if (!prev) return null;
-            const newTranslations = { ...prev.translations, [key]: value };
-            return { ...prev, translations: newTranslations };
-        });
-
-        setSelectedElement(elem => elem ? ({...elem, value}) : null);
-    };
-    
-    const handleColorChange = (key: string, value: string) => {
-        setPendingChanges(prev => ({...prev, [key]: value}));
-
-        setSiteData(prev => {
-            if (!prev) return null;
-            const newTranslations = { ...prev.translations, [key]: value };
-            return { ...prev, translations: newTranslations };
-        });
-    }
 
     const handleSaveChanges = async () => {
         if (Object.keys(pendingChanges).length === 0) {
@@ -137,23 +118,6 @@ export function VisualEditor() {
                         <Save className="mr-2 h-4 w-4"/>
                         Save Changes
                     </Button>
-                </div>
-
-                <div className="flex-grow flex justify-center">
-                    {selectedElement && isEditMode ? (
-                        <ElementInspector 
-                            element={selectedElement}
-                            onChange={handleInspectorChange}
-                            onColorChange={handleColorChange}
-                        />
-                    ) : (
-                        <div className="text-sm text-muted-foreground p-2 text-center">
-                            {isEditMode 
-                                ? "Click an editable element (e.g. text, button) on the right to begin." 
-                                : "Enable Edit Mode to start making changes."
-                            }
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex items-center gap-2">

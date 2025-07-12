@@ -6,38 +6,59 @@ import { cn } from '@/lib/utils';
 import type { Translations } from '@/lib/types';
 import { cloneElement, type ReactElement } from 'react';
 
+// ========= UTILS =========
+const getStyleOverrides = (styleKeys: Record<string, string>, translations: Translations) => {
+    const styleOverrides: Record<string, string> = {};
+    for (const [styleProp, transKey] of Object.entries(styleKeys)) {
+        const value = translations[transKey];
+        if (value) {
+            styleOverrides[styleProp] = value;
+        }
+    }
+    return styleOverrides;
+}
+
+const handleElementSelection = (e: React.MouseEvent, isEditMode: boolean, translationKey: string, fieldType: string, value: string, styleKeys?: Record<string, string>) => {
+    if (isEditMode) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.parent.postMessage({
+            type: 'ELEMENT_SELECTED',
+            payload: {
+                key: translationKey,
+                label: `${fieldType}: ${translationKey}`,
+                value: value,
+                type: fieldType,
+                style: styleKeys,
+            }
+        }, '*');
+    }
+}
+
 // ========= EDITABLE TEXT =========
 
 type EditableTextProps = {
   translationKey: keyof Translations;
   fieldType?: 'text' | 'textarea';
-  noEditModeUI?: boolean; // Used for text inside other editable components like buttons
+  noEditModeUI?: boolean;
+  styleKeys?: Record<string, string>;
 };
 
-export function EditableText({ translationKey, fieldType = 'text', noEditModeUI = false }: EditableTextProps) {
-  const { t, isEditMode } = useSiteData();
+export function EditableText({ translationKey, fieldType = 'text', noEditModeUI = false, styleKeys }: EditableTextProps) {
+  const { t, isEditMode, siteData } = useSiteData();
   const textValue = t(translationKey);
 
+  const styleOverrides = styleKeys && siteData?.translations ? getStyleOverrides(styleKeys, siteData.translations) : {};
+
   const handleClick = (e: React.MouseEvent) => {
-    if (isEditMode) {
-      e.preventDefault();
-      e.stopPropagation();
-      window.parent.postMessage({
-        type: 'ELEMENT_SELECTED',
-        payload: {
-          key: translationKey,
-          label: `Text: ${translationKey}`,
-          value: textValue,
-          type: fieldType,
-        }
-      }, '*');
-    }
+    handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
 
   if (isEditMode && !noEditModeUI) {
     return (
       <span
         onClick={handleClick}
+        style={styleOverrides}
         className={cn(
           "relative cursor-pointer transition-all rounded-md",
           "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
@@ -48,8 +69,9 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     );
   }
 
-  return <>{textValue}</>;
+  return <span style={styleOverrides}>{textValue}</span>;
 }
+
 
 // ========= EDITABLE WRAPPER =========
 
@@ -64,43 +86,12 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const { t, isEditMode, siteData } = useSiteData();
 
   const handleClick = (e: React.MouseEvent) => {
-    if (isEditMode) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const styleValues: Record<string, string> = {};
-      if (styleKeys) {
-        for(const styleKey of Object.values(styleKeys)) {
-            styleValues[styleKey] = t(styleKey);
-        }
-      }
-
-      window.parent.postMessage({
-        type: 'ELEMENT_SELECTED',
-        payload: {
-          key: translationKey,
-          label: `${fieldType}: ${translationKey}`,
-          value: t(translationKey),
-          type: fieldType,
-          style: styleKeys, // Pass the keys so inspector knows what to edit
-        }
-      }, '*');
-    }
+    handleElementSelection(e, isEditMode, translationKey, fieldType, t(translationKey), styleKeys);
   };
 
-  let finalStyle = {};
-  if (styleKeys) {
-    const styleOverrides: Record<string, string> = {};
-     for(const [styleProp, transKey] of Object.entries(styleKeys)) {
-        const value = siteData?.translations?.[transKey];
-        // Only apply if a value is actually set to avoid overriding with empty strings
-        if (value) {
-            styleOverrides[styleProp] = value;
-        }
-    }
-    finalStyle = { ...children.props.style, ...styleOverrides };
-  }
-
+  const finalStyle = styleKeys && siteData?.translations 
+    ? { ...children.props.style, ...getStyleOverrides(styleKeys, siteData.translations) } 
+    : children.props.style;
 
   const clonedChild = cloneElement(children, {
     ...children.props,
@@ -108,7 +99,7 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
     onClick: isEditMode ? (e: MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-    } : children.props.onClick
+    } : children.props.onClick,
   });
 
   if (isEditMode) {

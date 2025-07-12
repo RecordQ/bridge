@@ -6,18 +6,23 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pointer } from "lucide-react";
 import { LanguageManager } from "@/components/admin/settings/LanguageManager";
 import { ThemeManager } from "@/components/admin/settings/ThemeManager";
-import { type Language, type Theme } from "@/lib/types";
+import { type Language, type Theme, type EditableElement, type Translations } from "@/lib/types";
 import { Toaster } from "@/components/ui/toaster";
 import { VisualEditor } from "@/components/admin/settings/VisualEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { defaultTheme } from "@/lib/config";
+import { ElementInspector } from "@/components/admin/settings/ElementInspector";
+import { useSiteData } from "@/hooks/useSiteData";
 
 export default function SettingsPage() {
     const [initialLanguages, setInitialLanguages] = useState<Language[]>([]);
     const [initialTheme, setInitialTheme] = useState<Theme>(defaultTheme);
+    const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
+    const [pendingChanges, setPendingChanges] = useState<Partial<Translations>>({});
+    const { setSiteData, siteData } = useSiteData();
     
     useEffect(() => {
         async function getSettingsData() {
@@ -38,6 +43,28 @@ export default function SettingsPage() {
         getSettingsData();
     }, []);
 
+    const handleInspectorChange = (key: string, value: string) => {
+        setPendingChanges(prev => ({...prev, [key]: value}));
+
+        setSiteData(prev => {
+            if (!prev) return null;
+            const newTranslations = { ...prev.translations, [key]: value };
+            return { ...prev, translations: newTranslations };
+        });
+
+        setSelectedElement(elem => elem ? ({...elem, value}) : null);
+    };
+    
+    const handleColorChange = (key: string, value: string) => {
+        setPendingChanges(prev => ({...prev, [key]: value}));
+
+        setSiteData(prev => {
+            if (!prev) return null;
+            const newTranslations = { ...prev.translations, [key]: value };
+            return { ...prev, translations: newTranslations };
+        });
+    }
+
     return (
         <div className="flex h-screen bg-muted/40">
             <aside className="w-[450px] flex-shrink-0 bg-background border-r flex flex-col">
@@ -57,12 +84,21 @@ export default function SettingsPage() {
                             <TabsTrigger value="theme">3D Scene</TabsTrigger>
                         </TabsList>
                         <TabsContent value="content" className="flex-grow p-4 pt-0">
-                           <div className="p-4 border rounded-lg bg-muted/30">
-                             <h3 className="font-semibold mb-2">Visual Editor Guide</h3>
-                             <p className="text-sm text-muted-foreground">
-                                Use the panel on the right to visually edit your site. Toggle "Edit Mode" on, then click on any text or button to modify its content and style in this sidebar.
-                             </p>
-                           </div>
+                           {selectedElement ? (
+                                <ElementInspector 
+                                    element={selectedElement}
+                                    onChange={handleInspectorChange}
+                                    onColorChange={handleColorChange}
+                                />
+                           ) : (
+                               <div className="p-4 border rounded-lg bg-muted/30 text-center">
+                                 <Pointer className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                                 <h3 className="font-semibold mb-2">Visual Editor Guide</h3>
+                                 <p className="text-sm text-muted-foreground">
+                                    Use the panel on the right to visually edit your site. Toggle "Edit Mode" on, then click on any text or button to modify its content and style in this sidebar.
+                                 </p>
+                               </div>
+                           )}
                         </TabsContent>
                         <TabsContent value="languages" className="flex-grow p-4 pt-0">
                             <LanguageManager initialLanguages={initialLanguages} />
@@ -74,7 +110,11 @@ export default function SettingsPage() {
                 </div>
             </aside>
             
-            <VisualEditor />
+            <VisualEditor 
+                setSelectedElement={setSelectedElement}
+                pendingChanges={pendingChanges}
+                setPendingChanges={setPendingChanges}
+            />
 
             <Toaster />
         </div>
