@@ -100,6 +100,11 @@ export const defaultTheme: Theme = {
         border: '240 5% 15%',
         input: '240 5% 15%',
         ring: '217 91% 60%',
+        'chart-1': '12 76% 61%',
+        'chart-2': '173 58% 39%',
+        'chart-3': '197 37% 24%',
+        'chart-4': '43 74% 66%',
+        'chart-5': '27 87% 67%',
     },
     threeScene: {
         planetColor: '#4a90e2',

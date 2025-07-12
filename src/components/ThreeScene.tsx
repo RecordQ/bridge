@@ -7,15 +7,13 @@ import { useSiteData } from '@/hooks/useSiteData';
 
 const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const { theme } = useSiteData();
-  const config = theme.threeScene;
+  const { siteData, isLoading } = useSiteData();
+  const config = siteData?.theme.threeScene;
 
   useEffect(() => {
-    if (!mountRef.current) return;
+    if (!mountRef.current || isLoading || !config) return;
 
     const scene = new THREE.Scene();
-    sceneRef.current = scene;
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
     camera.position.z = 1000;
 
@@ -239,7 +237,7 @@ const ThreeScene = () => {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [config]);
+  }, [isLoading, config]);
 
 
   return <div ref={mountRef} className="fixed top-0 left-0 w-full h-full -z-10" />;

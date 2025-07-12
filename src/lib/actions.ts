@@ -3,10 +3,9 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs } from "firebase/firestore";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs, setDoc } from "firebase/firestore";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import type { Language } from "./types";
 import { defaultTranslations } from "./config";
 
@@ -174,7 +173,6 @@ export async function editProductAction(productId: string, prevState: ProductAct
 
         revalidatePath('/admin');
         revalidatePath('/products');
-        revalidateTag('site-data');
         
         return {
             status: 'success',
@@ -196,7 +194,6 @@ export async function deleteProductAction(productId: string) {
         await deleteDoc(doc(db, "products", productId));
         revalidatePath('/admin');
         revalidatePath('/products');
-        revalidateTag('site-data');
         return { status: "success", message: "Product deleted successfully." };
     } catch (error) {
         console.error("Error deleting product:", error);
@@ -259,7 +256,7 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         }
         
         await batch.commit();
-        revalidateTag('site-data');
+        revalidatePath('/admin/settings');
         return { status: 'success', message: "Languages saved successfully." };
     } catch (error) {
         console.error("Error saving languages:", error);
@@ -290,8 +287,8 @@ export async function saveTranslationsAction(prevState: TranslationActionState, 
 
     try {
         const translationRef = doc(db, 'translations', langCode);
-        await updateDoc(translationRef, translations);
-        revalidateTag('site-data');
+        await setDoc(translationRef, translations, { merge: true });
+        revalidatePath('/admin/settings');
         return { status: 'success', message: `Translations for '${langCode}' saved.` };
     } catch (error) {
         console.error("Error saving translations:", error);
@@ -313,18 +310,11 @@ export async function saveThemeAction(prevState: ThemeActionState, formData: For
 
     try {
         const themeRef = doc(db, 'theme', 'config');
-        await updateDoc(themeRef, themeData);
-        revalidateTag('site-data');
+        await setDoc(themeRef, themeData, { merge: true });
+        revalidatePath('/admin/settings');
         return { status: 'success', message: "Theme updated successfully." };
     } catch (error) {
         console.error("Error saving theme:", error);
         return { status: 'error', message: "Failed to save theme." };
     }
-}
-
-
-export async function setLanguageCookie(langCode: string) {
-    cookies().set('NEXT_LOCALE', langCode, { path: '/' });
-    revalidateTag('site-data'); // Revalidate data for the new language
-    redirect('/'); // Redirect to apply language change
 }

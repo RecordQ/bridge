@@ -39,6 +39,11 @@ const themeSchema = z.object({
         border: hslColor,
         input: hslColor,
         ring: hslColor,
+        'chart-1': hslColor,
+        'chart-2': hslColor,
+        'chart-3': hslColor,
+        'chart-4': hslColor,
+        'chart-5': hslColor,
     }),
     threeScene: z.object({
         backgroundColor: z.string().optional(),
@@ -77,7 +82,9 @@ function ColorInput({ control, name, label }: { control: any, name: any, label: 
                             control={control}
                             name={name}
                             render={({ field: { value, onChange }}) => {
-                                const [h, s, l] = value.split(' ').map((v: string) => parseInt(v, 10));
+                                // Handle potential invalid HSL string gracefully
+                                const parts = typeof value === 'string' ? value.split(' ').map((v: string) => parseInt(v, 10)) : [0,0,0];
+                                const [h, s, l] = parts.length === 3 ? parts : [0,0,0];
                                 return (
                                     <input
                                         type="color"
@@ -135,7 +142,7 @@ export function ThemeManager({ initialThemeData }: { initialThemeData: any }) {
                                 key={key}
                                 control={form.control} 
                                 name={`colors.${key}`} 
-                                label={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                                label={key.replace(/([A-Z])/g, ' $1').replace(/-/g, ' ').replace(/^./, str => str.toUpperCase())}
                            />
                        ))}
                     </CardContent>
@@ -218,6 +225,7 @@ function hexToHslString(hex: string): string {
 
 
 function hslToHex(h: number, s: number, l: number): string {
+  if (isNaN(h) || isNaN(s) || isNaN(l)) return '#000000';
   s /= 100;
   l /= 100;
 
@@ -230,16 +238,16 @@ function hslToHex(h: number, s: number, l: number): string {
 
   if (0 <= h && h < 60) {
     r = c; g = x; b = 0;
-  } else if (60 <= h && h < 120) {
+  } else if (60 <= h && h < 180) {
     r = x; g = c; b = 0;
-  } else if (120 <= h && h < 180) {
-    r = 0; g = c; b = x;
   } else if (180 <= h && h < 240) {
     r = 0; g = x; b = c;
   } else if (240 <= h && h < 300) {
     r = x; g = 0; b = c;
   } else if (300 <= h && h < 360) {
     r = c; g = 0; b = x;
+  } else { // Catches cases where h might be out of range, defaulting to black.
+      r = 0; g=0; b=0;
   }
   
   r = Math.round((r + m) * 255);
