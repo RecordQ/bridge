@@ -7,24 +7,6 @@ import type { Translations } from '@/lib/types';
 import { cloneElement, type ReactElement, type CSSProperties } from 'react';
 
 // ========= UTILS =========
-const getStyleOverrides = (styleKeys: Record<string, string>, translations: Translations) => {
-    const styleOverrides: CSSProperties = {};
-    for (const [styleProp, transKey] of Object.entries(styleKeys)) {
-        const value = translations[transKey];
-        if (value) {
-            // Create a CSS variable name from the translation key
-            const cssVarName = `--${transKey.replace(/_/g, '-')}`;
-            // Set the variable on the body
-            if (typeof document !== 'undefined') {
-                document.body.style.setProperty(cssVarName, value);
-            }
-            // Apply the variable to the element's style
-            styleOverrides[styleProp as keyof CSSProperties] = `var(${cssVarName})`;
-        }
-    }
-    return styleOverrides;
-}
-
 const handleElementSelection = (e: React.MouseEvent, isEditMode: boolean, translationKey: string, fieldType: string, value: string, styleKeys?: Record<string, string>) => {
     if (isEditMode) {
         e.preventDefault();
@@ -54,17 +36,14 @@ type EditableTextProps = {
 export function EditableText({ translationKey, fieldType = 'text', noEditModeUI = false, styleKeys }: EditableTextProps) {
   const { t, isEditMode, siteData } = useSiteData();
   const textValue = t(translationKey);
-
-  const styleOverrides = styleKeys && siteData?.translations ? getStyleOverrides(styleKeys, siteData.translations) : {};
   
-  // This is a dynamic style object based on translation keys
   const dynamicStyles: CSSProperties = {};
-  if (styleKeys && siteData) {
-    if (styleKeys.color && siteData.translations[styleKeys.color]) {
-      dynamicStyles.color = siteData.translations[styleKeys.color];
+  if (styleKeys && siteData?.translations) {
+    const colorValue = siteData.translations[styleKeys.color]
+    if (colorValue) {
+        dynamicStyles.color = colorValue;
     }
   }
-
 
   const handleClick = (e: React.MouseEvent) => {
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
@@ -100,13 +79,14 @@ type EditableWrapperProps = {
 
 export function EditableWrapper({ children, translationKey, fieldType, styleKeys }: EditableWrapperProps) {
   const { t, isEditMode, siteData } = useSiteData();
+  const textValue = t(translationKey);
 
   const handleClick = (e: React.MouseEvent) => {
-    handleElementSelection(e, isEditMode, translationKey, t(translationKey), styleKeys);
+    handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
 
   const dynamicStyles: CSSProperties = {};
-  if (styleKeys && siteData) {
+  if (styleKeys && siteData?.translations) {
     if (styleKeys.backgroundColor && siteData.translations[styleKeys.backgroundColor]) {
       dynamicStyles.backgroundColor = siteData.translations[styleKeys.backgroundColor];
     }
@@ -120,10 +100,6 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const clonedChild = cloneElement(children, {
     ...children.props,
     style: finalStyle,
-    onClick: isEditMode ? (e: MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-    } : children.props.onClick,
   });
 
   if (isEditMode) {
@@ -135,7 +111,12 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
           "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
         )}
       >
-        {clonedChild}
+        {cloneElement(clonedChild, {
+            onClick: (e: MouseEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        })}
       </div>
     );
   }

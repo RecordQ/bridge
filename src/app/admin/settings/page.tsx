@@ -1,9 +1,7 @@
 // src/app/admin/settings/page.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { ArrowLeft, Pointer } from "lucide-react";
@@ -13,36 +11,14 @@ import { type Language, type Theme, type EditableElement, type Translations } fr
 import { Toaster } from "@/components/ui/toaster";
 import { VisualEditor } from "@/components/admin/settings/VisualEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { defaultTheme } from "@/lib/config";
 import { ElementInspector } from "@/components/admin/settings/ElementInspector";
 import { useSiteData } from "@/hooks/useSiteData";
 
 export default function SettingsPage() {
-    const [initialLanguages, setInitialLanguages] = useState<Language[]>([]);
-    const [initialTheme, setInitialTheme] = useState<Theme>(defaultTheme);
+    const { siteData, setSiteData, isLoading } = useSiteData();
     const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
     const [pendingChanges, setPendingChanges] = useState<Partial<Translations>>({});
-    const { setSiteData, siteData } = useSiteData();
     
-    useEffect(() => {
-        async function getSettingsData() {
-            try {
-                const languagesSnapshot = await getDocs(collection(db, 'languages'));
-                const languages = languagesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Language));
-                setInitialLanguages(languages);
-
-                const themeDoc = await getDoc(doc(db, 'theme', 'config'));
-                if (themeDoc.exists()) {
-                    setInitialTheme(themeDoc.data() as Theme);
-                }
-
-            } catch (error) {
-                console.error("Error fetching settings data:", error);
-            }
-        }
-        getSettingsData();
-    }, []);
-
     const handleInspectorChange = (key: string, value: string) => {
         setPendingChanges(prev => ({...prev, [key]: value}));
 
@@ -56,7 +32,6 @@ export default function SettingsPage() {
     };
     
     const handleColorChange = (key: string, value: string) => {
-        // This function is kept for potential future use or if styling is handled differently
         setPendingChanges(prev => ({...prev, [key]: value}));
 
         setSiteData(prev => {
@@ -74,6 +49,9 @@ export default function SettingsPage() {
             setSelectedElement(null);
         }
     }, [siteData]);
+
+    const initialLanguages = siteData?.languages || [];
+    const initialTheme = siteData?.theme;
 
 
     return (
@@ -115,14 +93,14 @@ export default function SettingsPage() {
                             <LanguageManager initialLanguages={initialLanguages} />
                         </TabsContent>
                          <TabsContent value="theme" className="flex-grow p-4 pt-0">
-                            <ThemeManager initialTheme={initialTheme} />
+                            {initialTheme && <ThemeManager initialTheme={initialTheme} />}
                         </TabsContent>
                    </Tabs>
                 </div>
             </aside>
             
             <VisualEditor 
-                setSelectedElement={handleSelection}
+                onSelectElement={handleSelection}
                 pendingChanges={pendingChanges}
                 setPendingChanges={setPendingChanges}
             />

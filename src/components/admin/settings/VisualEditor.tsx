@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useCallback, type Dispatch, type SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { Monitor, Smartphone, Tablet, Pointer, Save } from "lucide-react";
+import { Monitor, Smartphone, Tablet, Pointer, Save, Settings } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { saveTranslationsAction } from "@/lib/actions";
 import { toast } from "@/hooks/use-toast";
 import type { EditableElement, Translations } from "@/lib/types";
+import Link from 'next/link';
 
 type Viewport = 'desktop' | 'tablet' | 'mobile';
 
@@ -21,15 +22,14 @@ const viewportClasses: Record<Viewport, string> = {
 };
 
 interface VisualEditorProps {
-    setSelectedElement: (element: EditableElement | null) => void;
+    onSelectElement: (element: EditableElement | null) => void;
     pendingChanges: Partial<Translations>;
     setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
 }
 
-export function VisualEditor({ setSelectedElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
-    const { siteData } = useSiteData();
+export function VisualEditor({ onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
+    const { siteData, isEditMode, setIsEditMode } = useSiteData();
     const [viewport, setViewport] = useState<Viewport>('desktop');
-    const [isEditMode, setIsEditMode] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [isIframeReady, setIsIframeReady] = useState(false);
     
@@ -38,9 +38,9 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
             setIsIframeReady(true);
         }
         if (event.data.type === 'ELEMENT_SELECTED' && isEditMode) {
-            setSelectedElement(event.data.payload);
+            onSelectElement(event.data.payload);
         }
-    }, [isEditMode, setSelectedElement]);
+    }, [isEditMode, onSelectElement]);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
@@ -66,9 +66,9 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
             }, '*');
         }
         if (!isEditMode) {
-            setSelectedElement(null);
+            onSelectElement(null);
         }
-    }, [isEditMode, isIframeReady, setSelectedElement]);
+    }, [isEditMode, isIframeReady, onSelectElement]);
 
     const handleSaveChanges = async () => {
         if (Object.keys(pendingChanges).length === 0) {
@@ -121,6 +121,9 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <Button asChild variant="outline" size="sm">
+                        <Link href="/admin"><Settings className="mr-2 h-4 w-4" /> Go to Dashboard</Link>
+                    </Button>
                     <Button variant={viewport === 'desktop' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewport('desktop')}>
                         <Monitor className="h-5 w-5" />
                     </Button>

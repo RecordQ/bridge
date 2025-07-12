@@ -1,13 +1,16 @@
 // hooks/useSiteData.tsx
 "use client";
 
-import { createContext, useContext, type ReactNode, useState, Dispatch, SetStateAction } from 'react';
-import type { SiteData, Translations } from '@/lib/types';
-import { defaultTranslations } from '@/lib/config';
+import { createContext, useContext, type ReactNode, useState, Dispatch, SetStateAction, useEffect } from 'react';
+import type { SiteData, Translations, Language } from '@/lib/types';
+import { defaultTranslations, defaultTheme } from '@/lib/config';
+import { db } from "@/lib/firebase";
+import { getDoc, getDocs, collection, doc } from "firebase/firestore";
 
 interface SiteDataContextType {
     siteData: SiteData | null;
     setSiteData: Dispatch<SetStateAction<SiteData | null>>;
+    isLoading: boolean;
     isEditMode: boolean;
     setIsEditMode: Dispatch<SetStateAction<boolean>>;
     t: (key: keyof Translations, fallback?: string) => string;
@@ -17,8 +20,65 @@ const SiteDataContext = createContext<SiteDataContextType | null>(null);
 
 export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const [siteData, setSiteData] = useState<SiteData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isEditMode, setIsEditMode] = useState(false);
     
+    useEffect(() => {
+        const fetchSiteData = async () => {
+          setIsLoading(true);
+          try {
+            const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+
+            const langSnapshot = await getDocs(collection(db, 'languages'));
+            const languages = langSnapshot.empty
+              ? [{ id: 'en', name: 'English', default: true }]
+              : langSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Language));
+    
+            let currentLanguage: Language;
+            if (isPreview) {
+              const langParam = new URLSearchParams(window.location.search).get('lang')
+              currentLanguage = languages.find(l => l.id === langParam) || languages.find(l => l.default) || languages[0];
+            } else {
+              const storedLang = localStorage.getItem('NEXT_LOCALE');
+              currentLanguage = languages.find(l => l.id === storedLang) || languages.find(l => l.default) || languages[0];
+            }
+    
+            const transDoc = await getDoc(doc(db, 'translations', currentLanguage.id));
+            const translations = transDoc.exists() ? transDoc.data() : defaultTranslations;
+    
+            const themeDoc = await getDoc(doc(db, 'theme', 'config'));
+            let theme = themeDoc.exists() ? themeDoc.data() : defaultTheme;
+    
+            const finalTheme = {
+              colors: { ...defaultTheme.colors, ...theme.colors },
+              threeScene: { ...defaultTheme.threeScene, ...theme.threeScene }
+            };
+    
+            const data: SiteData = {
+              languages,
+              currentLanguage,
+              translations: { ...defaultTranslations, ...translations },
+              theme: finalTheme,
+            };
+    
+            setSiteData(data);
+            
+          } catch (error) {
+            console.error("Failed to fetch site data:", error);
+            setSiteData({
+                languages: [{ id: 'en', name: 'English', default: true }],
+                currentLanguage: { id: 'en', name: 'English', default: true },
+                translations: defaultTranslations,
+                theme: defaultTheme,
+            });
+          } finally {
+            setIsLoading(false);
+          }
+        };
+    
+        fetchSiteData();
+    }, []);
+
     const t = (key: keyof Translations, fallback?: string): string => {
         return siteData?.translations?.[key] || fallback || defaultTranslations[key] || key;
     };
@@ -26,6 +86,7 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const value = {
         siteData,
         setSiteData,
+        isLoading,
         isEditMode,
         setIsEditMode,
         t,
