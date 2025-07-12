@@ -107,8 +107,11 @@ export function VisualEditor({ siteData, onSelectElement, pendingChanges, setPen
         }
     };
     
-    const navigateIframeToAdmin = () => {
-        setIframeSrc('/admin?preview=true');
+    const navigateIframe = (path: string) => {
+        const url = new URL(path, window.location.origin);
+        url.searchParams.set('preview', 'true');
+        url.searchParams.set('lang', siteData?.currentLanguage.id || 'en');
+        setIframeSrc(url.pathname + url.search);
     }
     
     if (!siteData) {
@@ -140,7 +143,7 @@ export function VisualEditor({ siteData, onSelectElement, pendingChanges, setPen
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={navigateIframeToAdmin}>
+                    <Button variant="outline" size="sm" onClick={() => navigateIframe('/admin')}>
                         <Settings className="mr-2 h-4 w-4" /> Go to Dashboard
                     </Button>
                     <Button variant={viewport === 'desktop' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewport('desktop')}>

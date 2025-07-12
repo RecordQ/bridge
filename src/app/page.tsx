@@ -82,19 +82,19 @@ export default function Home() {
           className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
         >
           <div className="container mx-auto text-center relative z-10 px-4">
-            <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
+            <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
                <EditableText fieldType="text" translationKey="home_hero_title" styleKeys={{color: "home_hero_title_color", fontSize: "home_hero_title_font_size"}} />
             </h1>
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
               <EditableText fieldType="textarea" translationKey="home_hero_subtitle" styleKeys={{color: "home_hero_subtitle_color", fontSize: "home_hero_subtitle_font_size"}} />
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <EditableWrapper fieldType="button" translationKey="button_explore_products" styleKeys={{backgroundColor: "button_explore_products_bg", color: "button_explore_products_text", fontSize: "button_explore_products_font_size"}}>
+              <EditableWrapper fieldType="button" translationKey="button_explore_products" styleKeys={{backgroundColor: "button_explore_products_bg_color", color: "button_explore_products_text_color", fontSize: "button_explore_products_font_size"}}>
                 <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link href="/products"><EditableText fieldType="text" translationKey="button_explore_products" noEditModeUI={true} /></Link>
                 </Button>
               </EditableWrapper>
-               <EditableWrapper fieldType="button" translationKey="button_request_quote" styleKeys={{backgroundColor: "button_request_quote_bg", color: "button_request_quote_text", fontSize: "button_request_quote_font_size"}}>
+               <EditableWrapper fieldType="button" translationKey="button_request_quote" styleKeys={{backgroundColor: "button_request_quote_bg_color", color: "button_request_quote_text_color", fontSize: "button_request_quote_font_size"}}>
                 <Button asChild size="lg" variant="outline">
                   <Link href="/contact"><EditableText fieldType="text" translationKey="button_request_quote" noEditModeUI={true} /></Link>
                 </Button>
@@ -161,7 +161,7 @@ export default function Home() {
             )}
             {topProducts.length > 0 && (
               <div className="text-center mt-12">
-                <EditableWrapper fieldType="button" translationKey="button_show_more" styleKeys={{backgroundColor: "button_show_more_bg", color: "button_show_more_text", fontSize: "button_show_more_font_size"}}>
+                <EditableWrapper fieldType="button" translationKey="button_show_more" styleKeys={{backgroundColor: "button_show_more_bg_color", color: "button_show_more_text_color", fontSize: "button_show_more_font_size"}}>
                   <Button asChild size="lg" variant="outline">
                     <Link href="/products">
                         <EditableText fieldType="text" translationKey="button_show_more" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />
@@ -182,7 +182,7 @@ export default function Home() {
               <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
                   <EditableText fieldType="textarea" translationKey="home_cta_subtitle" styleKeys={{color: "home_cta_subtitle_color", fontSize: "home_cta_subtitle_font_size"}} />
               </p>
-              <EditableWrapper fieldType="button" translationKey="button_contact_us" styleKeys={{backgroundColor: 'button_contact_us_bg', color: 'button_contact_us_text', fontSize: "button_contact_us_font_size"}}>
+              <EditableWrapper fieldType="button" translationKey="button_contact_us" styleKeys={{backgroundColor: 'button_contact_us_bg_color', color: 'button_contact_us_text_color', fontSize: "button_contact_us_font_size"}}>
                 <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <Link href="/contact">
                         <EditableText fieldType="text" translationKey="button_contact_us" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />

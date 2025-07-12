@@ -24,20 +24,6 @@ const handleElementSelection = (e: React.MouseEvent, isEditMode: boolean, transl
     }
 }
 
-const getDynamicStyles = (styleKeys?: Record<string, string>, translations?: Translations | null): CSSProperties => {
-  const dynamicStyles: CSSProperties = {};
-  if (styleKeys && translations) {
-      Object.entries(styleKeys).forEach(([styleProp, transKey]) => {
-          if (translations[transKey]) {
-              const cssProp = styleProp.replace(/([A-Z])/g, '-$1').toLowerCase();
-              (dynamicStyles as any)[cssProp] = translations[transKey];
-          }
-      });
-  }
-  return dynamicStyles;
-}
-
-
 // ========= EDITABLE TEXT =========
 
 type EditableTextProps = {
@@ -51,8 +37,6 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
   const { t, isEditMode, siteData } = useSiteData();
   const textValue = t(translationKey);
   
-  const dynamicStyles = getDynamicStyles(styleKeys, siteData?.translations);
-
   const handleClick = (e: React.MouseEvent) => {
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
@@ -61,7 +45,6 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     return (
       <span
         onClick={handleClick}
-        style={dynamicStyles}
         data-editable-key={translationKey}
         className={cn(
           "relative cursor-pointer transition-all rounded-md",
@@ -73,7 +56,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     );
   }
 
-  return <span style={dynamicStyles} data-editable-key={translationKey}>{textValue}</span>;
+  return <span data-editable-key={translationKey}>{textValue}</span>;
 }
 
 
@@ -82,8 +65,8 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
 type EditableWrapperProps = {
   children: ReactElement;
   translationKey: keyof Translations;
-  fieldType: 'button'; // Can be expanded later
-  styleKeys?: Record<string, string>; // e.g., { backgroundColor: 'my_button_bg_color_key' }
+  fieldType: 'button';
+  styleKeys?: Record<string, string>;
 };
 
 export function EditableWrapper({ children, translationKey, fieldType, styleKeys }: EditableWrapperProps) {
@@ -94,40 +77,22 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
   
-  const dynamicStyles = getDynamicStyles(styleKeys, siteData?.translations);
-
-  const finalStyle = { ...children.props.style, ...dynamicStyles };
-
-  const clonedChild = cloneElement(children, {
-    ...children.props,
-    style: finalStyle,
-  });
-
-  if (isEditMode) {
-    return (
-      <div
-        onClick={handleClick}
-        data-editable-key={translationKey}
+  return (
+      <div 
         className={cn(
-          "relative cursor-pointer transition-all rounded-md inline-block",
-          "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
+            "relative inline-block", 
+            isEditMode && "hover:outline-dashed hover:outline-2 hover:outline-primary rounded-md"
         )}
+        data-editable-key={translationKey}
       >
-        {cloneElement(clonedChild, {
-            onClick: (e: MouseEvent) => {
-                if (isEditMode) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                } else if (children.props.onClick) {
-                    children.props.onClick(e);
-                }
-            },
-            // Prevent the link from working in edit mode
-            href: isEditMode ? 'javascript:void(0)' : (children.props as any).href,
-        })}
+        {children}
+        {isEditMode && (
+          <div
+            className="absolute inset-0 cursor-pointer z-10"
+            onClick={handleClick}
+            title={`Edit: ${translationKey}`}
+          />
+        )}
       </div>
-    );
-  }
-
-  return clonedChild;
+  );
 }
