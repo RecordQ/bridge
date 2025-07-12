@@ -4,31 +4,7 @@
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
-import { SiteDataProvider, useSiteData } from '@/hooks/useSiteData';
-import ThreeScene from '@/components/ThreeScene';
-import StyleInjector from '@/components/layout/StyleInjector';
-import { LoaderCircle } from 'lucide-react';
-
-function AppContent({ children }: { children: React.ReactNode }) {
-  const { siteData, isLoading } = useSiteData();
-
-  if (isLoading || !siteData) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <ThreeScene />
-      <StyleInjector colors={siteData.theme.colors} />
-      {children}
-    </>
-  );
-}
-
+import { SiteDataProvider } from '@/hooks/useSiteData';
 
 export default function RootLayout({
   children,
@@ -47,10 +23,8 @@ export default function RootLayout({
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <SiteDataProvider>
-          <AppContent>
             {children}
-          </AppContent>
-          <Toaster />
+            <Toaster />
         </SiteDataProvider>
       </body>
     </html>

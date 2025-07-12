@@ -6,16 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Usb, Box, PenTool, Package, LoaderCircle } from "lucide-react";
+import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { Chatbot } from "@/components/Chatbot";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 
 function getIconForProduct(name: string) {
@@ -30,7 +28,7 @@ export default function Home() {
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { t, siteData, isLoading } = useSiteData();
+  const { t } = useSiteData();
 
   useEffect(() => {
     async function getTopProducts() {
@@ -75,123 +73,110 @@ export default function Home() {
     router.push('/contact');
   };
 
-  if (isLoading || !siteData) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <>
-       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-        <Header />
-        <main className="flex-1">
-           {/* Hero Section */}
-          <section 
-            className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
-          >
-            <div className="container mx-auto text-center relative z-10 px-4">
-              <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
-                {t('home_hero_title')}
-              </h1>
-              <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-                {t('home_hero_subtitle')}
+    <PageLayout>
+      <main className="flex-1">
+          {/* Hero Section */}
+        <section 
+          className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
+        >
+          <div className="container mx-auto text-center relative z-10 px-4">
+            <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
+              {t('home_hero_title')}
+            </h1>
+            <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
+              {t('home_hero_subtitle')}
+            </p>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Link href="/products">{t('button_explore_products')}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/contact">{t('button_request_quote')}</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Introduction Section */}
+        <section className="py-16 md:py-24 bg-transparent">
+          <div className="container mx-auto text-center px-4">
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_intro_title')}</h2>
+              <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
+                  {t('home_intro_subtitle')}
               </p>
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href="/products">{t('button_explore_products')}</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/contact">{t('button_request_quote')}</Link>
+          </div>
+        </section>
+
+        {/* Products Section */}
+        <section id="products" className="py-16 md:py-24 bg-transparent">
+          <div className="container mx-auto px-4">
+            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">{t('home_products_title')}</h2>
+            {loading ? (
+                <div className="grid md:grid-cols-3 gap-8">
+                  <Skeleton className="h-96 w-full" />
+                  <Skeleton className="h-96 w-full" />
+                  <Skeleton className="h-96 w-full" />
+                </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-8">
+                {topProducts.map((product) => {
+                  const Icon = getIconForProduct(product.name);
+                  return (
+                    <div key={product.id} className="block group cursor-pointer" onClick={() => handleQuoteClick(product.id)}>
+                      <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
+                        <CardHeader>
+                          <div className="flex items-center gap-4">
+                            <Icon className="w-8 h-8 text-accent" />
+                            <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="aspect-video overflow-hidden rounded-md mb-4">
+                            <Image
+                              src={product.image}
+                              alt={product.name}
+                              width={600}
+                              height={400}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              data-ai-hint={product.name}
+                            />
+                          </div>
+                          <CardDescription>{product.description}</CardDescription>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            {topProducts.length > 0 && (
+              <div className="text-center mt-12">
+                  <Button asChild size="lg" variant="outline">
+                  <Link href="/products">
+                      {t('button_show_more')} <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               </div>
-            </div>
-          </section>
-
-          {/* Introduction Section */}
-          <section className="py-16 md:py-24 bg-transparent">
-            <div className="container mx-auto text-center px-4">
-                <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_intro_title')}</h2>
-                <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
-                    {t('home_intro_subtitle')}
-                </p>
-            </div>
-          </section>
-
-          {/* Products Section */}
-          <section id="products" className="py-16 md:py-24 bg-transparent">
-            <div className="container mx-auto px-4">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">{t('home_products_title')}</h2>
-              {loading ? (
-                 <div className="grid md:grid-cols-3 gap-8">
-                    <Skeleton className="h-96 w-full" />
-                    <Skeleton className="h-96 w-full" />
-                    <Skeleton className="h-96 w-full" />
-                 </div>
-              ) : (
-                <div className="grid md:grid-cols-3 gap-8">
-                  {topProducts.map((product) => {
-                    const Icon = getIconForProduct(product.name);
-                    return (
-                      <div key={product.id} className="block group cursor-pointer" onClick={() => handleQuoteClick(product.id)}>
-                        <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
-                          <CardHeader>
-                            <div className="flex items-center gap-4">
-                              <Icon className="w-8 h-8 text-accent" />
-                              <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="aspect-video overflow-hidden rounded-md mb-4">
-                              <Image
-                                src={product.image}
-                                alt={product.name}
-                                width={600}
-                                height={400}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                data-ai-hint={product.name}
-                              />
-                            </div>
-                            <CardDescription>{product.description}</CardDescription>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-              {topProducts.length > 0 && (
-                <div className="text-center mt-12">
-                   <Button asChild size="lg" variant="outline">
-                    <Link href="/products">
-                        {t('button_show_more')} <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </section>
-          
-          {/* CTA Section */}
-          <section className="py-16 md:py-24 bg-transparent">
-            <div className="container mx-auto text-center px-4">
-                <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_cta_title')}</h2>
-                <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
-                    {t('home_cta_subtitle')}
-                </p>
-                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/contact">
-                        {t('button_contact_us')} <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                </Button>
-            </div>
-          </section>
-        </main>
-        <Footer />
-        </div>
-        <Chatbot />
-    </>
+            )}
+          </div>
+        </section>
+        
+        {/* CTA Section */}
+        <section className="py-16 md:py-24 bg-transparent">
+          <div className="container mx-auto text-center px-4">
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_cta_title')}</h2>
+              <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
+                  {t('home_cta_subtitle')}
+              </p>
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link href="/contact">
+                      {t('button_contact_us')} <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+              </Button>
+          </div>
+        </section>
+      </main>
+    </PageLayout>
   );
 }

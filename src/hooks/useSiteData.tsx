@@ -2,10 +2,11 @@
 "use client";
 
 import { createContext, useContext, type ReactNode, useState, useEffect } from 'react';
-import type { SiteData, Translations } from '@/lib/types';
+import type { SiteData, Translations, ColorPalette } from '@/lib/types';
 import { defaultTranslations, defaultTheme } from '@/lib/config';
 import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { LoaderCircle } from 'lucide-react';
 
 interface SiteDataContextType {
     siteData: SiteData | null;
@@ -15,13 +16,23 @@ interface SiteDataContextType {
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
 
+function applyTheme(colors: ColorPalette) {
+    const root = document.documentElement;
+    Object.entries(colors).forEach(([key, value]) => {
+        const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
+        root.style.setProperty(cssVar, value);
+    });
+}
+
+const USER_THEME_KEY = 'user-theme-override';
+
+
 export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const [siteData, setSiteData] = useState<SiteData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchSiteData = async () => {
-            setIsLoading(true);
             try {
                 // Fetch Languages
                 const langSnapshot = await getDocs(collection(db, 'languages'));
@@ -37,7 +48,7 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
                 const transDoc = await getDoc(doc(db, 'translations', currentLanguage.id));
                 const translations = transDoc.exists() ? transDoc.data() : defaultTranslations;
 
-                // Fetch Theme
+                // Fetch Theme from Firestore
                 const themeDoc = await getDoc(doc(db, 'theme', 'config'));
                 let theme = defaultTheme;
                 if (themeDoc.exists()) {
@@ -48,6 +59,16 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
                     };
                 }
 
+                // Check for user theme overrides in localStorage
+                const userThemeOverrides = localStorage.getItem(USER_THEME_KEY);
+                if (userThemeOverrides) {
+                    const parsedOverrides = JSON.parse(userThemeOverrides);
+                    theme.colors = { ...theme.colors, ...parsedOverrides };
+                }
+                
+                // Apply the final theme to the document
+                applyTheme(theme.colors);
+
                 setSiteData({
                     languages,
                     currentLanguage,
@@ -56,7 +77,8 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
                 });
             } catch (error) {
                 console.error("Failed to fetch site data:", error);
-                // Fallback to default data
+                // Fallback to default data and apply default theme
+                applyTheme(defaultTheme.colors);
                 setSiteData({
                     languages: [{ id: 'en', name: 'English', default: true }],
                     currentLanguage: { id: 'en', name: 'English', default: true },
@@ -88,6 +110,14 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         t,
     };
+    
+    if (isLoading) {
+        return (
+             <div className="flex h-screen w-full items-center justify-center bg-background">
+                <LoaderCircle className="h-8 w-8 animate-spin" />
+            </div>
+        )
+    }
 
     return (
         <SiteDataContext.Provider value={value}>

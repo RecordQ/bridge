@@ -12,6 +12,9 @@ export const defaultTranslations: Translations = {
     "header_nav_about": "About",
     "header_nav_contact": "Contact",
 
+    // Footer Navigation
+    "footer_nav_settings": "Settings",
+
     // Buttons
     "button_get_quote": "Get a Quote",
     "button_explore_products": "Explore Products",

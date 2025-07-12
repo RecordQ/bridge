@@ -18,9 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSiteData } from "@/hooks/useSiteData";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { Chatbot } from "@/components/Chatbot";
+import { PageLayout } from "@/components/layout/PageLayout";
 
 
 function SubmitButton() {
@@ -135,70 +133,57 @@ function ContactPageForm() {
 }
 
 export default function ContactPage() {
-  const { t, siteData, isLoading } = useSiteData();
-
-  if (isLoading || !siteData) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+  const { t } = useSiteData();
 
   return (
-    <>
-      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-        <Header />
-        <main className="flex-1 bg-transparent">
-          <section 
-            className="relative py-24 md:py-40"
-          >
-            <div className="container mx-auto text-center relative z-10 px-4">
-              <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">{t('contact_hero_title')}</h1>
-              <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-                {t('contact_hero_subtitle')}
-              </p>
-            </div>
-          </section>
+    <PageLayout>
+      <main className="flex-1 bg-transparent">
+        <section 
+          className="relative py-24 md:py-40"
+        >
+          <div className="container mx-auto text-center relative z-10 px-4">
+            <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">{t('contact_hero_title')}</h1>
+            <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+              {t('contact_hero_subtitle')}
+            </p>
+          </div>
+        </section>
 
-          <section className="py-16 md:py-24 bg-transparent">
-            <div className="container mx-auto grid md:grid-cols-2 gap-16 px-4">
-              <div>
-                <h2 className="font-headline text-3xl font-bold mb-4">{t('contact_info_title')}</h2>
-                <p className="text-muted-foreground mb-8">
-                  {t('contact_info_subtitle')}
-                </p>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <Mail className="w-6 h-6 text-accent" />
-                    <div>
-                      <h3 className="font-semibold">{t('contact_info_email')}</h3>
-                      <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
-                    </div>
+        <section className="py-16 md:py-24 bg-transparent">
+          <div className="container mx-auto grid md:grid-cols-2 gap-16 px-4">
+            <div>
+              <h2 className="font-headline text-3xl font-bold mb-4">{t('contact_info_title')}</h2>
+              <p className="text-muted-foreground mb-8">
+                {t('contact_info_subtitle')}
+              </p>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Mail className="w-6 h-6 text-accent" />
+                  <div>
+                    <h3 className="font-semibold">{t('contact_info_email')}</h3>
+                    <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <Phone className="w-6 h-6 text-accent" />
-                    <div>
-                      <h3 className="font-semibold">{t('contact_info_phone')}</h3>
-                      <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
-                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Phone className="w-6 h-6 text-accent" />
+                  <div>
+                    <h3 className="font-semibold">{t('contact_info_phone')}</h3>
+                    <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <MapPin className="w-6 h-6 text-accent" />
-                    <div>
-                      <h3 className="font-semibold">{t('contact_info_office')}</h3>
-                      <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
-                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <MapPin className="w-6 h-6 text-accent" />
+                  <div>
+                    <h3 className="font-semibold">{t('contact_info_office')}</h3>
+                    <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
                   </div>
                 </div>
               </div>
-              <ContactPageForm />
             </div>
-          </section>
-        </main>
-        <Footer />
-      </div>
-      <Chatbot />
-    </>
+            <ContactPageForm />
+          </div>
+        </section>
+      </main>
+    </PageLayout>
   )
 }

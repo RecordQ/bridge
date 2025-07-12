@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Search, Package, LoaderCircle } from "lucide-react";
+import { CheckCircle2, Search, Package } from "lucide-react";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
@@ -14,9 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
 import Link from 'next/link';
 import { useSiteData } from '@/hooks/useSiteData';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { Chatbot } from '@/components/Chatbot';
+import { PageLayout } from '@/components/layout/PageLayout';
 
 function ProductSkeleton() {
     return (
@@ -45,7 +43,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
-  const { t, siteData, isLoading } = useSiteData();
+  const { t } = useSiteData();
 
   useEffect(() => {
     async function getProductTiers() {
@@ -99,18 +97,8 @@ export default function ProductsPage() {
     router.push('/contact');
   };
   
-  if (isLoading || !siteData) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
-    <>
-      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-        <Header />
+    <PageLayout>
         <main className="flex-1 bg-transparent">
           <section 
             className="relative py-24 md:py-40"
@@ -216,9 +204,6 @@ export default function ProductsPage() {
             </div>
           </section>
         </main>
-        <Footer />
-      </div>
-      <Chatbot />
-    </>
+    </PageLayout>
   );
 }
