@@ -65,6 +65,7 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         const fetchSiteData = async () => {
+            setIsLoading(true);
             try {
                 // Fetch Languages
                 const langSnapshot = await getDocs(collection(db, 'languages'));
