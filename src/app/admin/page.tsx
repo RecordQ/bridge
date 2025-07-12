@@ -116,18 +116,18 @@ export default async function AdminDashboardPage() {
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
             <div className="container mx-auto px-4">
-                <div className="mb-8 flex justify-between items-start">
+                <header className="mb-8 flex justify-between items-start">
                     <div>
                         <h1 className="font-headline text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
                         <p className="text-muted-foreground">Manage your products, submissions, and site settings.</p>
                     </div>
                      <LogoutButton />
-                </div>
+                </header>
 
                 <div className="grid gap-8">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
-                             <div>
+                            <div>
                                 <CardTitle>Site Settings</CardTitle>
                                 <CardDescription>Manage global content, languages, and theme settings.</CardDescription>
                             </div>

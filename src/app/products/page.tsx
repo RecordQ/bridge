@@ -160,6 +160,7 @@ export default function ProductsPage() {
                             width={600}
                             height={400}
                             className="w-full h-full object-cover"
+                            data-ai-hint={tier.name}
                           />
                         </div>
                         <CardTitle className="font-headline text-2xl">{tier.name}</CardTitle>

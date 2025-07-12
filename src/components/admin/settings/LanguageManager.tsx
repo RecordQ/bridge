@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { saveLanguagesAction, type LanguageActionState } from "@/lib/actions";
@@ -101,7 +101,32 @@ export function LanguageManager({ initialLanguages }: { initialLanguages: Langua
                                     <FormLabel>Default</FormLabel>
                                     <FormControl>
                                         <div className="h-10 flex items-center">
-                                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                          <Controller
+                                            name={`languages.${index}.default`}
+                                            control={form.control}
+                                            render={({ field }) => (
+                                              <Switch
+                                                checked={field.value}
+                                                onCheckedChange={(isChecked) => {
+                                                  // When a switch is turned on, turn all others off
+                                                  if (isChecked) {
+                                                    form.getValues().languages.forEach((_, i) => {
+                                                      form.setValue(`languages.${i}.default`, i === index);
+                                                    });
+                                                  } else {
+                                                    // Prevent turning off the only default switch
+                                                    const defaultCount = form.getValues().languages.filter(l => l.default).length;
+                                                    if (defaultCount > 1) {
+                                                        field.onChange(false);
+                                                    } else {
+                                                        // or handle as an error, but this UX is better
+                                                        toast({title: "Action blocked", description: "At least one language must be default.", variant: "destructive"});
+                                                    }
+                                                  }
+                                                }}
+                                              />
+                                            )}
+                                          />
                                         </div>
                                     </FormControl>
                                 </FormItem>
@@ -116,7 +141,7 @@ export function LanguageManager({ initialLanguages }: { initialLanguages: Langua
                     </div>
                 ))}
                 <FormMessage>{form.formState.errors.languages?.root?.message}</FormMessage>
-                <Button type="button" variant="outline" onClick={() => append({ id: '', name: '', default: false })}>
+                <Button type="button" variant="outline" onClick={() => append({ id: '', name: '', default: fields.length === 0 })}>
                     <PlusCircle className="mr-2" /> Add Language
                 </Button>
             </CardContent>

@@ -128,6 +128,7 @@ export async function addProductAction(prevState: ProductActionState, formData: 
 
         revalidatePath('/admin');
         revalidatePath('/products');
+        revalidatePath('/');
 
     } catch (error) {
         console.error("Error adding product: ", error);
@@ -173,6 +174,7 @@ export async function editProductAction(productId: string, prevState: ProductAct
 
         revalidatePath('/admin');
         revalidatePath('/products');
+        revalidatePath('/');
         
         return {
             status: 'success',
@@ -194,6 +196,7 @@ export async function deleteProductAction(productId: string) {
         await deleteDoc(doc(db, "products", productId));
         revalidatePath('/admin');
         revalidatePath('/products');
+        revalidatePath('/');
         return { status: "success", message: "Product deleted successfully." };
     } catch (error) {
         console.error("Error deleting product:", error);
@@ -206,27 +209,52 @@ export async function deleteProductAction(productId: string) {
 export type LanguageActionState = { status: 'idle' | 'success' | 'error', message: string };
 
 export async function saveLanguagesAction(prevState: LanguageActionState, formData: FormData): Promise<LanguageActionState> {
-    const languages: Language[] = [];
-    const entries = Array.from(formData.entries());
+    const languagesMap: Map<number, Partial<Language>> = new Map();
+    let defaultIndex = -1;
 
-    for (let i = 0; i < entries.length; i++) {
-        const [key, value] = entries[i];
+    // First pass: aggregate all data for each language index
+    for (const [key, value] of formData.entries()) {
         const match = key.match(/languages\.(\d+)\.(.+)/);
         if (match) {
             const index = parseInt(match[1], 10);
             const prop = match[2];
-            if (!languages[index]) languages[index] = { id: '', name: '', default: false };
+            
+            if (!languagesMap.has(index)) {
+                languagesMap.set(index, {});
+            }
+            const lang = languagesMap.get(index)!;
+
             if (prop === 'default') {
-                (languages[index] as any)[prop] = value === 'on';
+                // 'on' is the value for a checked switch
+                if (value === 'on') {
+                    defaultIndex = index;
+                }
             } else {
-                (languages[index] as any)[prop] = value;
+                (lang as any)[prop] = value as string;
             }
         }
+    }
+
+    // Second pass: finalize the languages array
+    const languages: Language[] = [];
+    for (const [index, partialLang] of languagesMap.entries()) {
+        const lang: Language = {
+            id: partialLang.id || '',
+            name: partialLang.name || '',
+            default: index === defaultIndex
+        };
+        languages.push(lang);
     }
 
     // Validate
     if (languages.filter(l => l.default).length !== 1) {
         return { status: 'error', message: "Exactly one language must be set as default." };
+    }
+     if (languages.some(l => !l.id || !l.name)) {
+        return { status: 'error', message: "All languages must have a name and a 2-letter code." };
+    }
+     if (new Set(languages.map(l => l.id)).size !== languages.length) {
+        return { status: 'error', message: "Language codes must be unique." };
     }
 
     try {
@@ -312,6 +340,7 @@ export async function saveThemeAction(prevState: ThemeActionState, formData: For
         const themeRef = doc(db, 'theme', 'config');
         await setDoc(themeRef, themeData, { merge: true });
         revalidatePath('/admin/settings');
+        revalidatePath('/'); // Revalidate all pages to get new theme
         return { status: 'success', message: "Theme updated successfully." };
     } catch (error) {
         console.error("Error saving theme:", error);
