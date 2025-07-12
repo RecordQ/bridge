@@ -4,41 +4,57 @@
 import { useEffect, type ReactNode } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
 import { LoaderCircle } from "lucide-react";
+import type { SiteData } from "@/lib/types";
+
+function applyTheme(data: SiteData) {
+    if (!data?.theme?.colors) return;
+    const { colors } = data.theme;
+    Object.entries(colors).forEach(([key, value]) => {
+         document.body.style.setProperty(`--${key}`, `${value}`);
+    });
+    // This is for live updates of button/text colors from the editor
+    Object.entries(data.translations).forEach(([key, value]) => {
+        if (key.includes('_bg') || key.includes('_color')) {
+            const cssVarName = `--${key.replace(/_/g, '-')}`;
+            document.body.style.setProperty(cssVarName, value);
+        }
+    });
+}
 
 export function PageContent({ children, isPreview }: { children: ReactNode, isPreview: boolean }) {
-  const { siteData, isLoading, setIsEditMode } = useSiteData();
+  const { siteData, setSiteData, isLoading, setIsLoading, setIsEditMode } = useSiteData();
 
   useEffect(() => {
     if (isPreview) {
       const handleMessage = (event: MessageEvent) => {
-        if (event.data.type === 'SITE_DATA_UPDATE') {
-          // This part might be redundant if the provider handles it, but good for safety
+        const { type, payload } = event.data;
+        if (type === 'SITE_DATA_UPDATE') {
+          setSiteData(payload);
+          applyTheme(payload);
+          if(isLoading) setIsLoading(false);
         }
-        if (event.data.type === 'TOGGLE_EDIT_MODE') {
-          setIsEditMode(event.data.payload.isEditMode);
+        if (type === 'TOGGLE_EDIT_MODE') {
+          setIsEditMode(payload.isEditMode);
         }
       };
+
       window.addEventListener('message', handleMessage);
-      // Let the parent know the iframe is ready
-      window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
+      
+      // Let the parent know the iframe is ready and can receive data
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
+      }
+
       return () => window.removeEventListener('message', handleMessage);
     }
-  }, [isPreview, setIsEditMode]);
+  }, [isPreview, setSiteData, setIsLoading, isLoading, setIsEditMode]);
+
 
   useEffect(() => {
-    if (siteData) {
-       Object.entries(siteData.theme.colors).forEach(([key, value]) => {
-         document.body.style.setProperty(`--${key}`, `hsl(${value})`);
-       });
-       // This is for live updates from the editor
-       Object.entries(siteData.translations).forEach(([key, value]) => {
-         if (key.includes('_bg') || key.includes('_color')) {
-           const cssVarName = `--${key.replace(/_/g, '-')}`;
-           document.body.style.setProperty(cssVarName, value);
-         }
-       });
+    if (siteData && !isPreview) {
+        applyTheme(siteData);
     }
-  }, [siteData]);
+  }, [siteData, isPreview]);
 
 
   if (isLoading || !siteData) {

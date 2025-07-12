@@ -4,10 +4,10 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { ArrowLeft, Pointer } from "lucide-react";
+import { ArrowLeft, Pointer, Settings } from "lucide-react";
 import { LanguageManager } from "@/components/admin/settings/LanguageManager";
 import { ThemeManager } from "@/components/admin/settings/ThemeManager";
-import { type Language, type Theme, type EditableElement, type Translations } from "@/lib/types";
+import { type Language, type EditableElement, type Translations, type SiteData } from "@/lib/types";
 import { Toaster } from "@/components/ui/toaster";
 import { VisualEditor } from "@/components/admin/settings/VisualEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,6 +39,10 @@ export default function SettingsPage() {
             const newTranslations = { ...prev.translations, [key]: value };
             return { ...prev, translations: newTranslations };
         });
+    }
+
+    const handleSiteDataChange = (newSiteData: SiteData) => {
+        setSiteData(newSiteData);
     }
 
     const handleSelection = useCallback((element: EditableElement | null) => {
@@ -100,9 +104,11 @@ export default function SettingsPage() {
             </aside>
             
             <VisualEditor 
+                siteData={siteData}
                 onSelectElement={handleSelection}
                 pendingChanges={pendingChanges}
                 setPendingChanges={setPendingChanges}
+                onSiteDataChange={handleSiteDataChange}
             />
 
             <Toaster />

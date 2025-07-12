@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -27,19 +28,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  useEffect(() => {
+  const checkAuth = useCallback(() => {
+    setIsLoading(true);
     try {
       const username = localStorage.getItem(USERNAME_KEY);
       const hash = localStorage.getItem(PASSWORD_HASH_KEY);
       if (username && hash) {
         setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error("Could not access local storage:", error);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    checkAuth();
+    
+    // Listen to storage changes to sync across tabs
+    window.addEventListener('storage', checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+    };
+  }, [checkAuth]);
 
   const login = useCallback((username: string, passwordHash: string) => {
     localStorage.setItem(USERNAME_KEY, username);
@@ -52,7 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(USERNAME_KEY);
     localStorage.removeItem(PASSWORD_HASH_KEY);
     setIsAuthenticated(false);
-    router.push("/admin/login");
+    // Use replace to prevent user from navigating back to the protected page
+    router.replace("/admin/login");
   }, [router]);
 
   const value = {

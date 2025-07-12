@@ -5,11 +5,43 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { SiteDataProvider } from '@/hooks/useSiteData';
-import { type ReactNode } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { type ReactNode, useEffect } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { PageContent } from '@/components/layout/PageContent';
-import { AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
+import { Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
+
+function App({ children }: { children: ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith('/admin');
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {children}
+      {isAuthenticated && !isAdminRoute && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button asChild>
+            <Link href="/admin/settings">
+              <Settings className="mr-2" /> Edit Site
+            </Link>
+          </Button>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
@@ -28,9 +60,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <AuthProvider>
           <SiteDataProvider>
-            <PageContent isPreview={isPreview}>
-                {children}
-            </PageContent>
+            <App>
+              <PageContent isPreview={isPreview}>
+                  {children}
+              </PageContent>
+            </App>
             <Toaster />
           </SiteDataProvider>
         </AuthProvider>

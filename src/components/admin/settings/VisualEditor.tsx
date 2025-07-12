@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
 import { useSiteData } from "@/hooks/useSiteData";
 import { saveTranslationsAction } from "@/lib/actions";
 import { toast } from "@/hooks/use-toast";
-import type { EditableElement, Translations } from "@/lib/types";
-import Link from 'next/link';
+import type { EditableElement, Translations, SiteData } from "@/lib/types";
 
 type Viewport = 'desktop' | 'tablet' | 'mobile';
 
@@ -22,16 +21,20 @@ const viewportClasses: Record<Viewport, string> = {
 };
 
 interface VisualEditorProps {
+    siteData: SiteData | null;
+    onSiteDataChange: (data: SiteData) => void;
     onSelectElement: (element: EditableElement | null) => void;
     pendingChanges: Partial<Translations>;
     setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
 }
 
-export function VisualEditor({ onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
-    const { siteData, isEditMode, setIsEditMode } = useSiteData();
+export function VisualEditor({ siteData, onSiteDataChange, onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
+    const { isEditMode, setIsEditMode } = useSiteData();
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [isIframeReady, setIsIframeReady] = useState(false);
+    const [iframeSrc, setIframeSrc] = useState<string>('/?preview=true');
+
     
     const handleMessage = useCallback((event: MessageEvent) => {
         if (event.data.type === 'IFRAME_READY') {
@@ -70,6 +73,16 @@ export function VisualEditor({ onSelectElement, pendingChanges, setPendingChange
         }
     }, [isEditMode, isIframeReady, onSelectElement]);
 
+    useEffect(() => {
+        if(siteData?.currentLanguage) {
+            const currentPath = iframeSrc.split('&lang=')[0].split('?')[0];
+            const newSrc = `${currentPath}?preview=true&lang=${siteData.currentLanguage.id}`;
+            if (newSrc !== iframeSrc) {
+                setIframeSrc(newSrc);
+            }
+        }
+    }, [siteData?.currentLanguage, iframeSrc])
+
     const handleSaveChanges = async () => {
         if (Object.keys(pendingChanges).length === 0) {
             toast({ title: "No changes to save", description: "You haven't made any edits yet." });
@@ -91,6 +104,10 @@ export function VisualEditor({ onSelectElement, pendingChanges, setPendingChange
             toast({ title: 'Error', description: result.message, variant: 'destructive' });
         }
     };
+    
+    const navigateIframeToAdmin = () => {
+        setIframeSrc('/admin?preview=true');
+    }
     
     if (!siteData) {
         return <p>Loading live editor...</p>
@@ -121,8 +138,8 @@ export function VisualEditor({ onSelectElement, pendingChanges, setPendingChange
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <Button asChild variant="outline" size="sm">
-                        <Link href="/admin"><Settings className="mr-2 h-4 w-4" /> Go to Dashboard</Link>
+                    <Button variant="outline" size="sm" onClick={navigateIframeToAdmin}>
+                        <Settings className="mr-2 h-4 w-4" /> Go to Dashboard
                     </Button>
                     <Button variant={viewport === 'desktop' ? 'secondary' : 'ghost'} size="icon" onClick={() => setViewport('desktop')}>
                         <Monitor className="h-5 w-5" />
@@ -138,7 +155,7 @@ export function VisualEditor({ onSelectElement, pendingChanges, setPendingChange
             <div className="flex-1 bg-muted flex items-center justify-center p-4">
                  <iframe 
                     ref={iframeRef}
-                    src={`/?preview=true&lang=${siteData.currentLanguage.id}`}
+                    src={iframeSrc}
                     className={cn("h-full bg-background rounded-lg shadow-xl transition-all duration-300 ease-in-out", viewportClasses[viewport])}
                     title="Live Preview"
                  />
