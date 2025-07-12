@@ -105,6 +105,10 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const clonedChild = cloneElement(children, {
     ...children.props,
     style: finalStyle,
+    onClick: isEditMode ? (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    } : children.props.onClick
   });
 
   if (isEditMode) {
