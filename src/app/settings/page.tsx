@@ -79,7 +79,7 @@ export default function SettingsPage() {
     const overrides = storedOverrides ? JSON.parse(storedOverrides) : {};
     return {
       background: overrides.background || siteData?.theme.colors.background || defaultTheme.colors.background,
-      primary: overrides.primary || siteData?.theme.colors.primary || defaultTheme.colors.primary,
+      primary: overrides.primary || siteData?.theme.colors.primary || defaultTheme.colors.accent,
       accent: overrides.accent || siteData?.theme.colors.accent || defaultTheme.colors.accent,
     };
   }, [siteData]);

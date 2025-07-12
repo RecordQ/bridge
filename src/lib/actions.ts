@@ -89,7 +89,7 @@ const productSchema = z.object({
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
 
-type ProductActionState = {
+export type ProductActionState = {
     status: "success" | "error" | "idle";
     message: string;
     errors?: Record<string, string>;
@@ -212,7 +212,6 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
     const languagesMap: Map<number, Partial<Language>> = new Map();
     let defaultIndex = -1;
 
-    // First pass: aggregate all data for each language index
     for (const [key, value] of formData.entries()) {
         const match = key.match(/languages\.(\d+)\.(.+)/);
         if (match) {
@@ -225,7 +224,6 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
             const lang = languagesMap.get(index)!;
 
             if (prop === 'default') {
-                // 'on' is the value for a checked switch
                 if (value === 'on') {
                     defaultIndex = index;
                 }
@@ -234,8 +232,11 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
             }
         }
     }
+    
+    if (defaultIndex === -1) {
+       return { status: 'error', message: "At least one of the languages must be default." };
+    }
 
-    // Second pass: finalize the languages array
     const languages: Language[] = [];
     for (const [index, partialLang] of languagesMap.entries()) {
         const lang: Language = {
@@ -245,8 +246,7 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         };
         languages.push(lang);
     }
-
-    // Validate
+    
     if (languages.filter(l => l.default).length !== 1) {
         return { status: 'error', message: "Exactly one language must be set as default." };
     }
@@ -263,20 +263,17 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         const existingLangIds = existingLangsSnapshot.docs.map(d => d.id);
         const newLangIds = languages.map(l => l.id);
 
-        // Delete languages that were removed
         for (const langId of existingLangIds) {
             if (!newLangIds.includes(langId)) {
                 batch.delete(doc(db, 'languages', langId));
-                batch.delete(doc(db, 'translations', langId)); // Also delete translations
+                batch.delete(doc(db, 'translations', langId));
             }
         }
 
-        // Set new/updated languages
         for (const lang of languages) {
             const langRef = doc(db, 'languages', lang.id);
             batch.set(langRef, { name: lang.name, default: lang.default });
             
-            // If it's a new language, create a default translation document for it
             if(!existingLangIds.includes(lang.id)) {
                 const translationRef = doc(db, 'translations', lang.id);
                 batch.set(translationRef, defaultTranslations);

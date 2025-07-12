@@ -14,7 +14,7 @@ import { db } from "@/lib/firebase";
 import { getDoc, getDocs, collection, doc } from "firebase/firestore";
 
 function AdminApp({ children }: { children: ReactNode }) {
-  const { siteData, setSiteData } = useSiteData();
+  const { setSiteData } = useSiteData();
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
@@ -81,7 +81,7 @@ function AdminApp({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-  if (isLoading || isAuthLoading || !siteData) {
+  if (isLoading || isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
