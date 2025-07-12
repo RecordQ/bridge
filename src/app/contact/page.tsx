@@ -20,8 +20,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSiteData } from "@/hooks/useSiteData";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import StyleInjector from "@/components/layout/StyleInjector";
-import ThreeScene from "@/components/ThreeScene";
 import { Chatbot } from "@/components/Chatbot";
 
 
@@ -149,8 +147,6 @@ export default function ContactPage() {
 
   return (
     <>
-      <ThreeScene />
-      <StyleInjector colors={siteData.theme.colors} />
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1 bg-transparent">

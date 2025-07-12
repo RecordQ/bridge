@@ -14,8 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
 import Link from 'next/link';
 import { useSiteData } from '@/hooks/useSiteData';
-import StyleInjector from '@/components/layout/StyleInjector';
-import ThreeScene from '@/components/ThreeScene';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Chatbot } from '@/components/Chatbot';
@@ -111,8 +109,6 @@ export default function ProductsPage() {
 
   return (
     <>
-      <ThreeScene />
-      <StyleInjector colors={siteData.theme.colors} />
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1 bg-transparent">
@@ -198,7 +194,7 @@ export default function ProductsPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mt-2 whitespace-pre-line">
-                            {t('products_not_found_subtitle', `Your search for "${searchTerm}" did not match any products.\nTry a different keyword or browse all products.`).replace('{searchTerm}', searchTerm)}
+                            {t('products_not_found_subtitle', `Your search for "{searchTerm}" did not match any products.\nTry a different keyword or browse all products.`).replace('{searchTerm}', searchTerm)}
                         </p>
                         {searchTerm && (
                             <Button variant="outline" className="mt-6" onClick={() => setSearchTerm("")}>

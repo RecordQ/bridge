@@ -15,8 +15,6 @@ import { useSiteData } from "@/hooks/useSiteData";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Chatbot } from "@/components/Chatbot";
-import ThreeScene from "@/components/ThreeScene";
-import StyleInjector from "@/components/layout/StyleInjector";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -87,8 +85,6 @@ export default function Home() {
 
   return (
     <>
-      <ThreeScene />
-      <StyleInjector colors={siteData.theme.colors} />
        <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1">

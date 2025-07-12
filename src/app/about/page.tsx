@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Target, Eye, Rocket, LoaderCircle } from 'lucide-react';
 import { useSiteData } from '@/hooks/useSiteData';
-import StyleInjector from '@/components/layout/StyleInjector';
-import ThreeScene from '@/components/ThreeScene';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Chatbot } from '@/components/Chatbot';
@@ -42,8 +40,6 @@ export default function AboutPage() {
 
   return (
     <>
-      <ThreeScene />
-      <StyleInjector colors={siteData.theme.colors} />
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
         <Header />
         <main className="flex-1 bg-transparent">

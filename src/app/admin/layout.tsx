@@ -1,51 +1,56 @@
+// src/app/admin/layout.tsx
 "use client";
 
 import { type ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
+import { SiteDataProvider, useSiteData } from "@/hooks/useSiteData";
+import StyleInjector from "@/components/layout/StyleInjector";
+import { Toaster } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
 
-function AdminLayoutContent({ children }: { children: ReactNode }) {
-    const { isAuthenticated, isLoading } = useAuth();
+function ThemedAdminLayout({ children }: { children: ReactNode }) {
+    const { siteData, isLoading: isSiteDataLoading } = useSiteData();
+    const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        // If loading has finished, and we are not on the login page, and the user is not authenticated...
-        if (!isLoading && !isAuthenticated && pathname !== '/admin/login') {
-            // ...redirect to the login page.
+        if (!isAuthLoading && !isAuthenticated && pathname !== '/admin/login') {
             router.replace('/admin/login');
         }
-    }, [isAuthenticated, isLoading, router, pathname]);
+    }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-    // While checking authentication, show a loading spinner
-    if (isLoading) {
+    if (isAuthLoading || isSiteDataLoading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center">
+            <div className="flex h-screen w-full items-center justify-center bg-background">
                 <LoaderCircle className="h-8 w-8 animate-spin" />
             </div>
         );
     }
     
-    // If on a protected route and authenticated, show the content.
-    // Or, if on the login page, show the content (the login page itself).
-    if ((isAuthenticated && pathname !== '/admin/login') || pathname === '/admin/login') {
-         return <>{children}</>;
-    }
+    const showContent = (isAuthenticated && pathname !== '/admin/login') || pathname === '/admin/login';
 
-    // In other cases (like being unauthenticated on a protected route and waiting for redirect),
-    // return null or a loader to prevent flashing content.
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-          <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
+        <div className={cn("min-h-screen bg-background font-body antialiased")}>
+            {siteData && <StyleInjector colors={siteData.theme.colors} />}
+            {showContent ? children : (
+                <div className="flex h-screen w-full items-center justify-center bg-background">
+                    <LoaderCircle className="h-8 w-8 animate-spin" />
+                </div>
+            )}
+            <Toaster />
+        </div>
+    )
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
-        <AuthProvider>
-            <AdminLayoutContent>{children}</AdminLayoutContent>
-        </AuthProvider>
+        <SiteDataProvider>
+            <AuthProvider>
+                <ThemedAdminLayout>{children}</ThemedAdminLayout>
+            </AuthProvider>
+        </SiteDataProvider>
     )
 }
