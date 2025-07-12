@@ -22,13 +22,12 @@ const viewportClasses: Record<Viewport, string> = {
 
 interface VisualEditorProps {
     siteData: SiteData | null;
-    onSiteDataChange: (data: SiteData) => void;
     onSelectElement: (element: EditableElement | null) => void;
     pendingChanges: Partial<Translations>;
     setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
 }
 
-export function VisualEditor({ siteData, onSiteDataChange, onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
+export function VisualEditor({ siteData, onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
     const { isEditMode, setIsEditMode } = useSiteData();
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -75,8 +74,11 @@ export function VisualEditor({ siteData, onSiteDataChange, onSelectElement, pend
 
     useEffect(() => {
         if(siteData?.currentLanguage) {
-            const currentPath = iframeSrc.split('&lang=')[0].split('?')[0];
-            const newSrc = `${currentPath}?preview=true&lang=${siteData.currentLanguage.id}`;
+            const url = new URL(iframeSrc, window.location.origin);
+            const currentPath = url.pathname;
+            url.searchParams.set('preview', 'true');
+            url.searchParams.set('lang', siteData.currentLanguage.id);
+            const newSrc = `${currentPath}${url.search}`;
             if (newSrc !== iframeSrc) {
                 setIframeSrc(newSrc);
             }

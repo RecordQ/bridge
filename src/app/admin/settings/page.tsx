@@ -28,23 +28,9 @@ export default function SettingsPage() {
             return { ...prev, translations: newTranslations };
         });
 
-        setSelectedElement(elem => elem ? ({...elem, value}) : null);
+        setSelectedElement(elem => elem ? ({...elem, value: elem.key === key ? value : elem.value}) : null);
     };
     
-    const handleColorChange = (key: string, value: string) => {
-        setPendingChanges(prev => ({...prev, [key]: value}));
-
-        setSiteData(prev => {
-            if (!prev) return null;
-            const newTranslations = { ...prev.translations, [key]: value };
-            return { ...prev, translations: newTranslations };
-        });
-    }
-
-    const handleSiteDataChange = (newSiteData: SiteData) => {
-        setSiteData(newSiteData);
-    }
-
     const handleSelection = useCallback((element: EditableElement | null) => {
         if (element && siteData?.translations) {
             const liveValue = siteData.translations[element.key] || element.value;
@@ -81,7 +67,6 @@ export default function SettingsPage() {
                                 <ElementInspector 
                                     element={selectedElement}
                                     onChange={handleInspectorChange}
-                                    onColorChange={handleColorChange}
                                 />
                            ) : (
                                <div className="p-4 border rounded-lg bg-muted/30 text-center">
@@ -108,7 +93,6 @@ export default function SettingsPage() {
                 onSelectElement={handleSelection}
                 pendingChanges={pendingChanges}
                 setPendingChanges={setPendingChanges}
-                onSiteDataChange={handleSiteDataChange}
             />
 
             <Toaster />

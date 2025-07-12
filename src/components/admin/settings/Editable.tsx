@@ -24,6 +24,20 @@ const handleElementSelection = (e: React.MouseEvent, isEditMode: boolean, transl
     }
 }
 
+const getDynamicStyles = (styleKeys?: Record<string, string>, translations?: Translations | null): CSSProperties => {
+  const dynamicStyles: CSSProperties = {};
+  if (styleKeys && translations) {
+      Object.entries(styleKeys).forEach(([styleProp, transKey]) => {
+          if (translations[transKey]) {
+              const cssProp = styleProp.replace(/([A-Z])/g, '-$1').toLowerCase();
+              (dynamicStyles as any)[cssProp] = translations[transKey];
+          }
+      });
+  }
+  return dynamicStyles;
+}
+
+
 // ========= EDITABLE TEXT =========
 
 type EditableTextProps = {
@@ -37,13 +51,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
   const { t, isEditMode, siteData } = useSiteData();
   const textValue = t(translationKey);
   
-  const dynamicStyles: CSSProperties = {};
-  if (styleKeys && siteData?.translations) {
-    const colorValue = siteData.translations[styleKeys.color]
-    if (colorValue) {
-        dynamicStyles.color = colorValue;
-    }
-  }
+  const dynamicStyles = getDynamicStyles(styleKeys, siteData?.translations);
 
   const handleClick = (e: React.MouseEvent) => {
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
@@ -85,16 +93,8 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const handleClick = (e: React.MouseEvent) => {
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
-
-  const dynamicStyles: CSSProperties = {};
-  if (styleKeys && siteData?.translations) {
-    if (styleKeys.backgroundColor && siteData.translations[styleKeys.backgroundColor]) {
-      dynamicStyles.backgroundColor = siteData.translations[styleKeys.backgroundColor];
-    }
-    if (styleKeys.color && siteData.translations[styleKeys.color]) {
-      dynamicStyles.color = siteData.translations[styleKeys.color];
-    }
-  }
+  
+  const dynamicStyles = getDynamicStyles(styleKeys, siteData?.translations);
 
   const finalStyle = { ...children.props.style, ...dynamicStyles };
 
@@ -118,12 +118,12 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
                 if (isEditMode) {
                     e.preventDefault();
                     e.stopPropagation();
-                } else {
-                    children.props.onClick?.(e);
+                } else if (children.props.onClick) {
+                    children.props.onClick(e);
                 }
             },
             // Prevent the link from working in edit mode
-            href: isEditMode ? undefined : children.props.href,
+            href: isEditMode ? 'javascript:void(0)' : (children.props as any).href,
         })}
       </div>
     );

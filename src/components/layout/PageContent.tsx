@@ -4,45 +4,10 @@
 import { useEffect, type ReactNode } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
 import { LoaderCircle } from "lucide-react";
-import type { SiteData } from "@/lib/types";
+import type { SiteData, Translations } from "@/lib/types";
 
 function applyTheme(data: SiteData) {
     if (!data?.theme?.colors) return;
-    const { colors } = data.theme;
-    
-    let styleString = ':root {';
-    // Apply global theme colors
-    Object.entries(colors).forEach(([key, value]) => {
-        styleString += `--${key}: ${value};`;
-    });
-    
-    // Apply dynamic element-specific styles
-    Object.entries(data.translations).forEach(([key, value]) => {
-        if (key.includes('_bg') || key.includes('_color')) {
-            const cssVarName = `--${key.replace(/_/g, '-')}`;
-            styleString += `${cssVarName}: ${value};`;
-        }
-    });
-
-    styleString += '}';
-    
-    // Create CSS rules for elements using the dynamic styles
-    Object.entries(data.translations).forEach(([key, value]) => {
-       if (key.includes('_bg') || key.includes('_color')) {
-            const cssVarName = `--${key.replace(/_/g, '-')}`;
-            const selectorKey = key.replace(/_bg$/, '').replace(/_text$/, '').replace(/_color$/, '');
-            
-            const selector = `[data-editable-key="${selectorKey}"]`;
-
-            if(key.endsWith("_bg")){
-                styleString += `${selector} { background-color: var(${cssVarName}) !important; }`;
-            } else if (key.endsWith("_text") || key.endsWith("_color")){
-                 styleString += `${selector} { color: var(${cssVarName}) !important; }`;
-            }
-        }
-    });
-
-    // Find or create the style tag
     const styleTagId = 'dynamic-theme-styles';
     let styleTag = document.getElementById(styleTagId);
     if (!styleTag) {
@@ -50,6 +15,49 @@ function applyTheme(data: SiteData) {
         styleTag.id = styleTagId;
         document.head.appendChild(styleTag);
     }
+
+    let styleString = ':root {';
+    // Apply global theme colors from theme object
+    Object.entries(data.theme.colors).forEach(([key, value]) => {
+        styleString += `--${key}: ${value};`;
+    });
+    styleString += '}';
+
+    // Generate CSS rules for individual element styles from translations
+    const elementStyles: { [selector: string]: { [prop: string]: string } } = {};
+
+    Object.entries(data.translations).forEach(([key, value]) => {
+        const parts = key.split('_');
+        if (parts.length > 2) {
+            const prop = parts.pop();
+            if (prop && (prop.endsWith('color') || prop.endsWith('bg') || prop.endsWith('size'))) {
+                const selectorKey = parts.join('_');
+                const selector = `[data-editable-key="${selectorKey}"]`;
+                
+                if (!elementStyles[selector]) {
+                    elementStyles[selector] = {};
+                }
+
+                let cssProp = '';
+                if (prop === 'bg') cssProp = 'background-color';
+                else if (prop === 'color' || prop === 'text') cssProp = 'color';
+                else if (prop === 'size') cssProp = 'font-size';
+                
+                if (cssProp) {
+                     elementStyles[selector][cssProp] = value;
+                }
+            }
+        }
+    });
+
+    for (const selector in elementStyles) {
+        styleString += `${selector} {`;
+        for (const prop in elementStyles[selector]) {
+            styleString += `${prop}: ${elementStyles[selector][prop]} !important;`;
+        }
+        styleString += `}`;
+    }
+
     styleTag.innerHTML = styleString;
 }
 
@@ -60,7 +68,7 @@ export function PageContent({ children, isPreview }: { children: ReactNode, isPr
     if (isPreview) {
       const handleMessage = (event: MessageEvent) => {
         const { type, payload } = event.data;
-        if (type === 'SITE_DATA_UPDATE') {
+        if (type === 'SITE_DATA_UPDATE' && payload) {
           setSiteData(payload);
           applyTheme(payload);
           if(isLoading) setIsLoading(false);
