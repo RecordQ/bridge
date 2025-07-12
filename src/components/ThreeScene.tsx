@@ -1,11 +1,15 @@
+// src/components/ThreeScene.tsx
 'use client';
 
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
+import { useSiteData } from '@/hooks/useSiteData';
 
 const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
+  const { theme } = useSiteData();
+  const config = theme.threeScene;
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -20,20 +24,10 @@ const ThreeScene = () => {
     renderer.setClearColor(0x000000, 0);
     mountRef.current.appendChild(renderer.domElement);
 
-    // // Sun
-    // const sunLight = new THREE.PointLight(0xffddaa, 1.5, 2000);
-    // scene.add(sunLight);
-    // const sunGeometry = new THREE.SphereGeometry(70, 32, 32);
-    // const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffddaa, map: createGlowTexture() });
-    // const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-    // sun.position.set(-800, 200, 200);
-    // scene.add(sun);
-
-
     // Planet
     const planetGeometry = new THREE.SphereGeometry(100, 32, 32);
     const planetMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x4a90e2, 
+        color: config.planetColor,
         roughness: 0.8,
         metalness: 0.1 
     });
@@ -44,26 +38,25 @@ const ThreeScene = () => {
     // Moon
     const moonGeometry = new THREE.SphereGeometry(30, 32, 32);
     const moonMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0xcccccc, 
+        color: config.moonColor,
         roughness: 0.9
     });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(200, 0, 0);
     const moonOrbit = new THREE.Object3D();
     moonOrbit.add(moon);
-    planet.add(moonOrbit); // Add orbit to planet
-
+    planet.add(moonOrbit);
 
     const galaxyParameters = {
-        count: 3000000,
+        count: 500000,
         size: 0.5,
         radius: 600,
         branches: 5,
         spin: 1,
         randomness: 1.8,
         randomnessPower: 3,
-        insideColor: '#ff6030',
-        outsideColor: '#1b3984'
+        insideColor: config.galaxyInsideColor,
+        outsideColor: config.galaxyOutsideColor,
     };
     
     // Background Stars (far)
@@ -162,8 +155,8 @@ const ThreeScene = () => {
 
     const nebulaVertices: number[] = [];
     const nebulaColors: number[] = [];
-    const nebulaBaseColor1 = new THREE.Color(0x6a0dad); // purple
-    const nebulaBaseColor2 = new THREE.Color(0xdc143c); // crimson
+    const nebulaBaseColor1 = new THREE.Color(config.nebulaColor1);
+    const nebulaBaseColor2 = new THREE.Color(config.nebulaColor2);
     
     for (let i = 0; i < 50000; i++) {
         const x = THREE.MathUtils.randFloatSpread(2500);
@@ -224,9 +217,7 @@ const ThreeScene = () => {
       backgroundStars.rotation.y = elapsedTime * 0.01;
       nearStars.rotation.y = elapsedTime * 0.02;
 
-      // Parallax effect from mouse
       camera.position.x += (mouseX - camera.position.x) * 0.02;
-      // camera.position.y += (-mouseY - camera.position.y) * 0.02; // Disabled to favor scroll
       camera.lookAt(scene.position);
       
       renderer.render(scene, camera);
@@ -248,32 +239,8 @@ const ThreeScene = () => {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [config]);
 
-  function createGlowTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 128;
-    canvas.height = 128;
-    const context = canvas.getContext('2d');
-    if (!context) return null;
-
-    const gradient = context.createRadialGradient(
-      canvas.width / 2,
-      canvas.height / 2,
-      0,
-      canvas.width / 2,
-      canvas.height / 2,
-      canvas.width / 2
-    );
-    gradient.addColorStop(0.1, 'rgba(255, 255, 255, 1)');
-    gradient.addColorStop(0.4, 'rgba(255, 220, 170, 0.6)');
-    gradient.addColorStop(1, 'rgba(255, 220, 170, 0)');
-
-    context.fillStyle = gradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    return new THREE.CanvasTexture(canvas);
-  }
 
   return <div ref={mountRef} className="fixed top-0 left-0 w-full h-full -z-10" />;
 };

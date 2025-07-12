@@ -1,3 +1,4 @@
+// src/components/Chatbot.tsx
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from 'react';
@@ -8,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { askQuestion, type AskQuestionInput } from '@/ai/flows/ai-chatbot';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { useSiteData } from '@/hooks/useSiteData';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -21,6 +23,7 @@ export function Chatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { t } = useSiteData();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -44,7 +47,7 @@ export function Chatbot() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error asking question:", error);
-      const errorMessage: Message = { role: 'assistant', content: "Sorry, I'm having trouble connecting. Please try again later." };
+      const errorMessage: Message = { role: 'assistant', content: t('chatbot_error') };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -70,14 +73,14 @@ export function Chatbot() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-headline flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-accent" />
-              AI Assistant
+              {t('chatbot_title')}
             </CardTitle>
           </CardHeader>
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.length === 0 && (
                 <div className="text-center text-muted-foreground p-4">
-                  Ask me anything about our products!
+                  {t('chatbot_greeting')}
                 </div>
               )}
               {messages.map((message, index) => (
@@ -109,7 +112,7 @@ export function Chatbot() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={t('chatbot_input_placeholder')}
                 disabled={isLoading}
               />
               <Button type="submit" size="icon" disabled={isLoading}>

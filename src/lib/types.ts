@@ -21,3 +21,27 @@ export type Submission = {
     date: string;
     status: 'New' | 'Contacted';
 };
+
+export type Language = {
+    id: string; // e.g., 'en'
+    name: string; // e.g., 'English'
+    default: boolean;
+};
+
+export type Translations = Record<string, string>;
+
+export type ColorPalette = { [key: string]: string };
+
+export type ThreeSceneConfig = { [key: string]: string };
+
+export type Theme = {
+    colors: ColorPalette;
+    threeScene: ThreeSceneConfig;
+};
+
+export type SiteData = {
+    languages: Language[];
+    currentLanguage: Language;
+    translations: Translations;
+    theme: Theme;
+};

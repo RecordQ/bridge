@@ -17,41 +17,42 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSiteData } from "@/hooks/useSiteData";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const { t } = useSiteData();
   return (
     <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={pending}>
-      {pending ? <LoaderCircle className="animate-spin" /> : "Send Message"}
+      {pending ? <LoaderCircle className="animate-spin" /> : t('button_send_message')}
     </Button>
   );
 }
 
 function ContactPageForm() {
+  const { t } = useSiteData();
   const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
     status: "idle",
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [preselectedProductId, setPreselectedProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   // This key forces the form to re-render when a submission is successful
   const formKey: Key = state.status === 'success' ? new Date().getTime() : 'contact-form';
   
   useEffect(() => {
-    // This effect runs only once on the client to fetch data and check localStorage
     async function initializeForm() {
       setLoadingProducts(true);
+      
       // Check localStorage for a pre-selected product
       const storedProductId = localStorage.getItem('selectedProductIdForQuote');
       if (storedProductId) {
-        setPreselectedProductId(storedProductId);
-        // Clean up localStorage so it's not used again on a refresh
+        setSelectedProductId(storedProductId);
         localStorage.removeItem('selectedProductIdForQuote');
       }
 
-      // Fetch all active products for the dropdown
       try {
         const productsCol = collection(db, 'products');
         const q = query(productsCol, where("status", "==", "Active"));
@@ -73,47 +74,39 @@ function ContactPageForm() {
   }, []);
 
   useEffect(() => {
-    // This effect handles showing toast notifications after form submission
     if (state.status === "success") {
-      toast({
-        title: "Success!",
-        description: state.message,
-      });
+      toast({ title: "Success!", description: state.message });
     } else if (state.status === "error") {
-      toast({
-        title: "Error",
-        description: state.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: state.message, variant: "destructive" });
     }
   }, [state]);
 
-  const preselectedProduct = products.find(p => p.id === preselectedProductId);
+  const selectedProduct = products.find(p => p.id === selectedProductId);
 
   return (
     <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
-        <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
+        <CardTitle className="font-headline text-2xl">{t('contact_form_title')}</CardTitle>
+        <CardDescription>{t('contact_form_subtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form key={formKey} action={formAction} className="space-y-4">
           <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" placeholder="Your Name" required />
+            <Label htmlFor="name">{t('contact_form_name_label')}</Label>
+            <Input id="name" name="name" placeholder={t('contact_form_name_placeholder')} required />
           </div>
           <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" name="email" placeholder="your.email@example.com" required/>
+            <Label htmlFor="email">{t('contact_form_email_label')}</Label>
+            <Input id="email" type="email" name="email" placeholder={t('contact_form_email_placeholder')} required/>
           </div>
           <div>
-            <Label htmlFor="product">Product of Interest</Label>
+            <Label htmlFor="product">{t('contact_form_product_label')}</Label>
             {loadingProducts ? (
               <Skeleton className="h-10 w-full" />
             ) : (
-              <Select name="product" defaultValue={preselectedProduct?.name} required>
+              <Select name="product" defaultValue={selectedProduct?.name} required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a product" />
+                  <SelectValue placeholder={t('contact_form_product_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {products.map(product => (
@@ -126,8 +119,8 @@ function ContactPageForm() {
             )}
           </div>
           <div>
-            <Label htmlFor="message">Message</Label>
-            <Textarea id="message" name="message" placeholder="How can we help you today?" rows={6} required minLength={10} />
+            <Label htmlFor="message">{t('contact_form_message_label')}</Label>
+            <Textarea id="message" name="message" placeholder={t('contact_form_message_placeholder')} rows={6} required minLength={10} />
           </div>
           <SubmitButton />
           {state.status === 'error' && state.message && (
@@ -140,15 +133,16 @@ function ContactPageForm() {
 }
 
 export default function ContactPage() {
+  const { t } = useSiteData();
   return (
     <div className="bg-transparent">
       <section 
         className="relative py-24 md:py-40"
       >
         <div className="container mx-auto text-center relative z-10 px-4">
-          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
+          <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">{t('contact_hero_title')}</h1>
           <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-            Have a question or a project in mind? We'd love to hear from you.
+            {t('contact_hero_subtitle')}
           </p>
         </div>
       </section>
@@ -156,29 +150,29 @@ export default function ContactPage() {
       <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto grid md:grid-cols-2 gap-16 px-4">
           <div>
-            <h2 className="font-headline text-3xl font-bold mb-4">Contact Information</h2>
+            <h2 className="font-headline text-3xl font-bold mb-4">{t('contact_info_title')}</h2>
             <p className="text-muted-foreground mb-8">
-              Reach out to us directly through any of the channels below. We're ready to assist you.
+              {t('contact_info_subtitle')}
             </p>
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <Mail className="w-6 h-6 text-accent" />
                 <div>
-                  <h3 className="font-semibold">Email</h3>
+                  <h3 className="font-semibold">{t('contact_info_email')}</h3>
                   <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-accent transition-colors">contact@bridgeltd.com</a>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Phone className="w-6 h-6 text-accent" />
                 <div>
-                  <h3 className="font-semibold">Phone</h3>
+                  <h3 className="font-semibold">{t('contact_info_phone')}</h3>
                   <a href="tel:+1234567890" className="text-muted-foreground hover:text-accent transition-colors">+1 (234) 567-890</a>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <MapPin className="w-6 h-6 text-accent" />
                 <div>
-                  <h3 className="font-semibold">Office</h3>
+                  <h3 className="font-semibold">{t('contact_info_office')}</h3>
                   <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>
                 </div>
               </div>

@@ -1,17 +1,22 @@
+// src/components/layout/Footer.tsx
+"use client";
+
 import { Rocket, Twitter, Github, Linkedin } from 'lucide-react';
 import Link from 'next/link';
+import { useSiteData } from '@/hooks/useSiteData';
 
 export function Footer() {
+  const { t } = useSiteData();
   return (
     <footer className="bg-card text-card-foreground border-t">
-      <div className="container py-8">
+      <div className="container py-8 px-4">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           <div className="flex items-center space-x-2">
             <Rocket className="h-6 w-6 text-accent" />
-            <span className="font-bold font-headline text-lg">Bridge Ltd</span>
+            <span className="font-bold font-headline text-lg">{t('company_name')}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Bridge Ltd. All rights reserved.
+            {t('company_copyright').replace('{year}', new Date().getFullYear().toString())}
           </p>
           <div className="flex items-center space-x-4">
             <Link href="#" className="text-muted-foreground hover:text-accent transition-colors"><Twitter className="h-5 w-5" /></Link>

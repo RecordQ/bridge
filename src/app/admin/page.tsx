@@ -1,9 +1,10 @@
+// src/app/admin/page.tsx
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical } from "lucide-react";
+import { PlusCircle, MoreVertical, Settings } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,7 +26,7 @@ async function getProducts(): Promise<Product[]> {
         return productSnapshot.docs.map(doc => {
             const data = doc.data();
             const features = Array.isArray(data.features) ? data.features : [];
-            return { 
+            return {
                 id: doc.id,
                 name: data.name || '',
                 price: data.price || 0,
@@ -109,21 +110,36 @@ export default async function AdminDashboardPage() {
     const products = await getProducts();
     const submissions = await getSubmissions();
 
-    const activeSubmissions = submissions.filter(sub => sub.status === 'New');
+    const newSubmissions = submissions.filter(sub => sub.status === 'New');
     const contactedSubmissions = submissions.filter(sub => sub.status === 'Contacted');
 
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
-            <div className="container mx-auto">
+            <div className="container mx-auto px-4">
                 <div className="mb-8 flex justify-between items-start">
                     <div>
                         <h1 className="font-headline text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
-                        <p className="text-muted-foreground">Manage your site content and settings here.</p>
+                        <p className="text-muted-foreground">Manage your products, submissions, and site settings.</p>
                     </div>
                      <LogoutButton />
                 </div>
 
                 <div className="grid gap-8">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                             <div>
+                                <CardTitle>Site Settings</CardTitle>
+                                <CardDescription>Manage global content, languages, and theme settings.</CardDescription>
+                            </div>
+                             <Button asChild size="sm">
+                                <Link href="/admin/settings">
+                                    <Settings className="mr-2" />
+                                    Go to Settings
+                                </Link>
+                            </Button>
+                        </CardHeader>
+                    </Card>
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>
@@ -187,13 +203,13 @@ export default async function AdminDashboardPage() {
                             <CardDescription>Recent messages from your customers.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           <Tabs defaultValue="active">
+                           <Tabs defaultValue="new">
                                <TabsList className="grid w-full grid-cols-2">
-                                   <TabsTrigger value="active">Active ({activeSubmissions.length})</TabsTrigger>
+                                   <TabsTrigger value="new">New ({newSubmissions.length})</TabsTrigger>
                                    <TabsTrigger value="contacted">Contacted ({contactedSubmissions.length})</TabsTrigger>
                                </TabsList>
-                               <TabsContent value="active">
-                                   <SubmissionsTable submissions={activeSubmissions} />
+                               <TabsContent value="new">
+                                   <SubmissionsTable submissions={newSubmissions} />
                                </TabsContent>
                                <TabsContent value="contacted">
                                    <SubmissionsTable submissions={contactedSubmissions} />

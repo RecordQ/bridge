@@ -1,10 +1,14 @@
+// lib/actions.ts
 "use server";
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { revalidatePath } from "next/cache";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs } from "firebase/firestore";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import type { Language } from "./types";
+import { defaultTranslations } from "./config";
 
 
 // ========= CONTACT FORM ACTION =========
@@ -170,6 +174,7 @@ export async function editProductAction(productId: string, prevState: ProductAct
 
         revalidatePath('/admin');
         revalidatePath('/products');
+        revalidateTag('site-data');
         
         return {
             status: 'success',
@@ -191,9 +196,135 @@ export async function deleteProductAction(productId: string) {
         await deleteDoc(doc(db, "products", productId));
         revalidatePath('/admin');
         revalidatePath('/products');
+        revalidateTag('site-data');
         return { status: "success", message: "Product deleted successfully." };
     } catch (error) {
         console.error("Error deleting product:", error);
         return { status: "error", message: "Failed to delete product." };
     }
+}
+
+// ========= SETTINGS ACTIONS =========
+
+export type LanguageActionState = { status: 'idle' | 'success' | 'error', message: string };
+
+export async function saveLanguagesAction(prevState: LanguageActionState, formData: FormData): Promise<LanguageActionState> {
+    const languages: Language[] = [];
+    const entries = Array.from(formData.entries());
+
+    for (let i = 0; i < entries.length; i++) {
+        const [key, value] = entries[i];
+        const match = key.match(/languages\.(\d+)\.(.+)/);
+        if (match) {
+            const index = parseInt(match[1], 10);
+            const prop = match[2];
+            if (!languages[index]) languages[index] = { id: '', name: '', default: false };
+            if (prop === 'default') {
+                (languages[index] as any)[prop] = value === 'on';
+            } else {
+                (languages[index] as any)[prop] = value;
+            }
+        }
+    }
+
+    // Validate
+    if (languages.filter(l => l.default).length !== 1) {
+        return { status: 'error', message: "Exactly one language must be set as default." };
+    }
+
+    try {
+        const batch = writeBatch(db);
+        const existingLangsSnapshot = await getDocs(collection(db, 'languages'));
+        const existingLangIds = existingLangsSnapshot.docs.map(d => d.id);
+        const newLangIds = languages.map(l => l.id);
+
+        // Delete languages that were removed
+        for (const langId of existingLangIds) {
+            if (!newLangIds.includes(langId)) {
+                batch.delete(doc(db, 'languages', langId));
+                batch.delete(doc(db, 'translations', langId)); // Also delete translations
+            }
+        }
+
+        // Set new/updated languages
+        for (const lang of languages) {
+            const langRef = doc(db, 'languages', lang.id);
+            batch.set(langRef, { name: lang.name, default: lang.default });
+            
+            // If it's a new language, create a default translation document for it
+            if(!existingLangIds.includes(lang.id)) {
+                const translationRef = doc(db, 'translations', lang.id);
+                batch.set(translationRef, defaultTranslations);
+            }
+        }
+        
+        await batch.commit();
+        revalidateTag('site-data');
+        return { status: 'success', message: "Languages saved successfully." };
+    } catch (error) {
+        console.error("Error saving languages:", error);
+        return { status: 'error', message: "An error occurred while saving languages." };
+    }
+}
+
+export type TranslationActionState = { status: 'idle' | 'success' | 'error', message: string };
+
+export async function saveTranslationsAction(prevState: TranslationActionState, formData: FormData): Promise<TranslationActionState> {
+    const langCode = formData.get('langCode') as string;
+    if (!langCode) {
+        return { status: 'error', message: "Language code is missing." };
+    }
+    
+    const translations: Record<string, string> = {};
+    const entries = Array.from(formData.entries());
+    for (const [key, value] of entries) {
+        const match = key.match(/translations\.(\d+)\.value/);
+        if (match) {
+            const index = parseInt(match[1], 10);
+            const keyEntry = entries.find(([k]) => k === `translations.${index}.key`);
+            if (keyEntry) {
+                 translations[keyEntry[1] as string] = value as string;
+            }
+        }
+    }
+
+    try {
+        const translationRef = doc(db, 'translations', langCode);
+        await updateDoc(translationRef, translations);
+        revalidateTag('site-data');
+        return { status: 'success', message: `Translations for '${langCode}' saved.` };
+    } catch (error) {
+        console.error("Error saving translations:", error);
+        return { status: 'error', message: 'Failed to save translations.' };
+    }
+}
+
+
+export type ThemeActionState = { status: 'idle' | 'success' | 'error', message: string };
+export async function saveThemeAction(prevState: ThemeActionState, formData: FormData): Promise<ThemeActionState> {
+    const themeData: any = { colors: {}, threeScene: {} };
+    for (const [key, value] of formData.entries()) {
+        if (key.startsWith('colors.')) {
+            themeData.colors[key.substring(7)] = value;
+        } else if (key.startsWith('threeScene.')) {
+            themeData.threeScene[key.substring(11)] = value;
+        }
+    }
+
+    try {
+        const themeRef = doc(db, 'theme', 'config');
+        await updateDoc(themeRef, themeData);
+        revalidateTag('site-data');
+        return { status: 'success', message: "Theme updated successfully." };
+    } catch (error) {
+        console.error("Error saving theme:", error);
+        return { status: 'error', message: "Failed to save theme." };
+    }
+}
+
+
+export async function setLanguageCookie(langCode: string) {
+    cookies().set('NEXT_LOCALE', langCode, { path: '/' });
+    revalidateTag('site-data'); // Revalidate data for the new language
+    redirect('/'); // Redirect to apply language change
 }

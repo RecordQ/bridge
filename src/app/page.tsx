@@ -11,6 +11,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { useSiteData } from "@/hooks/useSiteData";
 
 function getIconForProduct(name: string) {
   const lowerCaseName = name.toLowerCase();
@@ -23,6 +24,7 @@ function getIconForProduct(name: string) {
 export default function Home() {
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const router = useRouter();
+  const { t } = useSiteData();
 
   useEffect(() => {
     async function getTopProducts() {
@@ -73,17 +75,17 @@ export default function Home() {
       >
         <div className="container mx-auto text-center relative z-10 px-4">
           <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
-            Customize Your Universe
+            {t('home_hero_title')}
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-            Bridge Ltd offers premium, customizable products to help your brand shine. From tech gadgets to elegant gift solutions, we bring your vision to life.
+            {t('home_hero_subtitle')}
           </p>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Link href="/products">Explore Products</Link>
+              <Link href="/products">{t('button_explore_products')}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/contact">Request a Quote</Link>
+              <Link href="/contact">{t('button_request_quote')}</Link>
             </Button>
           </div>
         </div>
@@ -92,9 +94,9 @@ export default function Home() {
       {/* Introduction Section */}
       <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto text-center px-4">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Quality That Speaks Volumes</h2>
+            <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_intro_title')}</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
-                We believe in the power of a lasting impression. That's why we source only the highest-quality materials for our products, ensuring your brand is represented with the excellence it deserves.
+                {t('home_intro_subtitle')}
             </p>
         </div>
       </section>
@@ -102,7 +104,7 @@ export default function Home() {
       {/* Products Section */}
       <section id="products" className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto px-4">
-          <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">Our Top Products</h2>
+          <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">{t('home_products_title')}</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {topProducts.map((product) => {
               const Icon = getIconForProduct(product.name);
@@ -123,7 +125,6 @@ export default function Home() {
                           width={600}
                           height={400}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          data-ai-hint="custom product"
                         />
                       </div>
                       <CardDescription>{product.description}</CardDescription>
@@ -137,7 +138,7 @@ export default function Home() {
             <div className="text-center mt-12">
                <Button asChild size="lg" variant="outline">
                 <Link href="/products">
-                    Show More Products <ArrowRight className="ml-2 h-5 w-5" />
+                    {t('button_show_more')} <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
@@ -148,13 +149,13 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-transparent">
         <div className="container mx-auto text-center px-4">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">Ready to Create Something Amazing?</h2>
+            <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_cta_title')}</h2>
             <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
-                Let's collaborate on your next project. Our team is ready to help you design the perfect custom products.
+                {t('home_cta_subtitle')}
             </p>
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Link href="/contact">
-                    Contact Us <ArrowRight className="ml-2 h-5 w-5" />
+                    {t('button_contact_us')} <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
             </Button>
         </div>
