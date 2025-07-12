@@ -17,11 +17,6 @@ export function Footer() {
           </div>
           <div className="text-sm text-muted-foreground flex items-center gap-4">
             <span>{t('company_copyright').replace('{year}', new Date().getFullYear().toString())}</span>
-            <span className="hidden md:inline">|</span>
-            <Link href="/settings" className="flex items-center gap-1 hover:text-accent transition-colors">
-              <Settings className="h-4 w-4"/>
-              {t('footer_nav_settings')}
-            </Link>
           </div>
           <div className="flex items-center space-x-4">
             <Link href="#" className="text-muted-foreground hover:text-accent transition-colors"><Twitter className="h-5 w-5" /></Link>

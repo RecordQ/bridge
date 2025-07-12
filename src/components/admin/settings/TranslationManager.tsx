@@ -10,7 +10,6 @@ import { useFormStatus } from "react-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LoaderCircle } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -18,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import type { Language } from "@/lib/types";
 import { defaultTranslations } from "@/lib/config";
+import { useSiteData } from "@/hooks/useSiteData";
 
 const translationSchema = z.object({
   key: z.string(),
@@ -33,7 +33,7 @@ type TranslationsFormValues = z.infer<typeof translationsSchema>;
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending} className="w-full">
             {pending ? <LoaderCircle className="animate-spin" /> : "Save Translations"}
         </Button>
     );
@@ -43,6 +43,7 @@ export function TranslationManager({ initialLanguages, initialTranslations }: {
     initialLanguages: Language[],
     initialTranslations: Record<string, Record<string, string>>
 }) {
+  const { siteData } = useSiteData();
   const [activeLang, setActiveLang] = useState(initialLanguages.find(l => l.default)?.id || initialLanguages[0]?.id || 'en');
   
   const getInitialDataForLang = (langCode: string) => {
@@ -82,6 +83,23 @@ export function TranslationManager({ initialLanguages, initialTranslations }: {
     }
   }, [state]);
 
+  const watchedValues = form.watch('translations');
+  useEffect(() => {
+    const newTranslations = Object.fromEntries(watchedValues.map(t => [t.key, t.value]));
+    const previewData = {
+        type: 'PREVIEW_UPDATE',
+        payload: {
+            translations: { ...siteData?.translations, ...newTranslations },
+            theme: siteData?.theme
+        }
+    };
+    const iframe = document.querySelector('iframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(previewData, '*');
+    }
+  }, [watchedValues, siteData?.theme, siteData?.translations]);
+
+
   if (initialLanguages.length === 0) {
     return (
         <Card>
@@ -97,7 +115,7 @@ export function TranslationManager({ initialLanguages, initialTranslations }: {
     <Card>
         <CardHeader>
             <CardTitle>Content Translations</CardTitle>
-            <CardDescription>Edit the text content for each language. The "key" is a unique identifier used in the code.</CardDescription>
+            <CardDescription>Edit the text for each language.</CardDescription>
         </CardHeader>
         <CardContent>
             <Tabs value={activeLang} onValueChange={setActiveLang}>
@@ -111,21 +129,15 @@ export function TranslationManager({ initialLanguages, initialTranslations }: {
                 <Form {...form}>
                     <form action={formAction}>
                         <input type="hidden" name="langCode" value={activeLang} />
-                        <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto p-2">
+                        <div className="mt-4 space-y-4 max-h-[40vh] overflow-y-auto p-1">
                              {fields.map((field, index) => (
-                                <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormItem>
-                                        <FormLabel>Key</FormLabel>
-                                        <FormControl>
-                                            <Input {...form.register(`translations.${index}.key`)} readOnly disabled className="bg-muted/50" />
-                                        </FormControl>
-                                    </FormItem>
+                                <div key={field.id}>
                                     <FormField
                                         control={form.control}
                                         name={`translations.${index}.value`}
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Translation</FormLabel>
+                                                <FormLabel className="text-xs font-semibold uppercase text-muted-foreground">{form.getValues(`translations.${index}.key`).replace(/_/g, ' ')}</FormLabel>
                                                 <FormControl>
                                                     <Textarea {...field} rows={2} />
                                                 </FormControl>

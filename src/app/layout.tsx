@@ -11,11 +11,49 @@ import { defaultTheme, defaultTranslations } from '@/lib/config';
 import { db } from '@/lib/firebase';
 import { getDoc, getDocs, collection, doc } from 'firebase/firestore';
 import { LoaderCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 function AppContent({ children }: { children: ReactNode }) {
-  const { setSiteData } = useSiteData();
+  const { siteData, setSiteData } = useSiteData();
   const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
 
+  useEffect(() => {
+    if (isPreview) {
+      // In preview mode, listen for changes from the admin editor
+      const handleMessage = (event: MessageEvent) => {
+          if (event.data.type === 'PREVIEW_UPDATE' && event.data.payload) {
+              const { translations, theme } = event.data.payload;
+              
+              setSiteData(prevData => {
+                  if (!prevData) return null;
+                  
+                  const newTheme = {
+                      colors: { ...defaultTheme.colors, ...prevData.theme.colors, ...theme.colors },
+                      threeScene: { ...defaultTheme.threeScene, ...prevData.theme.threeScene, ...theme.threeScene }
+                  };
+                  
+                  Object.entries(newTheme.colors).forEach(([key, value]) => {
+                      document.body.style.setProperty(`--${key}`, value);
+                  });
+
+                  return {
+                      ...prevData,
+                      translations: { ...defaultTranslations, ...prevData.translations, ...translations },
+                      theme: newTheme,
+                  };
+              });
+          }
+      };
+      window.addEventListener('message', handleMessage);
+      // Inform the parent that the iframe is ready to receive messages
+      window.parent.postMessage('iframe-loaded', '*');
+      
+      return () => window.removeEventListener('message', handleMessage);
+    }
+  }, [isPreview, setSiteData]);
+  
   useEffect(() => {
     const fetchSiteData = async () => {
       try {
@@ -35,12 +73,9 @@ function AppContent({ children }: { children: ReactNode }) {
 
         const themeDoc = await getDoc(doc(db, 'theme', 'config'));
         let themeFromDb = themeDoc.exists() ? themeDoc.data() : defaultTheme;
-
-        const userThemeOverridesStr = localStorage.getItem('user-theme-override');
-        const userThemeOverrides = userThemeOverridesStr ? JSON.parse(userThemeOverridesStr) : {};
         
         const finalTheme = {
-          colors: { ...defaultTheme.colors, ...themeFromDb.colors, ...userThemeOverrides },
+          colors: { ...defaultTheme.colors, ...themeFromDb.colors },
           threeScene: { ...defaultTheme.threeScene, ...themeFromDb.threeScene }
         };
 
@@ -75,7 +110,7 @@ function AppContent({ children }: { children: ReactNode }) {
     fetchSiteData();
   }, [setSiteData]);
 
-  if (isLoading) {
+  if (isLoading || !siteData) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
