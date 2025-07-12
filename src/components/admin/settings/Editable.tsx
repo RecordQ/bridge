@@ -10,11 +10,11 @@ import { cloneElement, type ReactElement } from 'react';
 
 type EditableTextProps = {
   translationKey: keyof Translations;
-  fieldType: 'text' | 'textarea';
+  fieldType?: 'text' | 'textarea';
   noEditModeUI?: boolean; // Used for text inside other editable components like buttons
 };
 
-export function EditableText({ translationKey, noEditModeUI = false }: EditableTextProps) {
+export function EditableText({ translationKey, fieldType = 'text', noEditModeUI = false }: EditableTextProps) {
   const { t, isEditMode } = useSiteData();
   const textValue = t(translationKey);
 
@@ -28,7 +28,7 @@ export function EditableText({ translationKey, noEditModeUI = false }: EditableT
           key: translationKey,
           label: `Text: ${translationKey}`,
           value: textValue,
-          type: 'text'
+          type: fieldType,
         }
       }, '*');
     }
@@ -61,17 +61,17 @@ type EditableWrapperProps = {
 };
 
 export function EditableWrapper({ children, translationKey, fieldType, styleKeys }: EditableWrapperProps) {
-  const { t, isEditMode } = useSiteData();
+  const { t, isEditMode, siteData } = useSiteData();
 
   const handleClick = (e: React.MouseEvent) => {
     if (isEditMode) {
       e.preventDefault();
       e.stopPropagation();
 
-      const style: Record<string, string> = {};
+      const styleValues: Record<string, string> = {};
       if (styleKeys) {
-        for(const [styleProp, transKey] of Object.entries(styleKeys)) {
-            style[styleProp] = t(transKey);
+        for(const styleKey of Object.values(styleKeys)) {
+            styleValues[styleKey] = t(styleKey);
         }
       }
 
@@ -92,9 +92,9 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   if (styleKeys) {
     const styleOverrides: Record<string, string> = {};
      for(const [styleProp, transKey] of Object.entries(styleKeys)) {
-        const value = t(transKey);
+        const value = siteData?.translations?.[transKey];
         // Only apply if a value is actually set to avoid overriding with empty strings
-        if (value && value !== transKey) {
+        if (value) {
             styleOverrides[styleProp] = value;
         }
     }

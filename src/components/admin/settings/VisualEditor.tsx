@@ -8,9 +8,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useSiteData } from "@/hooks/useSiteData";
-import { saveTranslationsAction } from "@/lib/actions";
+import { saveTranslationsAction, saveThemeAction } from "@/lib/actions";
 import { toast } from "@/hooks/use-toast";
-import type { EditableElement } from "@/lib/types";
+import type { EditableElement, Translations } from "@/lib/types";
 import { ElementInspector } from "./ElementInspector";
 
 type Viewport = 'desktop' | 'tablet' | 'mobile';
@@ -26,14 +26,18 @@ export function VisualEditor() {
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const [isEditMode, setIsEditMode] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const [pendingChanges, setPendingChanges] = useState<Record<string, string>>({});
+    const [pendingChanges, setPendingChanges] = useState<Partial<Translations>>({});
     const [selectedElement, setSelectedElement] = useState<EditableElement | null>(null);
 
     const handleMessage = useCallback((event: MessageEvent) => {
         if (event.data.type === 'ELEMENT_SELECTED') {
-            setSelectedElement(event.data.payload);
+            const payload = event.data.payload;
+            setSelectedElement({
+                ...payload,
+                value: siteData?.translations[payload.key] || payload.value,
+            });
         }
-    }, []);
+    }, [siteData]);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
@@ -61,28 +65,25 @@ export function VisualEditor() {
     }, [isEditMode]);
 
     const handleInspectorChange = (key: string, value: string) => {
-        if (!siteData) return;
         setPendingChanges(prev => ({...prev, [key]: value}));
 
         setSiteData(prev => {
             if (!prev) return null;
-            return {
-                ...prev,
-                translations: {
-                    ...prev.translations,
-                    [key]: value
-                }
-            }
+            const newTranslations = { ...prev.translations, [key]: value };
+            return { ...prev, translations: newTranslations };
         });
 
-        if (selectedElement) {
-            if (key === selectedElement.key) {
-                setSelectedElement(elem => elem ? ({...elem, value}) : null);
-            }
-            if (selectedElement.style && key in selectedElement.style) {
-                 setSelectedElement(elem => elem ? ({...elem, style: {...elem.style, [key]: value}}) : null);
-            }
-        }
+        setSelectedElement(elem => elem ? ({...elem, value}) : null);
+    };
+    
+    const handleColorChange = (key: string, value: string) => {
+        setPendingChanges(prev => ({...prev, [key]: value}));
+
+        setSiteData(prev => {
+            if (!prev) return null;
+            const newTranslations = { ...prev.translations, [key]: value };
+            return { ...prev, translations: newTranslations };
+        });
     }
 
     const handleSaveChanges = async () => {
@@ -94,7 +95,7 @@ export function VisualEditor() {
         const formData = new FormData();
         formData.append('langCode', siteData?.currentLanguage.id || 'en');
         Object.entries(pendingChanges).forEach(([key, value]) => {
-            formData.append(`translations.${key}`, value);
+            formData.append(`translations.${key}`, value as string);
         });
 
         const result = await saveTranslationsAction({ status: 'idle', message: '' }, formData);
@@ -118,7 +119,10 @@ export function VisualEditor() {
             <div className="p-2 border-b bg-background flex justify-between items-center gap-2">
                  <div className="flex items-center gap-4">
                      <div className="flex items-center space-x-2">
-                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
+                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={(checked) => {
+                            setIsEditMode(checked);
+                            if (!checked) setSelectedElement(null);
+                        }} />
                         <Label htmlFor="edit-mode" className="flex items-center gap-2 cursor-pointer">
                             <Pointer className="h-4 w-4" />
                             Edit Mode
@@ -140,9 +144,15 @@ export function VisualEditor() {
                         <ElementInspector 
                             element={selectedElement}
                             onChange={handleInspectorChange}
+                            onColorChange={handleColorChange}
                         />
                     ) : (
-                        <div className="text-sm text-muted-foreground">{isEditMode ? 'Click an element to edit' : 'Enable Edit Mode to begin'}</div>
+                        <div className="text-sm text-muted-foreground p-2 text-center">
+                            {isEditMode 
+                                ? "Click an editable element (e.g. text, button) on the right to begin." 
+                                : "Enable Edit Mode to start making changes."
+                            }
+                        </div>
                     )}
                 </div>
 
