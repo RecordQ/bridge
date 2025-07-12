@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs, setDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs, setDoc, getDoc } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Language } from "./types";
@@ -233,9 +233,18 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         }
     }
     
-    if (defaultIndex === -1) {
+    if (defaultIndex === -1 && languagesMap.size > 0) {
+        const firstLangIndex = languagesMap.keys().next().value;
+        const firstLang = languagesMap.get(firstLangIndex);
+        if (firstLang) {
+          defaultIndex = firstLangIndex;
+        }
+    }
+    
+    if (defaultIndex === -1 && formData.get("languages[0].default") !== "on") {
        return { status: 'error', message: "At least one of the languages must be default." };
     }
+
 
     const languages: Language[] = [];
     for (const [index, partialLang] of languagesMap.entries()) {
@@ -247,8 +256,8 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         languages.push(lang);
     }
     
-    if (languages.filter(l => l.default).length !== 1) {
-        return { status: 'error', message: "Exactly one language must be set as default." };
+    if (languages.filter(l => l.default).length > 1) {
+        return { status: 'error', message: "Only one language can be set as default." };
     }
      if (languages.some(l => !l.id || !l.name)) {
         return { status: 'error', message: "All languages must have a name and a 2-letter code." };
@@ -281,7 +290,7 @@ export async function saveLanguagesAction(prevState: LanguageActionState, formDa
         }
         
         await batch.commit();
-        revalidatePath('/admin/settings');
+        revalidatePath('/admin/settings', 'layout');
         return { status: 'success', message: "Languages saved successfully." };
     } catch (error) {
         console.error("Error saving languages:", error);
@@ -298,22 +307,21 @@ export async function saveTranslationsAction(prevState: TranslationActionState, 
     }
     
     const translations: Record<string, string> = {};
-    const entries = Array.from(formData.entries());
-    for (const [key, value] of entries) {
-        const match = key.match(/translations\.(\d+)\.value/);
-        if (match) {
-            const index = parseInt(match[1], 10);
-            const keyEntry = entries.find(([k]) => k === `translations.${index}.key`);
-            if (keyEntry) {
-                 translations[keyEntry[1] as string] = value as string;
-            }
+    for (const [key, value] of formData.entries()) {
+        if (key.startsWith('translations.')) {
+            const translationKey = key.substring(13); // "translations." is 13 chars
+            translations[translationKey] = value as string;
         }
+    }
+
+    if (Object.keys(translations).length === 0) {
+        return { status: 'error', message: 'No translation changes to save.' };
     }
 
     try {
         const translationRef = doc(db, 'translations', langCode);
         await setDoc(translationRef, translations, { merge: true });
-        revalidatePath('/admin/settings');
+        revalidatePath('/admin/settings', 'layout');
         return { status: 'success', message: `Translations for '${langCode}' saved.` };
     } catch (error) {
         console.error("Error saving translations:", error);
@@ -336,8 +344,8 @@ export async function saveThemeAction(prevState: ThemeActionState, formData: For
     try {
         const themeRef = doc(db, 'theme', 'config');
         await setDoc(themeRef, themeData, { merge: true });
-        revalidatePath('/admin/settings');
-        revalidatePath('/'); // Revalidate all pages to get new theme
+        revalidatePath('/admin/settings', 'layout');
+        revalidatePath('/', 'layout');
         return { status: 'success', message: "Theme updated successfully." };
     } catch (error) {
         console.error("Error saving theme:", error);

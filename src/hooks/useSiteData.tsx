@@ -8,6 +8,8 @@ import { defaultTranslations } from '@/lib/config';
 interface SiteDataContextType {
     siteData: SiteData | null;
     setSiteData: Dispatch<SetStateAction<SiteData | null>>;
+    isEditMode: boolean;
+    setIsEditMode: Dispatch<SetStateAction<boolean>>;
     t: (key: keyof Translations, fallback?: string) => string;
 }
 
@@ -15,6 +17,7 @@ const SiteDataContext = createContext<SiteDataContextType | null>(null);
 
 export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const [siteData, setSiteData] = useState<SiteData | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
     
     const t = (key: keyof Translations, fallback?: string): string => {
         return siteData?.translations?.[key] || fallback || defaultTranslations[key] || key;
@@ -23,6 +26,8 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const value = {
         siteData,
         setSiteData,
+        isEditMode,
+        setIsEditMode,
         t,
     };
 

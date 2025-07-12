@@ -1,7 +1,7 @@
 // src/components/layout/Footer.tsx
 "use client";
 
-import { Rocket, Twitter, Github, Linkedin, Settings } from 'lucide-react';
+import { Rocket, Twitter, Github, Linkedin } from 'lucide-react';
 import Link from 'next/link';
 import { useSiteData } from '@/hooks/useSiteData';
 

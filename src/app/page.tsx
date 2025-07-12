@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
+import { ArrowRight, Usb, Box, PenTool, Package, LoaderCircle } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/layout/PageLayout";
+import { EditableText } from "@/components/admin/settings/EditableText";
 
 
 function getIconForProduct(name: string) {
@@ -82,10 +83,10 @@ export default function Home() {
         >
           <div className="container mx-auto text-center relative z-10 px-4">
             <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
-              {t('home_hero_title')}
+               <EditableText translationKey="home_hero_title" />
             </h1>
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-              {t('home_hero_subtitle')}
+              <EditableText translationKey="home_hero_subtitle" />
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -101,9 +102,11 @@ export default function Home() {
         {/* Introduction Section */}
         <section className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto text-center px-4">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_intro_title')}</h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
+                <EditableText translationKey="home_intro_title" />
+              </h2>
               <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
-                  {t('home_intro_subtitle')}
+                  <EditableText translationKey="home_intro_subtitle" />
               </p>
           </div>
         </section>
@@ -111,7 +114,9 @@ export default function Home() {
         {/* Products Section */}
         <section id="products" className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto px-4">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">{t('home_products_title')}</h2>
+            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">
+                <EditableText translationKey="home_products_title" />
+            </h2>
             {loading ? (
                 <div className="grid md:grid-cols-3 gap-8">
                   <Skeleton className="h-96 w-full" />
@@ -165,9 +170,11 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto text-center px-4">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">{t('home_cta_title')}</h2>
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
+                <EditableText translationKey="home_cta_title" />
+              </h2>
               <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
-                  {t('home_cta_subtitle')}
+                  <EditableText translationKey="home_cta_subtitle" />
               </p>
               <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
                   <Link href="/contact">

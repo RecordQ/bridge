@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Save } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { defaultTheme } from "@/lib/config";
 import { hexToHslString, hslToHex } from "@/lib/color-utils";
@@ -48,12 +48,12 @@ const themeSchema = z.object({
         'chart-5': hslColor,
     }),
     threeScene: z.object({
-        planetColor: z.string(),
-        moonColor: z.string(),
-        galaxyInsideColor: z.string(),
-        galaxyOutsideColor: z.string(),
-        nebulaColor1: z.string(),
-        nebulaColor2: z.string(),
+        planetColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+        moonColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+        galaxyInsideColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+        galaxyOutsideColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+        nebulaColor1: z.string().regex(/^#[0-9a-f]{6}$/i),
+        nebulaColor2: z.string().regex(/^#[0-9a-f]{6}$/i),
     })
 });
 
@@ -63,7 +63,7 @@ function SubmitButton() {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending} className="w-full">
-            {pending ? <LoaderCircle className="animate-spin" /> : "Save Theme"}
+            {pending ? <LoaderCircle className="animate-spin" /> : <><Save className="mr-2"/>Save Theme</>}
         </Button>
     )
 }
@@ -82,7 +82,7 @@ function ColorInput({ control, name, label }: { control: any, name: any, label: 
                             control={control}
                             name={name}
                             render={({ field: { value, onChange }}) => {
-                                const parts = typeof value === 'string' ? value.match(/\d+/g)?.map(Number) : [0,0,0];
+                                const parts = typeof value === 'string' ? value.match(/-?\d+(\.\d+)?/g)?.map(Number) : [0,0,0];
                                 const [h, s, l] = parts?.length === 3 ? parts : [0,0,0];
                                 return (
                                     <input
@@ -102,19 +102,17 @@ function ColorInput({ control, name, label }: { control: any, name: any, label: 
     )
 }
 
-export function ThemeManager({ initialThemeData }: { initialThemeData: any }) {
-    const { siteData } = useSiteData();
+export function ThemeManager() {
+    const { siteData, setSiteData } = useSiteData();
 
-    const fullInitialData = {
-        ...defaultTheme,
-        ...initialThemeData,
-        colors: { ...defaultTheme.colors, ...initialThemeData.colors },
-        threeScene: { ...defaultTheme.threeScene, ...initialThemeData.threeScene },
-    };
-    
     const form = useForm<ThemeFormValues>({
         resolver: zodResolver(themeSchema),
-        defaultValues: fullInitialData
+        values: siteData?.theme ? {
+             ...defaultTheme,
+            ...siteData.theme,
+            colors: { ...defaultTheme.colors, ...siteData.theme.colors },
+            threeScene: { ...defaultTheme.threeScene, ...siteData.theme.threeScene },
+        } : defaultTheme
     });
     
     const [state, formAction] = useActionState(saveThemeAction, { status: 'idle', message: '' });
@@ -131,20 +129,12 @@ export function ThemeManager({ initialThemeData }: { initialThemeData: any }) {
 
     const watchedValues = form.watch();
     useEffect(() => {
-        const previewData = {
-            type: 'PREVIEW_UPDATE',
-            payload: {
-                translations: siteData?.translations, // Pass current translations
-                theme: watchedValues
-            }
-        };
-        // Post message to the iframe
-        const iframe = document.querySelector('iframe');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage(previewData, '*');
-        }
-
-    }, [watchedValues, siteData?.translations]);
+        setSiteData(prev => prev ? ({ ...prev, theme: watchedValues }) : null);
+    }, [watchedValues, setSiteData]);
+    
+    if (!siteData) {
+        return <p>Loading theme editor...</p>
+    }
 
     return (
         <Form {...form}>
@@ -154,7 +144,7 @@ export function ThemeManager({ initialThemeData }: { initialThemeData: any }) {
                         <CardTitle>Color Palette</CardTitle>
                         <CardDescription>Define the HSL color variables for your site's theme.</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[40vh] overflow-y-auto p-4">
                        {Object.keys(defaultTheme.colors).map((key) => (
                            <ColorInput 
                                 key={key}
