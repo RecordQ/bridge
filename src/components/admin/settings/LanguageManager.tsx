@@ -1,7 +1,7 @@
 // src/components/admin/settings/LanguageManager.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,13 +59,15 @@ export function LanguageManager({ initialLanguages }: { initialLanguages: Langua
     message: "",
   });
 
-  if (state.status === "success") {
-    toast({ title: "Success", description: state.message });
-    state.status = "idle"; // Reset status to prevent toast on re-render
-  } else if (state.status === "error") {
-    toast({ title: "Error", description: state.message, variant: "destructive" });
-    state.status = "idle";
-  }
+  useEffect(() => {
+    if (state.status === "success") {
+      toast({ title: "Success", description: state.message });
+      state.status = "idle";
+    } else if (state.status === "error") {
+      toast({ title: "Error", description: state.message, variant: "destructive" });
+      state.status = "idle";
+    }
+  }, [state]);
 
   return (
     <Card>
