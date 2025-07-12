@@ -4,7 +4,7 @@
 import { useSiteData } from '@/hooks/useSiteData';
 import { cn } from '@/lib/utils';
 import type { Translations } from '@/lib/types';
-import { cloneElement, type ReactElement, type CSSProperties } from 'react';
+import { cloneElement, type ReactElement } from 'react';
 
 // ========= UTILS =========
 const handleElementSelection = (e: React.MouseEvent, isEditMode: boolean, translationKey: string, fieldType: string, value: string, styleKeys?: Record<string, string>) => {
@@ -56,6 +56,11 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     );
   }
 
+  // When rendering inside a button, we don't want a span, we just want the text
+  if (noEditModeUI) {
+      return textValue;
+  }
+
   return <span data-editable-key={translationKey}>{textValue}</span>;
 }
 
@@ -74,6 +79,9 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const textValue = t(translationKey);
 
   const handleClick = (e: React.MouseEvent) => {
+    // This prevents the link from navigating while in edit mode
+    e.preventDefault();
+    e.stopPropagation();
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
   };
   

@@ -21,14 +21,13 @@ const viewportClasses: Record<Viewport, string> = {
 };
 
 interface VisualEditorProps {
-    siteData: SiteData | null;
     onSelectElement: (element: EditableElement | null) => void;
     pendingChanges: Partial<Translations>;
     setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
 }
 
-export function VisualEditor({ siteData, onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
-    const { isEditMode, setIsEditMode } = useSiteData();
+export function VisualEditor({ onSelectElement, pendingChanges, setPendingChanges }: VisualEditorProps) {
+    const { siteData, isEditMode, setIsEditMode } = useSiteData();
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const [isIframeReady, setIsIframeReady] = useState(false);

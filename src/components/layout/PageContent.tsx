@@ -28,53 +28,48 @@ function applyDynamicStyles(data: SiteData) {
     // Individual element style overrides
     const elementStyles: { [selector: string]: { [prop: string]: string } } = {};
     Object.entries(data.translations).forEach(([key, value]) => {
-        if (!key.includes('_')) return;
+        if (!key.includes('_') || !value) return;
         
-        let cssProp = '';
-        let propKey: string | undefined = undefined;
+        const styleMappings: { [suffix: string]: string } = {
+            '_color': 'color',
+            '_bg_color': 'background-color',
+            '_font_size': 'font-size',
+            '_shape': 'border-radius',
+            '_outline_color': 'border-color',
+        };
 
-        if (key.endsWith('_color')) {
-            cssProp = 'color';
-            propKey = key;
-        } else if (key.endsWith('_bg_color')) {
-            cssProp = 'background-color';
-            propKey = key;
-        } else if (key.endsWith('_font_size')) {
-            cssProp = 'font-size';
-            propKey = key;
-        }
-
-        if (cssProp && propKey && value) {
-            const selectorKey = propKey.substring(0, propKey.lastIndexOf('_'));
-            const selector = `[data-editable-key="${selectorKey}"]`;
-            if (!elementStyles[selector]) {
-                elementStyles[selector] = {};
+        for (const suffix in styleMappings) {
+            if (key.endsWith(suffix)) {
+                const cssProp = styleMappings[suffix];
+                const selectorKey = key.substring(0, key.length - suffix.length);
+                const selector = `[data-editable-key="${selectorKey}"]`;
+                
+                if (!elementStyles[selector]) {
+                    elementStyles[selector] = {};
+                }
+                
+                // For buttons, target the child element for most styles
+                const targetSelector = key.includes('button') ? `${selector} [data-editable-child]` : selector;
+                if (!elementStyles[targetSelector]) {
+                    elementStyles[targetSelector] = {};
+                }
+                
+                elementStyles[targetSelector][cssProp] = value;
+                
+                // Ensure border is visible if color is set
+                if(cssProp === 'border-color') {
+                    elementStyles[targetSelector]['border-width'] = '2px';
+                    elementStyles[targetSelector]['border-style'] = 'solid';
+                }
+                break;
             }
-            elementStyles[selector][cssProp] = value;
-            
-            // Special handling for button children, if needed
-            const childSelector = `${selector} [data-editable-child]`;
-             if (!elementStyles[childSelector]) {
-                elementStyles[childSelector] = {};
-            }
-             elementStyles[childSelector][cssProp] = value;
         }
     });
 
     Object.entries(elementStyles).forEach(([selector, styles]) => {
         cssString += `${selector} {`;
         Object.entries(styles).forEach(([prop, value]) => {
-            if (prop === 'background-color') {
-                 cssString += `${prop}: ${value} !important;`;
-            }
-            if (prop === 'color') {
-                // Apply color to child text elements inside buttons
-                cssString += `} ${selector} [data-editable-child] { color: ${value} !important; } ${selector} {`;
-            }
-             if (prop === 'font-size') {
-                // Apply font-size to child text elements inside buttons
-                cssString += `} ${selector} [data-editable-child] { font-size: ${value} !important; } ${selector} {`;
-            }
+            cssString += `${prop}: ${value} !important;`;
         });
         cssString += `}`;
     });

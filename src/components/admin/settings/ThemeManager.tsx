@@ -57,7 +57,7 @@ export function ThemeManager({ initialTheme }: { initialTheme: Theme }) {
 
   const handleThreeSceneChange = (name: string, value: string) => {
     const keys = name.split('.'); // e.g., "threeScene.backgroundColor"
-    const newTheme = { ...theme };
+    const newTheme = JSON.parse(JSON.stringify(theme)); // Deep copy
     
     // This is a simplified way to handle nested state update
     if (keys.length === 2 && keys[0] === 'threeScene') {

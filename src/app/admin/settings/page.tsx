@@ -35,17 +35,6 @@ export default function SettingsPage() {
         if (element && siteData?.translations) {
             const liveValue = siteData.translations[element.key] || element.value;
             const updatedElement = { ...element, value: liveValue };
-            
-            // Also populate the value with any style overrides from translations
-            if (element.style) {
-                 Object.keys(element.style).forEach(styleKey => {
-                    const translationKey = element.style![styleKey];
-                    if (siteData.translations[translationKey]) {
-                        updatedElement.value = siteData.translations[translationKey];
-                    }
-                });
-            }
-
             setSelectedElement(updatedElement);
         } else {
             setSelectedElement(null);
@@ -101,7 +90,6 @@ export default function SettingsPage() {
             </aside>
             
             <VisualEditor 
-                siteData={siteData}
                 onSelectElement={handleSelection}
                 pendingChanges={pendingChanges}
                 setPendingChanges={setPendingChanges}
