@@ -129,7 +129,9 @@ export function ThemeManager() {
 
     const watchedValues = form.watch();
     useEffect(() => {
-        setSiteData(prev => prev ? ({ ...prev, theme: watchedValues }) : null);
+        if (setSiteData) {
+            setSiteData(prev => prev ? ({ ...prev, theme: watchedValues }) : null);
+        }
     }, [watchedValues, setSiteData]);
     
     if (!siteData) {

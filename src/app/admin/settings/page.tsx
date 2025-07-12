@@ -1,7 +1,7 @@
 // src/app/admin/settings/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -17,17 +17,18 @@ import { VisualEditor } from "@/components/admin/settings/VisualEditor";
 export default function SettingsPage() {
     const [initialLanguages, setInitialLanguages] = useState<Language[]>([]);
     
-    useState(() => {
+    useEffect(() => {
         async function getSettingsData() {
             try {
-                const languages = (await getDocs(collection(db, 'languages'))).docs.map(doc => ({ id: doc.id, ...doc.data() } as Language));
+                const languagesSnapshot = await getDocs(collection(db, 'languages'));
+                const languages = languagesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Language));
                 setInitialLanguages(languages);
             } catch (error) {
                 console.error("Error fetching settings data:", error);
             }
         }
         getSettingsData();
-    });
+    }, []);
 
     return (
         <div className="flex h-screen bg-muted/40">
