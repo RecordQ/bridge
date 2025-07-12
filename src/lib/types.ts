@@ -23,11 +23,12 @@ export type Submission = {
 };
 
 export type Language = {
-    id: string; // e.g., 'en'
+    id:string; // e.g., 'en'
     name: string; // e.g., 'English'
     default: boolean;
 };
 
+// Translations can now also store style overrides like 'my_button_color': '#ff0000'
 export type Translations = Record<string, string>;
 
 export type ColorPalette = { [key: string]: string };
@@ -44,4 +45,12 @@ export type SiteData = {
     currentLanguage: Language;
     translations: Translations;
     theme: Theme;
+};
+
+export type EditableElement = {
+    key: string;
+    type: 'text' | 'button' | 'textarea';
+    label: string;
+    value: string;
+    style?: Record<string, string>;
 };

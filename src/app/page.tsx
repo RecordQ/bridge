@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Usb, Box, PenTool, Package, LoaderCircle } from "lucide-react";
+import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/layout/PageLayout";
-import { EditableText } from "@/components/admin/settings/EditableText";
+import { EditableText, EditableWrapper } from "@/components/admin/settings/Editable";
 
 
 function getIconForProduct(name: string) {
@@ -83,18 +83,22 @@ export default function Home() {
         >
           <div className="container mx-auto text-center relative z-10 px-4">
             <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-400">
-               <EditableText translationKey="home_hero_title" />
+               <EditableText fieldType="text" translationKey="home_hero_title" />
             </h1>
             <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-              <EditableText translationKey="home_hero_subtitle" />
+              <EditableText fieldType="textarea" translationKey="home_hero_subtitle" />
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/products">{t('button_explore_products')}</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/contact">{t('button_request_quote')}</Link>
-              </Button>
+              <EditableWrapper fieldType="button" translationKey="button_explore_products" styleKeys={{backgroundColor: "button_explore_products_bg"}}>
+                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link href="/products"><EditableText fieldType="text" translationKey="button_explore_products" noEditModeUI={true} /></Link>
+                </Button>
+              </EditableWrapper>
+               <EditableWrapper fieldType="button" translationKey="button_request_quote" styleKeys={{backgroundColor: "button_request_quote_bg"}}>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/contact"><EditableText fieldType="text" translationKey="button_request_quote" noEditModeUI={true} /></Link>
+                </Button>
+              </EditableWrapper>
             </div>
           </div>
         </section>
@@ -103,10 +107,10 @@ export default function Home() {
         <section className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto text-center px-4">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
-                <EditableText translationKey="home_intro_title" />
+                <EditableText fieldType="text" translationKey="home_intro_title" />
               </h2>
               <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
-                  <EditableText translationKey="home_intro_subtitle" />
+                  <EditableText fieldType="textarea" translationKey="home_intro_subtitle" />
               </p>
           </div>
         </section>
@@ -115,7 +119,7 @@ export default function Home() {
         <section id="products" className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto px-4">
             <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">
-                <EditableText translationKey="home_products_title" />
+                <EditableText fieldType="text" translationKey="home_products_title" />
             </h2>
             {loading ? (
                 <div className="grid md:grid-cols-3 gap-8">
@@ -157,11 +161,13 @@ export default function Home() {
             )}
             {topProducts.length > 0 && (
               <div className="text-center mt-12">
+                <EditableWrapper fieldType="button" translationKey="button_show_more" styleKeys={{backgroundColor: "button_show_more_bg"}}>
                   <Button asChild size="lg" variant="outline">
-                  <Link href="/products">
-                      {t('button_show_more')} <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
+                    <Link href="/products">
+                        <EditableText fieldType="text" translationKey="button_show_more" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                </EditableWrapper>
               </div>
             )}
           </div>
@@ -171,16 +177,18 @@ export default function Home() {
         <section className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto text-center px-4">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
-                <EditableText translationKey="home_cta_title" />
+                <EditableText fieldType="text" translationKey="home_cta_title" />
               </h2>
               <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
-                  <EditableText translationKey="home_cta_subtitle" />
+                  <EditableText fieldType="textarea" translationKey="home_cta_subtitle" />
               </p>
-              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href="/contact">
-                      {t('button_contact_us')} <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-              </Button>
+              <EditableWrapper fieldType="button" translationKey="button_contact_us" styleKeys={{backgroundColor: 'button_contact_us_bg'}}>
+                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    <Link href="/contact">
+                        <EditableText fieldType="text" translationKey="button_contact_us" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                </Button>
+              </EditableWrapper>
           </div>
         </section>
       </main>
