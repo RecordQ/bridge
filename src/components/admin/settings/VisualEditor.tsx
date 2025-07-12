@@ -21,7 +21,7 @@ const viewportClasses: Record<Viewport, string> = {
 };
 
 interface VisualEditorProps {
-    setSelectedElement: Dispatch<SetStateAction<EditableElement | null>>;
+    setSelectedElement: (element: EditableElement | null) => void;
     pendingChanges: Partial<Translations>;
     setPendingChanges: Dispatch<SetStateAction<Partial<Translations>>>;
 }
@@ -31,16 +31,16 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
     const [viewport, setViewport] = useState<Viewport>('desktop');
     const [isEditMode, setIsEditMode] = useState(false);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [isIframeReady, setIsIframeReady] = useState(false);
     
     const handleMessage = useCallback((event: MessageEvent) => {
-        if (event.data.type === 'ELEMENT_SELECTED') {
-            const payload = event.data.payload;
-            setSelectedElement({
-                ...payload,
-                value: siteData?.translations[payload.key] || payload.value,
-            });
+        if (event.data.type === 'IFRAME_READY') {
+            setIsIframeReady(true);
         }
-    }, [siteData, setSelectedElement]);
+        if (event.data.type === 'ELEMENT_SELECTED' && isEditMode) {
+            setSelectedElement(event.data.payload);
+        }
+    }, [isEditMode, setSelectedElement]);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
@@ -49,23 +49,26 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
     
     // Send updated siteData to iframe whenever it changes
     useEffect(() => {
-        if (iframeRef.current && iframeRef.current.contentWindow && siteData) {
+        if (isIframeReady && iframeRef.current?.contentWindow && siteData) {
             iframeRef.current.contentWindow.postMessage({
                 type: 'SITE_DATA_UPDATE',
                 payload: siteData,
             }, '*');
         }
-    }, [siteData]);
+    }, [siteData, isIframeReady]);
     
     // Toggle edit mode in iframe
     useEffect(() => {
-        if (iframeRef.current && iframeRef.current.contentWindow) {
+        if (isIframeReady && iframeRef.current?.contentWindow) {
             iframeRef.current.contentWindow.postMessage({
                 type: 'TOGGLE_EDIT_MODE',
                 payload: { isEditMode }
             }, '*');
         }
-    }, [isEditMode]);
+        if (!isEditMode) {
+            setSelectedElement(null);
+        }
+    }, [isEditMode, isIframeReady, setSelectedElement]);
 
     const handleSaveChanges = async () => {
         if (Object.keys(pendingChanges).length === 0) {
@@ -100,10 +103,7 @@ export function VisualEditor({ setSelectedElement, pendingChanges, setPendingCha
             <div className="p-2 border-b bg-background flex justify-between items-center gap-2">
                  <div className="flex items-center gap-4">
                      <div className="flex items-center space-x-2">
-                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={(checked) => {
-                            setIsEditMode(checked);
-                            if (!checked) setSelectedElement(null);
-                        }} />
+                        <Switch id="edit-mode" checked={isEditMode} onCheckedChange={setIsEditMode} />
                         <Label htmlFor="edit-mode" className="flex items-center gap-2 cursor-pointer">
                             <Pointer className="h-4 w-4" />
                             Edit Mode

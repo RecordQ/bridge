@@ -4,15 +4,22 @@
 import { useSiteData } from '@/hooks/useSiteData';
 import { cn } from '@/lib/utils';
 import type { Translations } from '@/lib/types';
-import { cloneElement, type ReactElement } from 'react';
+import { cloneElement, type ReactElement, type CSSProperties } from 'react';
 
 // ========= UTILS =========
 const getStyleOverrides = (styleKeys: Record<string, string>, translations: Translations) => {
-    const styleOverrides: Record<string, string> = {};
+    const styleOverrides: CSSProperties = {};
     for (const [styleProp, transKey] of Object.entries(styleKeys)) {
         const value = translations[transKey];
         if (value) {
-            styleOverrides[styleProp] = value;
+            // Create a CSS variable name from the translation key
+            const cssVarName = `--${transKey.replace(/_/g, '-')}`;
+            // Set the variable on the body
+            if (typeof document !== 'undefined') {
+                document.body.style.setProperty(cssVarName, value);
+            }
+            // Apply the variable to the element's style
+            styleOverrides[styleProp as keyof CSSProperties] = `var(${cssVarName})`;
         }
     }
     return styleOverrides;
@@ -49,6 +56,15 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
   const textValue = t(translationKey);
 
   const styleOverrides = styleKeys && siteData?.translations ? getStyleOverrides(styleKeys, siteData.translations) : {};
+  
+  // This is a dynamic style object based on translation keys
+  const dynamicStyles: CSSProperties = {};
+  if (styleKeys && siteData) {
+    if (styleKeys.color && siteData.translations[styleKeys.color]) {
+      dynamicStyles.color = siteData.translations[styleKeys.color];
+    }
+  }
+
 
   const handleClick = (e: React.MouseEvent) => {
     handleElementSelection(e, isEditMode, translationKey, fieldType, textValue, styleKeys);
@@ -58,7 +74,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     return (
       <span
         onClick={handleClick}
-        style={styleOverrides}
+        style={dynamicStyles}
         className={cn(
           "relative cursor-pointer transition-all rounded-md",
           "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
@@ -69,7 +85,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     );
   }
 
-  return <span style={styleOverrides}>{textValue}</span>;
+  return <span style={dynamicStyles}>{textValue}</span>;
 }
 
 
@@ -86,12 +102,20 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
   const { t, isEditMode, siteData } = useSiteData();
 
   const handleClick = (e: React.MouseEvent) => {
-    handleElementSelection(e, isEditMode, translationKey, fieldType, t(translationKey), styleKeys);
+    handleElementSelection(e, isEditMode, translationKey, t(translationKey), styleKeys);
   };
 
-  const finalStyle = styleKeys && siteData?.translations 
-    ? { ...children.props.style, ...getStyleOverrides(styleKeys, siteData.translations) } 
-    : children.props.style;
+  const dynamicStyles: CSSProperties = {};
+  if (styleKeys && siteData) {
+    if (styleKeys.backgroundColor && siteData.translations[styleKeys.backgroundColor]) {
+      dynamicStyles.backgroundColor = siteData.translations[styleKeys.backgroundColor];
+    }
+    if (styleKeys.color && siteData.translations[styleKeys.color]) {
+      dynamicStyles.color = siteData.translations[styleKeys.color];
+    }
+  }
+
+  const finalStyle = { ...children.props.style, ...dynamicStyles };
 
   const clonedChild = cloneElement(children, {
     ...children.props,

@@ -3,12 +3,33 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useSiteData } from "@/hooks/useSiteData";
-import { useSearchParams } from "next/navigation";
 import { defaultTheme, defaultTranslations } from "@/lib/config";
 import { db } from "@/lib/firebase";
 import { getDoc, getDocs, collection, doc } from "firebase/firestore";
 import type { SiteData, Language } from "@/lib/types";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Settings } from "lucide-react";
+import { Button } from "../ui/button";
+import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
+
+function AdminToolbar() {
+    const { isAuthenticated, isLoading } = useAuth();
+
+    if (isLoading || !isAuthenticated) {
+        return null;
+    }
+
+    return (
+        <div className="fixed bottom-4 right-4 z-50">
+            <Button asChild size="lg" className="shadow-lg">
+                <Link href="/admin/settings">
+                    <Settings className="mr-2" /> Edit Site
+                </Link>
+            </Button>
+        </div>
+    )
+}
+
 
 export function PageContent({ children, isPreview }: { children: ReactNode, isPreview: boolean }) {
   const { siteData, setSiteData, setIsEditMode } = useSiteData();
@@ -81,6 +102,8 @@ export function PageContent({ children, isPreview }: { children: ReactNode, isPr
         }
       };
       window.addEventListener('message', handleMessage);
+      // Let the parent know the iframe is ready
+      window.parent.postMessage({ type: 'IFRAME_READY' }, '*');
       return () => window.removeEventListener('message', handleMessage);
     }
   }, [isPreview, setSiteData, setIsEditMode]);
@@ -89,6 +112,13 @@ export function PageContent({ children, isPreview }: { children: ReactNode, isPr
     if (siteData) {
        Object.entries(siteData.theme.colors).forEach(([key, value]) => {
          document.body.style.setProperty(`--${key}`, value);
+       });
+       // This is for live updates from the editor
+       Object.entries(siteData.translations).forEach(([key, value]) => {
+         if (key.includes('_bg') || key.includes('_color')) {
+           const cssVarName = `--${key.replace(/_/g, '-')}`;
+           document.body.style.setProperty(cssVarName, value);
+         }
        });
     }
   }, [siteData]);
@@ -102,5 +132,8 @@ export function PageContent({ children, isPreview }: { children: ReactNode, isPr
     );
   }
 
-  return <>{children}</>;
+  return <>
+    {children}
+    {!isPreview && <AdminToolbar />}
+  </>;
 }

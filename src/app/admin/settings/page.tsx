@@ -1,7 +1,7 @@
 // src/app/admin/settings/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ export default function SettingsPage() {
     };
     
     const handleColorChange = (key: string, value: string) => {
+        // This function is kept for potential future use or if styling is handled differently
         setPendingChanges(prev => ({...prev, [key]: value}));
 
         setSiteData(prev => {
@@ -64,6 +65,16 @@ export default function SettingsPage() {
             return { ...prev, translations: newTranslations };
         });
     }
+
+    const handleSelection = useCallback((element: EditableElement | null) => {
+        if (element && siteData?.translations) {
+            const liveValue = siteData.translations[element.key] || element.value;
+            setSelectedElement({ ...element, value: liveValue });
+        } else {
+            setSelectedElement(null);
+        }
+    }, [siteData]);
+
 
     return (
         <div className="flex h-screen bg-muted/40">
@@ -111,7 +122,7 @@ export default function SettingsPage() {
             </aside>
             
             <VisualEditor 
-                setSelectedElement={setSelectedElement}
+                setSelectedElement={handleSelection}
                 pendingChanges={pendingChanges}
                 setPendingChanges={setPendingChanges}
             />

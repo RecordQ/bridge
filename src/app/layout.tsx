@@ -8,6 +8,7 @@ import { SiteDataProvider } from '@/hooks/useSiteData';
 import { type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageContent } from '@/components/layout/PageContent';
+import { AuthProvider } from '@/hooks/useAuth';
 
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -25,12 +26,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
-        <SiteDataProvider>
-          <PageContent isPreview={isPreview}>
-              {children}
-          </PageContent>
-          <Toaster />
-        </SiteDataProvider>
+        <AuthProvider>
+          <SiteDataProvider>
+            <PageContent isPreview={isPreview}>
+                {children}
+            </PageContent>
+            <Toaster />
+          </SiteDataProvider>
+        </AuthProvider>
       </body>
     </html>
   );

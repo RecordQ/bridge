@@ -3,7 +3,7 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ import { getDoc, getDocs, collection, doc } from "firebase/firestore";
 
 function AdminApp({ children }: { children: ReactNode }) {
   const { setSiteData } = useSiteData();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   useEffect(() => {
     const fetchSiteData = async () => {
@@ -64,7 +64,7 @@ function AdminApp({ children }: { children: ReactNode }) {
             theme: defaultTheme,
         });
       } finally {
-        setIsLoading(false);
+        setIsLoadingData(false);
       }
     };
 
@@ -81,7 +81,7 @@ function AdminApp({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-  if (isLoading || isAuthLoading) {
+  if (isLoadingData || isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
@@ -104,15 +104,11 @@ function AdminApp({ children }: { children: ReactNode }) {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className={cn("min-h-screen bg-background font-body antialiased")}>
+    <div className={cn("min-h-screen bg-background font-body antialiased")}>
         <SiteDataProvider>
-          <AuthProvider>
             <AdminApp>{children}</AdminApp>
             <Toaster />
-          </AuthProvider>
         </SiteDataProvider>
-      </body>
-    </html>
+    </div>
   );
 }
