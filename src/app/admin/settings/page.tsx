@@ -1,7 +1,7 @@
 // src/app/admin/settings/page.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { ArrowLeft, Pointer, Settings } from "lucide-react";
@@ -40,8 +40,8 @@ export default function SettingsPage() {
         }
     }, [siteData]);
 
-    const initialLanguages = siteData?.languages || [];
-    const initialTheme = siteData?.theme;
+    const initialLanguages = useMemo(() => siteData?.languages || [], [siteData?.languages]);
+    const initialTheme = useMemo(() => siteData?.theme, [siteData?.theme]);
 
 
     return (

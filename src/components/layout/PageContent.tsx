@@ -28,24 +28,32 @@ function applyTheme(data: SiteData) {
 
     Object.entries(data.translations).forEach(([key, value]) => {
         const parts = key.split('_');
-        if (parts.length > 2) {
-            const prop = parts.pop();
-            if (prop && (prop.endsWith('color') || prop.endsWith('bg') || prop.endsWith('size'))) {
-                const selectorKey = parts.join('_');
-                const selector = `[data-editable-key="${selectorKey}"]`;
-                
-                if (!elementStyles[selector]) {
-                    elementStyles[selector] = {};
-                }
+        const lastPart = parts[parts.length - 1];
+        const secondLastPart = parts[parts.length - 2];
 
-                let cssProp = '';
-                if (prop === 'bg') cssProp = 'background-color';
-                else if (prop === 'color' || prop === 'text') cssProp = 'color';
-                else if (prop === 'size') cssProp = 'font-size';
-                
-                if (cssProp) {
-                     elementStyles[selector][cssProp] = value;
-                }
+        if (parts.length > 2 && (lastPart === 'color' || lastPart === 'bg' || lastPart === 'size' || lastPart === 'text')) {
+             let prop = lastPart;
+             let selectorKey = parts.slice(0, -1).join('_');
+             if (lastPart === 'text' && secondLastPart === 'products') { // button_explore_products_text
+                prop = 'color';
+                selectorKey = key;
+             } else {
+                 selectorKey = parts.slice(0, -1).join('_');
+             }
+
+            const selector = `[data-editable-key="${selectorKey}"]`;
+            
+            if (!elementStyles[selector]) {
+                elementStyles[selector] = {};
+            }
+
+            let cssProp = '';
+            if (prop === 'bg') cssProp = 'background-color';
+            else if (prop === 'color' || prop === 'text') cssProp = 'color';
+            else if (prop === 'size') cssProp = 'font-size';
+            
+            if (cssProp) {
+                 elementStyles[selector][cssProp] = value;
             }
         }
     });
