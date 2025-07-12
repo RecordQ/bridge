@@ -13,7 +13,7 @@ import { getDoc, getDocs, collection, doc } from 'firebase/firestore';
 import { LoaderCircle } from 'lucide-react';
 
 function AppContent({ children }: { children: ReactNode }) {
-  const { siteData, setSiteData } = useSiteData();
+  const { setSiteData } = useSiteData();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ function AppContent({ children }: { children: ReactNode }) {
     fetchSiteData();
   }, [setSiteData]);
 
-  if (isLoading || !siteData) {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
