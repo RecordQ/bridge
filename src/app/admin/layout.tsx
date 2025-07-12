@@ -6,7 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
 import { SiteDataProvider, useSiteData } from "@/hooks/useSiteData";
-import StyleInjector from "@/components/layout/StyleInjector";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +33,6 @@ function ThemedAdminLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className={cn("min-h-screen bg-background font-body antialiased")}>
-            {siteData && <StyleInjector colors={siteData.theme.colors} />}
             {showContent ? children : (
                 <div className="flex h-screen w-full items-center justify-center bg-background">
                     <LoaderCircle className="h-8 w-8 animate-spin" />
