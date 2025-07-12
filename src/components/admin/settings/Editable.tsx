@@ -92,7 +92,7 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
             title={`Edit: ${translationKey}`}
           />
         )}
-        {children}
+        {cloneElement(children, { 'data-editable-child': true })}
       </div>
   );
 }

@@ -24,10 +24,10 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isEditMode, setIsEditMode] = useState(false);
     
-    const fetchSiteData = useCallback(async () => {
+    const fetchSiteData = useCallback(async (currentWindow: Window) => {
         setIsLoading(true);
         try {
-          const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+          const isPreview = new URLSearchParams(currentWindow.location.search).get('preview') === 'true';
 
           const langSnapshot = await getDocs(collection(db, 'languages'));
           const languages = langSnapshot.empty
@@ -36,10 +36,10 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
   
           let currentLanguage: Language;
           if (isPreview) {
-            const langParam = new URLSearchParams(window.location.search).get('lang')
+            const langParam = new URLSearchParams(currentWindow.location.search).get('lang')
             currentLanguage = languages.find(l => l.id === langParam) || languages.find(l => l.default) || languages[0];
           } else {
-            const storedLang = localStorage.getItem('NEXT_LOCALE');
+            const storedLang = currentWindow.localStorage.getItem('NEXT_LOCALE');
             currentLanguage = languages.find(l => l.id === storedLang) || languages.find(l => l.default) || languages[0];
           }
   
@@ -80,8 +80,7 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
               theme: defaultTheme,
           });
         } finally {
-            // In preview mode, the parent frame controls loading state.
-            const isPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+            const isPreview = new URLSearchParams(currentWindow.location.search).get('preview') === 'true';
             if (!isPreview) {
                 setIsLoading(false);
             }
@@ -89,7 +88,9 @@ export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     useEffect(() => {
-        fetchSiteData();
+        if (typeof window !== 'undefined') {
+            fetchSiteData(window);
+        }
     }, [fetchSiteData]);
 
     const t = (key: keyof Translations, fallback?: string): string => {

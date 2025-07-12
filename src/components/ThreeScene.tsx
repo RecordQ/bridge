@@ -7,11 +7,22 @@ import { useSiteData } from '@/hooks/useSiteData';
 
 const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const { siteData, isLoading } = useSiteData();
   const config = siteData?.theme.threeScene;
 
+  // Effect to update background color when it changes
+  useEffect(() => {
+    if (rendererRef.current && config?.backgroundColor) {
+        rendererRef.current.setClearColor(config.backgroundColor, 1);
+    }
+  }, [config?.backgroundColor]);
+
   useEffect(() => {
     if (!mountRef.current || isLoading || !config) return;
+    
+    // Prevent re-initialization
+    if (rendererRef.current) return;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
@@ -21,6 +32,7 @@ const ThreeScene = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(config.backgroundColor || '#000000', 1);
     mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     // Planet
     const planetGeometry = new THREE.SphereGeometry(100, 32, 32);
@@ -233,8 +245,10 @@ const ThreeScene = () => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('scroll', onScroll);
-      if (mountRef.current) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current && rendererRef.current) {
+        mountRef.current.removeChild(rendererRef.current.domElement);
+        rendererRef.current.dispose();
+        rendererRef.current = null;
       }
     };
   }, [isLoading, config]);

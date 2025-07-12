@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoaderCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Theme, ColorPalette, ThreeSceneConfig } from "@/lib/types";
+import type { Theme } from "@/lib/types";
+import { useSiteData } from "@/hooks/useSiteData";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -40,6 +41,7 @@ const ColorPickerInput = ({ name, label, value, onChange }: { name: string, labe
 
 export function ThemeManager({ initialTheme }: { initialTheme: Theme }) {
   const { toast } = useToast();
+  const { setSiteData } = useSiteData();
   const [state, formAction] = useActionState(saveThemeAction, { status: "idle", message: "" });
   const [theme, setTheme] = useState(initialTheme);
 
@@ -54,10 +56,30 @@ export function ThemeManager({ initialTheme }: { initialTheme: Theme }) {
   }, [state]);
 
   const handleThreeSceneChange = (name: string, value: string) => {
-    setTheme(prev => ({
-        ...prev,
-        threeScene: { ...prev.threeScene, [name]: value }
-    }));
+    const keys = name.split('.'); // e.g., "threeScene.backgroundColor"
+    const newTheme = { ...theme };
+    
+    // This is a simplified way to handle nested state update
+    if (keys.length === 2 && keys[0] === 'threeScene') {
+        (newTheme.threeScene as any)[keys[1]] = value;
+    }
+
+    setTheme(newTheme);
+
+    // Also update the global siteData for live preview
+    setSiteData(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            theme: {
+                ...prev.theme,
+                threeScene: {
+                    ...prev.theme.threeScene,
+                    [keys[1]]: value
+                }
+            }
+        }
+    })
   }
 
   return (

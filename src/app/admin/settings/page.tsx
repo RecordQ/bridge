@@ -4,7 +4,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { ArrowLeft, Pointer, Settings } from "lucide-react";
+import { ArrowLeft, Pointer, Settings, Monitor, Smartphone, Tablet } from "lucide-react";
 import { LanguageManager } from "@/components/admin/settings/LanguageManager";
 import { ThemeManager } from "@/components/admin/settings/ThemeManager";
 import { type Language, type EditableElement, type Translations, type SiteData } from "@/lib/types";
@@ -34,7 +34,19 @@ export default function SettingsPage() {
     const handleSelection = useCallback((element: EditableElement | null) => {
         if (element && siteData?.translations) {
             const liveValue = siteData.translations[element.key] || element.value;
-            setSelectedElement({ ...element, value: liveValue });
+            const updatedElement = { ...element, value: liveValue };
+            
+            // Also populate the value with any style overrides from translations
+            if (element.style) {
+                 Object.keys(element.style).forEach(styleKey => {
+                    const translationKey = element.style![styleKey];
+                    if (siteData.translations[translationKey]) {
+                        updatedElement.value = siteData.translations[translationKey];
+                    }
+                });
+            }
+
+            setSelectedElement(updatedElement);
         } else {
             setSelectedElement(null);
         }
