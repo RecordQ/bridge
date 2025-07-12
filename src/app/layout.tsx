@@ -60,11 +60,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={cn("min-h-screen bg-background font-body antialiased")}>
         <AuthProvider>
           <SiteDataProvider>
-            <App>
-              <PageContent isPreview={isPreview}>
-                  {children}
-              </PageContent>
-            </App>
+            <PageContent isPreview={isPreview}>
+                {children}
+            </PageContent>
             <Toaster />
           </SiteDataProvider>
         </AuthProvider>

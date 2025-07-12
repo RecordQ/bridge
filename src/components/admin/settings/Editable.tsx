@@ -54,6 +54,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
       <span
         onClick={handleClick}
         style={dynamicStyles}
+        data-editable-key={translationKey}
         className={cn(
           "relative cursor-pointer transition-all rounded-md",
           "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
@@ -64,7 +65,7 @@ export function EditableText({ translationKey, fieldType = 'text', noEditModeUI 
     );
   }
 
-  return <span style={dynamicStyles}>{textValue}</span>;
+  return <span style={dynamicStyles} data-editable-key={translationKey}>{textValue}</span>;
 }
 
 
@@ -106,6 +107,7 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
     return (
       <div
         onClick={handleClick}
+        data-editable-key={translationKey}
         className={cn(
           "relative cursor-pointer transition-all rounded-md inline-block",
           "hover:bg-primary/20 hover:outline-dashed hover:outline-2 hover:outline-primary p-1 -m-1"
@@ -113,9 +115,15 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
       >
         {cloneElement(clonedChild, {
             onClick: (e: MouseEvent) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+                if (isEditMode) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                } else {
+                    children.props.onClick?.(e);
+                }
+            },
+            // Prevent the link from working in edit mode
+            href: isEditMode ? undefined : children.props.href,
         })}
       </div>
     );

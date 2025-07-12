@@ -9,16 +9,48 @@ import type { SiteData } from "@/lib/types";
 function applyTheme(data: SiteData) {
     if (!data?.theme?.colors) return;
     const { colors } = data.theme;
+    
+    let styleString = ':root {';
+    // Apply global theme colors
     Object.entries(colors).forEach(([key, value]) => {
-         document.body.style.setProperty(`--${key}`, `${value}`);
+        styleString += `--${key}: ${value};`;
     });
-    // This is for live updates of button/text colors from the editor
+    
+    // Apply dynamic element-specific styles
     Object.entries(data.translations).forEach(([key, value]) => {
         if (key.includes('_bg') || key.includes('_color')) {
             const cssVarName = `--${key.replace(/_/g, '-')}`;
-            document.body.style.setProperty(cssVarName, value);
+            styleString += `${cssVarName}: ${value};`;
         }
     });
+
+    styleString += '}';
+    
+    // Create CSS rules for elements using the dynamic styles
+    Object.entries(data.translations).forEach(([key, value]) => {
+       if (key.includes('_bg') || key.includes('_color')) {
+            const cssVarName = `--${key.replace(/_/g, '-')}`;
+            const selectorKey = key.replace(/_bg$/, '').replace(/_text$/, '').replace(/_color$/, '');
+            
+            const selector = `[data-editable-key="${selectorKey}"]`;
+
+            if(key.endsWith("_bg")){
+                styleString += `${selector} { background-color: var(${cssVarName}) !important; }`;
+            } else if (key.endsWith("_text") || key.endsWith("_color")){
+                 styleString += `${selector} { color: var(${cssVarName}) !important; }`;
+            }
+        }
+    });
+
+    // Find or create the style tag
+    const styleTagId = 'dynamic-theme-styles';
+    let styleTag = document.getElementById(styleTagId);
+    if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = styleTagId;
+        document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = styleString;
 }
 
 export function PageContent({ children, isPreview }: { children: ReactNode, isPreview: boolean }) {
