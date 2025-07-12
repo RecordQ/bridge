@@ -16,15 +16,47 @@ interface SiteDataContextType {
 
 const SiteDataContext = createContext<SiteDataContextType | null>(null);
 
-function applyTheme(colors: ColorPalette) {
-    const root = document.documentElement;
-    Object.entries(colors).forEach(([key, value]) => {
-        const cssVar = `--${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-        root.style.setProperty(cssVar, value);
-    });
-}
-
 const USER_THEME_KEY = 'user-theme-override';
+const THEME_STYLE_ID = 'dynamic-theme-styles';
+
+function applyTheme(colors: ColorPalette) {
+    let styleElement = document.getElementById(THEME_STYLE_ID);
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.id = THEME_STYLE_ID;
+        document.head.appendChild(styleElement);
+    }
+
+    const cssText = `
+        :root {
+            --background: ${colors.background};
+            --foreground: ${colors.foreground};
+            --card: ${colors.card};
+            --card-foreground: ${colors.cardForeground};
+            --popover: ${colors.popover};
+            --popover-foreground: ${colors.popoverForeground};
+            --primary: ${colors.primary};
+            --primary-foreground: ${colors.primaryForeground};
+            --secondary: ${colors.secondary};
+            --secondary-foreground: ${colors.secondaryForeground};
+            --muted: ${colors.muted};
+            --muted-foreground: ${colors.mutedForeground};
+            --accent: ${colors.accent};
+            --accent-foreground: ${colors.accentForeground};
+            --destructive: ${colors.destructive};
+            --destructive-foreground: ${colors.destructiveForeground};
+            --border: ${colors.border};
+            --input: ${colors.input};
+            --ring: ${colors.ring};
+            --chart-1: ${colors['chart-1']};
+            --chart-2: ${colors['chart-2']};
+            --chart-3: ${colors['chart-3']};
+            --chart-4: ${colors['chart-4']};
+            --chart-5: ${colors['chart-5']};
+        }
+    `;
+    styleElement.textContent = cssText;
+}
 
 
 export const SiteDataProvider = ({ children }: { children: ReactNode }) => {
