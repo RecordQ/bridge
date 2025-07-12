@@ -19,7 +19,7 @@ const ThreeScene = () => {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(config.backgroundColor || '#000000', 1);
     mountRef.current.appendChild(renderer.domElement);
 
     // Planet

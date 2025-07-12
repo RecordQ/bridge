@@ -110,6 +110,7 @@ export const defaultTheme: Theme = {
         'chart-5': '27 87% 67%',
     },
     threeScene: {
+        backgroundColor: '#000000',
         planetColor: '#4a90e2',
         moonColor: '#cccccc',
         galaxyInsideColor: '#ff6030',

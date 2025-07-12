@@ -68,6 +68,7 @@ export function ThemeManager({ initialTheme }: { initialTheme: Theme }) {
       </CardHeader>
       <form action={formAction}>
         <CardContent className="grid grid-cols-2 gap-4">
+             <ColorPickerInput name="threeScene.backgroundColor" label="Background Color" value={theme.threeScene.backgroundColor || '#000000'} onChange={handleThreeSceneChange} />
              <ColorPickerInput name="threeScene.planetColor" label="Planet Color" value={theme.threeScene.planetColor || '#4a90e2'} onChange={handleThreeSceneChange} />
              <ColorPickerInput name="threeScene.moonColor" label="Moon Color" value={theme.threeScene.moonColor || '#cccccc'} onChange={handleThreeSceneChange} />
              <ColorPickerInput name="threeScene.galaxyInsideColor" label="Galaxy Inside" value={theme.threeScene.galaxyInsideColor || '#ff6030'} onChange={handleThreeSceneChange} />

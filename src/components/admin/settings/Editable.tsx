@@ -34,7 +34,7 @@ type EditableTextProps = {
 };
 
 export function EditableText({ translationKey, fieldType = 'text', noEditModeUI = false, styleKeys }: EditableTextProps) {
-  const { t, isEditMode, siteData } = useSiteData();
+  const { t, isEditMode } = useSiteData();
   const textValue = t(translationKey);
   
   const handleClick = (e: React.MouseEvent) => {
@@ -70,7 +70,7 @@ type EditableWrapperProps = {
 };
 
 export function EditableWrapper({ children, translationKey, fieldType, styleKeys }: EditableWrapperProps) {
-  const { t, isEditMode, siteData } = useSiteData();
+  const { t, isEditMode } = useSiteData();
   const textValue = t(translationKey);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -85,7 +85,6 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
         )}
         data-editable-key={translationKey}
       >
-        {children}
         {isEditMode && (
           <div
             className="absolute inset-0 cursor-pointer z-10"
@@ -93,6 +92,7 @@ export function EditableWrapper({ children, translationKey, fieldType, styleKeys
             title={`Edit: ${translationKey}`}
           />
         )}
+        {children}
       </div>
   );
 }
