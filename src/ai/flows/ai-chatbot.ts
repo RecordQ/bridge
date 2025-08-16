@@ -11,8 +11,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { adminDb } from "@/lib/firebase-admin";
+
 
 type Product = {
   name: string;
@@ -23,8 +23,8 @@ type Product = {
 // Helper function to fetch products from Firestore
 async function getProducts(): Promise<Product[]> {
     try {
-        const productsCol = collection(db, 'products');
-        const productSnapshot = await getDocs(productsCol);
+        const productsCol = adminDb.collection('products');
+        const productSnapshot = await productsCol.get();
         if (productSnapshot.empty) {
             return [];
         }

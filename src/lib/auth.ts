@@ -1,8 +1,7 @@
 'use server'
 
 import { z } from "zod";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 import { createHash } from "crypto";
 
 const loginSchema = z.object({
@@ -39,17 +38,17 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
     const passwordHash = createHash('sha512').update(password).digest('hex');
     
     try {
-        const usersCol = collection(db, 'users');
-        const userSnapshot = await getDocs(usersCol);
+        const usersCol = adminDb.collection('users');
+        const userSnapshot = await usersCol.get();
 
         if (userSnapshot.empty) {
             // If no users exist, create a default admin user
             const defaultAdminPasswordHash = createHash('sha512').update('password').digest('hex');
-            await addDoc(usersCol, { username: 'admin', password: defaultAdminPasswordHash });
+            await usersCol.add({ username: 'admin', password: defaultAdminPasswordHash });
         }
 
-        const q = query(usersCol, where("username", "==", username));
-        const querySnapshot = await getDocs(q);
+        const q = usersCol.where("username", "==", username);
+        const querySnapshot = await q.get();
 
         if (querySnapshot.empty) {
             return { status: "error", message: "Invalid username or password." };
@@ -71,8 +70,8 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             passwordHash: passwordHash,
         };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Authentication error:", error);
-        return { status: "error", message: "An unexpected error occurred. Please try again." };
+        return { status: "error", message: `An unexpected error occurred. Please try again. ${error.message}` };
     }
 }

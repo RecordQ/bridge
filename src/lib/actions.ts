@@ -2,9 +2,9 @@
 "use server";
 
 import { z } from "zod";
-import { db, storage } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { adminDb, adminStorage } from "@/lib/firebase-admin";
+import { serverTimestamp } from "firebase-admin/firestore";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
@@ -15,20 +15,23 @@ import sharp from "sharp";
 async function uploadImage(imageFile: File): Promise<string> {
     const originalBuffer = Buffer.from(await imageFile.arrayBuffer());
 
-    // Resize and convert image to WebP
     const resizedBuffer = await sharp(originalBuffer)
-        .resize({ width: 1200, withoutEnlargement: true }) // Resize to max 1200px width
-        .webp({ quality: 80 }) // Convert to WebP with 80% quality
+        .resize({ width: 1200, withoutEnlargement: true })
+        .webp({ quality: 80 })
         .toBuffer();
 
     const fileName = `${randomUUID()}.webp`;
-    const storageRef = ref(storage, `products/${fileName}`);
+    const file = adminStorage.file(`products/${fileName}`);
 
-    await uploadBytes(storageRef, resizedBuffer, {
-        contentType: 'image/webp',
+    await file.save(resizedBuffer, {
+        metadata: {
+            contentType: 'image/webp',
+        },
     });
 
-    return await getDownloadURL(storageRef);
+    // Make the file public and get the URL
+    await file.makePublic();
+    return file.publicUrl();
 }
 
 
@@ -66,7 +69,7 @@ export async function submitContactForm(
   }
 
   try {
-    await addDoc(collection(db, "submissions"), {
+    await adminDb.collection("submissions").add({
       ...validatedFields.data,
       createdAt: serverTimestamp(),
       status: 'New',
@@ -88,8 +91,8 @@ export async function submitContactForm(
 
 export async function updateSubmissionStatusAction(submissionId: string, status: 'New' | 'Contacted') {
     try {
-        const submissionRef = doc(db, 'submissions', submissionId);
-        await updateDoc(submissionRef, { status });
+        const submissionRef = adminDb.collection('submissions').doc(submissionId);
+        await submissionRef.update({ status });
         revalidatePath('/admin');
         return { status: "success", message: "Submission status updated." };
     } catch (error) {
@@ -111,12 +114,11 @@ const productSchema = z.object({
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
 
-// A Zod schema for the image file itself, to be used for validation.
 const imageFileSchema = z.instanceof(File).refine(
-    (file) => file.size === 0 || file.type.startsWith("image/"), // Allow empty file, otherwise check for image MIME type
+    (file) => file.size === 0 || file.type.startsWith("image/"),
     "Only image files are allowed."
 ).refine(
-    (file) => file.size < 10 * 1024 * 1024, // 10MB size limit
+    (file) => file.size < 10 * 1024 * 1024,
     "Image must be less than 10MB."
 );
 
@@ -166,8 +168,8 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
-        let imageUrl = "https://placehold.co/600x400.png"; // Default placeholder
-        if (validatedFields.data.image.size > 0) {
+        let imageUrl = "https://placehold.co/600x400.png";
+        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
             imageUrl = await uploadImage(validatedFields.data.image);
         }
 
@@ -177,17 +179,17 @@ export async function addProductAction(prevState: AddProductState, formData: For
             createdAt: serverTimestamp(),
         };
 
-        await addDoc(collection(db, 'products'), productData);
+        await adminDb.collection('products').add(productData);
 
         revalidatePath('/admin');
         revalidatePath('/products');
         revalidatePath('/');
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error adding product to database:", error);
         return {
             status: "error",
-            message: "Failed to add product to database. Please try again.",
+            message: `Failed to add product to database. Please try again. ${error.message}`,
             errors: {},
         }
     }
@@ -240,10 +242,11 @@ export async function editProductAction(productId: string, prevState: AddProduct
         let imageUrl = existingImageUrl;
         if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
             imageUrl = await uploadImage(validatedFields.data.image);
+            // Optionally: delete the old image from storage
         }
         
-        const productRef = doc(db, 'products', productId);
-        await updateDoc(productRef, {
+        const productRef = adminDb.collection('products').doc(productId);
+        await productRef.update({
             ...validatedFields.data,
             image: imageUrl,
         });
@@ -257,11 +260,11 @@ export async function editProductAction(productId: string, prevState: AddProduct
             message: 'Product updated successfully!',
         };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error updating product in database:", error);
         return {
             status: "error",
-            message: "Failed to update product. Please try again.",
+            message: `Failed to update product. Please try again. ${error.message}`,
         }
     }
 }
@@ -269,7 +272,8 @@ export async function editProductAction(productId: string, prevState: AddProduct
 
 export async function deleteProductAction(productId: string) {
     try {
-        await deleteDoc(doc(db, "products", productId));
+        await adminDb.collection("products").doc(productId).delete();
+        // Optionally: delete image from storage as well
         revalidatePath('/admin');
         revalidatePath('/products');
         revalidatePath('/');
