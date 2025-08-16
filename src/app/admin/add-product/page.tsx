@@ -45,6 +45,7 @@ export default function AddProductPage() {
                 router.push(state.redirect);
             }
         } else if (state.status === "error") {
+            console.log(state.message);
             toast({
                 title: "Error",
                 description: state.message,

@@ -151,10 +151,10 @@ export async function addProductAction(prevState: AddProductState, formData: For
         revalidatePath('/');
 
     } catch (error: any) {
-        console.error("Error adding product to database:", error);
+        console.error("Firebase Error adding product to database:", error);
         return {
             status: "error",
-            message: `Failed to add product to database. Please try again. ${error}`,
+            message: `Failed to add product to database. Please try again.`,
             errors: {},
         }
     }
