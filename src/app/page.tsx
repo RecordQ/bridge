@@ -116,7 +116,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 md:py-24 bg-background">
+        <section className="py-16 md:py-24 bg-background/50 backdrop-blur-sm">
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-3 gap-8 text-center">
                     {features.map((feature, index) => (
@@ -132,7 +132,7 @@ export default function Home() {
             </div>
         </section>
 
-        <section id="products" className="py-16 md:py-24 bg-secondary/50 border-y">
+        <section id="products" className="py-16 md:py-24 bg-secondary/50 border-y backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
@@ -154,7 +154,7 @@ export default function Home() {
                 {topProducts.map((product) => {
                   const Icon = getIconForProduct(product.name);
                   return (
-                    <Card key={product.id} className="group overflow-hidden rounded-2xl bg-background border-2 border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+                    <Card key={product.id} className="group overflow-hidden rounded-2xl bg-card/80 border-2 border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
                       <CardContent className="p-0">
                         <div className="aspect-video overflow-hidden">
                           <Image
@@ -191,7 +191,7 @@ export default function Home() {
           </div>
         </section>
         
-        <section className="py-16 md:py-32">
+        <section className="py-16 md:py-32 bg-background/50 backdrop-blur-sm">
           <div className="container mx-auto text-center px-4">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
                 Ready to Create Something Amazing?

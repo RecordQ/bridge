@@ -5,11 +5,13 @@ import type { ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { Chatbot } from "../Chatbot";
+import { ThreeScene } from "../ThreeScene";
 
 export function PageLayout({ children }: { children: ReactNode }) {
     
     return (
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+            <ThreeScene />
             <Header />
             {children}
             <Footer />

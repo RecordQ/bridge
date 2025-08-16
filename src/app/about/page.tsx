@@ -28,7 +28,7 @@ export default function AboutPage() {
 
   return (
     <PageLayout>
-        <main className="flex-1 bg-transparent">
+        <main className="flex-1 bg-transparent backdrop-blur-sm">
           <section 
             className="relative py-24 md:py-40" 
           >
@@ -67,7 +67,7 @@ export default function AboutPage() {
             <div className="container mx-auto px-4">
               <div className="grid md:grid-cols-3 gap-8">
                 {values.map((value) => (
-                  <Card key={value.title} className="text-center bg-card border">
+                  <Card key={value.title} className="text-center bg-card/80 border">
                     <CardHeader>
                       <div className="mx-auto bg-primary/10 text-primary rounded-full w-16 h-16 flex items-center justify-center mb-4">
                         <value.icon className="w-8 h-8"/>

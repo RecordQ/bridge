@@ -81,7 +81,7 @@ function ContactPageForm() {
   const selectedProduct = products.find(p => p.id === selectedProductId);
 
   return (
-    <Card>
+    <Card className="bg-card/80 border">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
         <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
@@ -132,7 +132,7 @@ function ContactPageForm() {
 export default function ContactPage() {
   return (
     <PageLayout>
-      <main className="flex-1 bg-transparent">
+      <main className="flex-1 bg-transparent backdrop-blur-sm">
         <section 
           className="relative py-24 md:py-40"
         >
@@ -153,21 +153,21 @@ export default function ContactPage() {
               </p>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <Mail className="w-6 h-6 text-primary" />
+                  <Mail className="w-6 h-6 text-accent" />
                   <div>
                     <h3 className="font-semibold">Email</h3>
                     <a href="mailto:contact@bridgeltd.com" className="text-muted-foreground hover:text-primary transition-colors">contact@bridgeltd.com</a>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <Phone className="w-6 h-6 text-primary" />
+                  <Phone className="w-6 h-6 text-accent" />
                   <div>
                     <h3 className="font-semibold">Phone</h3>
                     <a href="tel:+1234567890" className="text-muted-foreground hover:text-primary transition-colors">+1 (234) 567-890</a>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <MapPin className="w-6 h-6 text-primary" />
+                  <MapPin className="w-6 h-6 text-accent" />
                   <div>
                     <h3 className="font-semibold">Office</h3>
                     <p className="text-muted-foreground">123 Starship Lane, Orbit City, 54321</p>

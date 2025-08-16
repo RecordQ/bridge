@@ -17,7 +17,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 
 function ProductSkeleton() {
     return (
-        <Card className="flex flex-col h-full">
+        <Card className="flex flex-col h-full bg-card/80">
             <CardHeader>
                 <Skeleton className="aspect-video w-full mb-4 rounded-lg bg-muted" />
                 <Skeleton className="h-8 w-3/4 mb-2 bg-muted" />
@@ -97,7 +97,7 @@ export default function ProductsPage() {
   
   return (
     <PageLayout>
-        <main className="flex-1 bg-transparent">
+        <main className="flex-1 bg-transparent backdrop-blur-sm">
           <section 
             className="relative py-24 md:py-40"
           >
@@ -133,7 +133,7 @@ export default function ProductsPage() {
               ) : filteredProducts.length > 0 ? (
                 <div className="grid lg:grid-cols-3 gap-8 items-start">
                   {filteredProducts.map((tier) => (
-                    <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
+                    <Card key={tier.id} className="flex flex-col h-full hover:border-accent transition-colors duration-300 bg-card/80">
                       <CardHeader>
                         <div className="aspect-video mb-4 overflow-hidden rounded-lg">
                           <Image
@@ -156,7 +156,7 @@ export default function ProductsPage() {
                         <ul className="space-y-3">
                           {tier.features.map((feature, index) => (
                             <li key={index} className="flex items-center gap-2">
-                              <CheckCircle2 className="w-5 h-5 text-primary" />
+                              <CheckCircle2 className="w-5 h-5 text-accent" />
                               <span className="text-muted-foreground">{feature}</span>
                             </li>
                           ))}
@@ -171,7 +171,7 @@ export default function ProductsPage() {
                   ))}
                 </div>
               ) : (
-                 <Card className="text-center py-12">
+                 <Card className="text-center py-12 bg-card/80">
                     <CardHeader>
                         <div className="mx-auto bg-muted rounded-full w-24 h-24 flex items-center justify-center mb-4">
                             <Package className="w-12 h-12 text-muted-foreground" />

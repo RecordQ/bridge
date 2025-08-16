@@ -7,11 +7,11 @@ import Link from 'next/link';
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="bg-muted text-muted-foreground border-t">
+    <footer className="bg-transparent text-muted-foreground border-t border-border/40">
       <div className="container py-8 px-4">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
           <div className="flex items-center space-x-2">
-            <Rocket className="h-6 w-6 text-primary" />
+            <Rocket className="h-6 w-6 text-accent" />
             <span className="font-bold font-headline text-lg text-foreground">Bridge Ltd</span>
           </div>
           <div className="text-sm text-muted-foreground flex items-center gap-4">
