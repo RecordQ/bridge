@@ -2,10 +2,27 @@
 "use server";
 
 import { z } from "zod";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, setDoc } from "firebase/firestore";
+import { db, storage } from "@/lib/firebase";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { randomUUID } from "crypto";
+
+// ========= FILE UPLOAD UTILITY =========
+async function uploadImage(imageFile: File): Promise<string> {
+    const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
+    const fileExtension = imageFile.name.split('.').pop();
+    const fileName = `${randomUUID()}.${fileExtension}`;
+    const storageRef = ref(storage, `products/${fileName}`);
+
+    await uploadBytes(storageRef, fileBuffer, {
+        contentType: imageFile.type,
+    });
+
+    return await getDownloadURL(storageRef);
+}
+
 
 // ========= CONTACT FORM ACTION =========
 
@@ -81,7 +98,7 @@ const productSchema = z.object({
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
     priceUnit: z.string().min(1, "Price unit is required."),
     status: z.enum(['Active', 'Archived']),
-    image: z.string().url("Must be a valid URL."),
+    image: z.union([z.string().url("Must be a valid URL."), z.instanceof(File)]),
     description: z.string().min(10, "Description must be at least 10 characters."),
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
@@ -93,15 +110,18 @@ export type AddProductState = {
 }
 
 export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const validatedFields = productSchema.safeParse({
+    const imageFile = formData.get("image") as File;
+    const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: formData.get("image"),
+        image: imageFile.size > 0 ? imageFile : "https://placehold.co/600x400.png",
         description: formData.get("description"),
         features: formData.get("features"),
-    });
+    };
+    
+    const validatedFields = productSchema.safeParse(validationData);
 
     if (!validatedFields.success) {
         const fieldErrors: Record<string, string> = {};
@@ -118,10 +138,18 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
-        await addDoc(collection(db, 'products'), {
+        let imageUrl = "https://placehold.co/600x400.png";
+        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
+            imageUrl = await uploadImage(validatedFields.data.image);
+        }
+
+        const productData = {
             ...validatedFields.data,
+            image: imageUrl,
             createdAt: serverTimestamp(),
-        });
+        };
+
+        await addDoc(collection(db, 'products'), productData);
 
         revalidatePath('/admin');
         revalidatePath('/products');
@@ -141,15 +169,21 @@ export async function addProductAction(prevState: AddProductState, formData: For
 
 
 export async function editProductAction(productId: string, prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const validatedFields = productSchema.safeParse({
+    const imageFile = formData.get("image") as File;
+    const existingImageUrl = formData.get("existingImage") as string;
+    
+    const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: formData.get("image"),
+        image: imageFile.size > 0 ? imageFile : existingImageUrl,
         description: formData.get("description"),
         features: formData.get("features"),
-    });
+    };
+    
+    const validatedFields = productSchema.safeParse(validationData);
+
 
     if (!validatedFields.success) {
          const fieldErrors: Record<string, string> = {};
@@ -166,8 +200,16 @@ export async function editProductAction(productId: string, prevState: AddProduct
     }
 
     try {
+        let imageUrl = existingImageUrl;
+        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
+            imageUrl = await uploadImage(validatedFields.data.image);
+        }
+        
         const productRef = doc(db, 'products', productId);
-        await updateDoc(productRef, validatedFields.data);
+        await updateDoc(productRef, {
+            ...validatedFields.data,
+            image: imageUrl,
+        });
 
         revalidatePath('/admin');
         revalidatePath('/products');

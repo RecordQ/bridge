@@ -65,7 +65,7 @@ export default function AddProductPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6" encType="multipart/form-data">
                         <div className="space-y-2">
                             <Label htmlFor="name">Product Name</Label>
                             <Input id="name" name="name" placeholder="e.g., Custom USB Drive" disabled={isPending} />
@@ -95,8 +95,8 @@ export default function AddProductPage() {
                             {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">
-                            <Label htmlFor="image">Image URL</Label>
-                            <Input id="image" name="image" placeholder="https://placehold.co/600x400.png" defaultValue="https://placehold.co/600x400.png" disabled={isPending} />
+                            <Label htmlFor="image">Product Image</Label>
+                            <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
                              {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">
@@ -106,7 +106,7 @@ export default function AddProductPage() {
                         </div>
                         <div className="md:col-span-2 space-y-2">
                             <Label htmlFor="features">Features (one per line)</Label>
-                            <Textarea id="features" name="features" placeholder="Feature 1&#10;Feature 2&#10;Feature 3" rows={4} disabled={isPending} />
+                            <Textarea id="features" name="features" placeholder="Feature 1\nFeature 2\nFeature 3" rows={4} disabled={isPending} />
                              {state.errors?.features && <p className="text-sm text-destructive mt-1">{state.errors.features}</p>}
                         </div>
                         <div className="md:col-span-2">

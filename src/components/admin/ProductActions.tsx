@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { LoaderCircle, Trash, Edit } from "lucide-react";
 import { type Product } from "@/lib/types";
+import Image from "next/image";
 
 function SubmitButton({ text, pendingText }: { text: string, pendingText: string }) {
     const { pending } = useFormStatus();
@@ -66,7 +67,8 @@ export function EditProductDialog({ product }: { product: Product }) {
                         Make changes to the product details here. Click save when you're done.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4" encType="multipart/form-data">
+                    <input type="hidden" name="existingImage" value={product.image} />
                      <div className="space-y-2">
                         <Label htmlFor="name">Product Name</Label>
                         <Input id="name" name="name" defaultValue={product.name} disabled={isPending} />
@@ -96,8 +98,12 @@ export function EditProductDialog({ product }: { product: Product }) {
                         {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="image">Image URL</Label>
-                        <Input id="image" name="image" defaultValue={product.image} disabled={isPending} />
+                        <Label>Current Image</Label>
+                        <Image src={product.image} alt={product.name} width={100} height={100} className="rounded-md border object-cover"/>
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                        <Label htmlFor="image">Upload New Image (optional)</Label>
+                        <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
                         {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">
