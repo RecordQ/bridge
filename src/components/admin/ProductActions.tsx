@@ -29,6 +29,7 @@ function SubmitButton({ text, pendingText }: { text: string, pendingText: string
 
 export function EditProductDialog({ product }: { product: Product }) {
     const [open, setOpen] = useState(false);
+    const { toast } = useToast();
     const editActionWithId = editProductAction.bind(null, product.id);
     const [state, formAction, isPending] = useActionState<AddProductState, FormData>(editActionWithId, {
         status: "idle",
@@ -68,7 +69,6 @@ export function EditProductDialog({ product }: { product: Product }) {
                     </DialogDescription>
                 </DialogHeader>
                 <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-                    <input type="hidden" name="existingImage" value={product.image} />
                      <div className="space-y-2">
                         <Label htmlFor="name">Product Name</Label>
                         <Input id="name" name="name" defaultValue={product.name} disabled={isPending} />
@@ -102,8 +102,8 @@ export function EditProductDialog({ product }: { product: Product }) {
                         <Image src={product.image} alt={product.name} width={100} height={100} className="rounded-md border object-cover"/>
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="image">Upload New Image (optional)</Label>
-                        <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
+                        <Label htmlFor="image">New Image URL</Label>
+                        <Input id="image" name="image" defaultValue={product.image} disabled={isPending} />
                         {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">

@@ -98,8 +98,8 @@ export default function AddProductPage() {
                             {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">
-                            <Label htmlFor="image">Product Image</Label>
-                            <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
+                            <Label htmlFor="image">Product Image URL</Label>
+                            <Input id="image" name="image" placeholder="https://example.com/image.png" disabled={isPending} />
                              {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">

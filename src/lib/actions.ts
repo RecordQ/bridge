@@ -2,37 +2,11 @@
 "use server";
 
 import { z } from "zod";
-import { adminDb, adminStorage } from "@/lib/firebase-admin";
-import { serverTimestamp } from "firebase-admin/firestore";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { randomUUID } from "crypto";
-import sharp from "sharp";
-
-
-// ========= FILE UPLOAD UTILITY =========
-async function uploadImage(imageFile: File): Promise<string> {
-    const originalBuffer = Buffer.from(await imageFile.arrayBuffer());
-
-    const resizedBuffer = await sharp(originalBuffer)
-        .resize({ width: 1200, withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toBuffer();
-
-    const fileName = `${randomUUID()}.webp`;
-    const file = adminStorage.file(`products/${fileName}`);
-
-    await file.save(resizedBuffer, {
-        metadata: {
-            contentType: 'image/webp',
-        },
-    });
-
-    // Make the file public and get the URL
-    await file.makePublic();
-    return file.publicUrl();
-}
 
 
 // ========= CONTACT FORM ACTION =========
@@ -69,7 +43,7 @@ export async function submitContactForm(
   }
 
   try {
-    await adminDb.collection("submissions").add({
+    await addDoc(collection(db, "submissions"), {
       ...validatedFields.data,
       createdAt: serverTimestamp(),
       status: 'New',
@@ -91,8 +65,8 @@ export async function submitContactForm(
 
 export async function updateSubmissionStatusAction(submissionId: string, status: 'New' | 'Contacted') {
     try {
-        const submissionRef = adminDb.collection('submissions').doc(submissionId);
-        await submissionRef.update({ status });
+        const submissionRef = doc(db, 'submissions', submissionId);
+        await updateDoc(submissionRef, { status });
         revalidatePath('/admin');
         return { status: "success", message: "Submission status updated." };
     } catch (error) {
@@ -109,18 +83,10 @@ const productSchema = z.object({
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
     priceUnit: z.string().min(1, "Price unit is required."),
     status: z.enum(['Active', 'Archived']),
-    image: z.union([z.string().url("Must be a valid URL."), z.instanceof(File)]),
+    image: z.string().url("Must be a valid URL."),
     description: z.string().min(10, "Description must be at least 10 characters."),
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
-
-const imageFileSchema = z.instanceof(File).refine(
-    (file) => file.size === 0 || file.type.startsWith("image/"),
-    "Only image files are allowed."
-).refine(
-    (file) => file.size < 10 * 1024 * 1024,
-    "Image must be less than 10MB."
-);
 
 
 export type AddProductState = {
@@ -131,25 +97,15 @@ export type AddProductState = {
 }
 
 export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const imageFile = formData.get("image") as File;
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: imageFile,
+        image: formData.get("image"),
         description: formData.get("description"),
         features: formData.get("features"),
     };
-    
-    const validatedImage = imageFileSchema.safeParse(imageFile);
-    if (!validatedImage.success) {
-        return {
-            status: "error",
-            message: "Please correct the image error.",
-            errors: { image: validatedImage.error.issues[0].message },
-        }
-    }
     
     const validatedFields = productSchema.safeParse(validationData);
 
@@ -168,18 +124,12 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
-        let imageUrl = "https://placehold.co/600x400.png";
-        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
-            imageUrl = await uploadImage(validatedFields.data.image);
-        }
-
         const productData = {
             ...validatedFields.data,
-            image: imageUrl,
             createdAt: serverTimestamp(),
         };
 
-        await adminDb.collection('products').add(productData);
+        await addDoc(collection(db, 'products'), productData);
 
         revalidatePath('/admin');
         revalidatePath('/products');
@@ -199,27 +149,15 @@ export async function addProductAction(prevState: AddProductState, formData: For
 
 
 export async function editProductAction(productId: string, prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const imageFile = formData.get("image") as File;
-    const existingImageUrl = formData.get("existingImage") as string;
-    
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: imageFile.size > 0 ? imageFile : existingImageUrl,
+        image: formData.get("image"),
         description: formData.get("description"),
         features: formData.get("features"),
     };
-    
-    const validatedImage = imageFileSchema.safeParse(imageFile);
-    if (!validatedImage.success) {
-        return {
-            status: "error",
-            message: "Please correct the image error.",
-            errors: { image: validatedImage.error.issues[0].message },
-        }
-    }
     
     const validatedFields = productSchema.safeParse(validationData);
 
@@ -239,16 +177,9 @@ export async function editProductAction(productId: string, prevState: AddProduct
     }
 
     try {
-        let imageUrl = existingImageUrl;
-        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
-            imageUrl = await uploadImage(validatedFields.data.image);
-            // Optionally: delete the old image from storage
-        }
-        
-        const productRef = adminDb.collection('products').doc(productId);
-        await productRef.update({
+        const productRef = doc(db, 'products', productId);
+        await updateDoc(productRef, {
             ...validatedFields.data,
-            image: imageUrl,
         });
 
         revalidatePath('/admin');
@@ -272,8 +203,7 @@ export async function editProductAction(productId: string, prevState: AddProduct
 
 export async function deleteProductAction(productId: string) {
     try {
-        await adminDb.collection("products").doc(productId).delete();
-        // Optionally: delete image from storage as well
+        await deleteDoc(doc(db, "products", productId));
         revalidatePath('/admin');
         revalidatePath('/products');
         revalidatePath('/');
