@@ -63,6 +63,6 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
 
     } catch (error: any) {
         console.error("Authentication error:", error);
-        return { status: "error", message: `An unexpected error occurred. Please try again. ${error.message}` };
+        return { status: "error", message: `An unexpected error occurred. Please try again.` };
     }
 }

@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
-import { PageLayout } from "@/components/layout/PageLayout";
+import { PageLayout } from '@/components/layout/PageLayout';
 
 
 function SubmitButton() {

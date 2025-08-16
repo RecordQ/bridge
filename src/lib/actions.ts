@@ -2,9 +2,9 @@
 "use server";
 
 import { z } from "zod";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc } from "firebase/firestore";
-
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -78,12 +78,20 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
 
 // ========= PRODUCT ACTIONS =========
 
+async function uploadImage(image: File): Promise<string> {
+    const storageRef = ref(storage, `products/${Date.now()}-${image.name}`);
+    const imageBuffer = await image.arrayBuffer();
+    await uploadBytes(storageRef, imageBuffer, { contentType: image.type });
+    const downloadUrl = await getDownloadURL(storageRef);
+    return downloadUrl;
+}
+
 const productSchema = z.object({
     name: z.string().min(3, "Product name must be at least 3 characters."),
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
     priceUnit: z.string().min(1, "Price unit is required."),
     status: z.enum(['Active', 'Archived']),
-    image: z.string().url("Must be a valid URL."),
+    image: z.instanceof(File).optional(),
     description: z.string().min(10, "Description must be at least 10 characters."),
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
@@ -97,12 +105,13 @@ export type AddProductState = {
 }
 
 export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
+    const imageFile = formData.get("image") as File;
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: formData.get("image"),
+        image: imageFile.size > 0 ? imageFile : undefined,
         description: formData.get("description"),
         features: formData.get("features"),
     };
@@ -124,8 +133,14 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
+        let imageUrl = '';
+        if (validatedFields.data.image) {
+            imageUrl = await uploadImage(validatedFields.data.image);
+        }
+
         const productData = {
             ...validatedFields.data,
+            image: imageUrl,
             createdAt: serverTimestamp(),
         };
 
@@ -139,7 +154,7 @@ export async function addProductAction(prevState: AddProductState, formData: For
         console.error("Error adding product to database:", error);
         return {
             status: "error",
-            message: `Failed to add product to database. Please try again. ${error.message}`,
+            message: `Failed to add product to database. Please try again.`,
             errors: {},
         }
     }
@@ -149,12 +164,13 @@ export async function addProductAction(prevState: AddProductState, formData: For
 
 
 export async function editProductAction(productId: string, prevState: AddProductState, formData: FormData): Promise<AddProductState> {
+    const imageFile = formData.get("image") as File;
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: formData.get("image"),
+        image: imageFile.size > 0 ? imageFile : undefined,
         description: formData.get("description"),
         features: formData.get("features"),
     };
@@ -178,9 +194,20 @@ export async function editProductAction(productId: string, prevState: AddProduct
 
     try {
         const productRef = doc(db, 'products', productId);
-        await updateDoc(productRef, {
-            ...validatedFields.data,
-        });
+        let imageUrl: string | undefined = undefined;
+
+        if (validatedFields.data.image) {
+            imageUrl = await uploadImage(validatedFields.data.image);
+        }
+        
+        const { image, ...restOfData } = validatedFields.data;
+        
+        const updateData: Record<string, any> = { ...restOfData };
+        if (imageUrl !== undefined) {
+            updateData.image = imageUrl;
+        }
+
+        await updateDoc(productRef, updateData);
 
         revalidatePath('/admin');
         revalidatePath('/products');
@@ -195,7 +222,7 @@ export async function editProductAction(productId: string, prevState: AddProduct
         console.error("Error updating product in database:", error);
         return {
             status: "error",
-            message: `Failed to update product. Please try again. ${error.message}`,
+            message: `Failed to update product. Please try again.`,
         }
     }
 }

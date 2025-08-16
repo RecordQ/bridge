@@ -99,11 +99,14 @@ export function EditProductDialog({ product }: { product: Product }) {
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <Label>Current Image</Label>
-                        <Image src={product.image} alt={product.name} width={100} height={100} className="rounded-md border object-cover"/>
+                        {product.image ?
+                            <Image src={product.image} alt={product.name} width={100} height={100} className="rounded-md border object-cover"/>
+                            : <p className="text-sm text-muted-foreground">No image provided.</p>
+                        }
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                        <Label htmlFor="image">New Image URL</Label>
-                        <Input id="image" name="image" defaultValue={product.image} disabled={isPending} />
+                        <Label htmlFor="image">New Product Image (Optional)</Label>
+                        <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
                         {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">
