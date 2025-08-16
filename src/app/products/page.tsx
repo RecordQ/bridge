@@ -13,7 +13,6 @@ import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
 import Link from 'next/link';
-import { useSiteData } from '@/hooks/useSiteData';
 import { PageLayout } from '@/components/layout/PageLayout';
 
 function ProductSkeleton() {
@@ -43,7 +42,6 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
-  const { t } = useSiteData();
 
   useEffect(() => {
     async function getProductTiers() {
@@ -104,9 +102,9 @@ export default function ProductsPage() {
             className="relative py-24 md:py-40"
           >
             <div className="container mx-auto text-center relative z-10 px-4">
-              <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">{t('products_hero_title')}</h1>
+              <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Our Products</h1>
               <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-                {t('products_hero_subtitle')}
+                Find the perfect customizable products for your budget. No hidden fees, just stellar value.
               </p>
             </div>
           </section>
@@ -118,7 +116,7 @@ export default function ProductsPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                             type="search"
-                            placeholder={t('products_search_placeholder')}
+                            placeholder="Search for products..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10"
@@ -158,7 +156,7 @@ export default function ProductsPage() {
                         <ul className="space-y-3">
                           {tier.features.map((feature, index) => (
                             <li key={index} className="flex items-center gap-2">
-                              <CheckCircle2 className="w-5 h-5 text-accent" />
+                              <CheckCircle2 className="w-5 h-5 text-primary" />
                               <span className="text-muted-foreground">{feature}</span>
                             </li>
                           ))}
@@ -166,7 +164,7 @@ export default function ProductsPage() {
                       </CardContent>
                       <CardFooter>
                         <Button onClick={() => handleQuoteClick(tier.id)} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                          {t('button_get_quote')}
+                          Get a Quote
                         </Button>
                       </CardFooter>
                     </Card>
@@ -178,27 +176,27 @@ export default function ProductsPage() {
                         <div className="mx-auto bg-muted rounded-full w-24 h-24 flex items-center justify-center mb-4">
                             <Package className="w-12 h-12 text-muted-foreground" />
                         </div>
-                        <CardTitle className="font-headline text-3xl font-bold">{t('products_not_found_title')}</CardTitle>
+                        <CardTitle className="font-headline text-3xl font-bold">No Products Found</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mt-2 whitespace-pre-line">
-                            {t('products_not_found_subtitle', `Your search for "{searchTerm}" did not match any products.\nTry a different keyword or browse all products.`).replace('{searchTerm}', searchTerm)}
+                            Your search for "{searchTerm}" did not match any products. Try a different keyword or browse all products.
                         </p>
                         {searchTerm && (
                             <Button variant="outline" className="mt-6" onClick={() => setSearchTerm("")}>
-                                {t('products_button_clear_search')}
+                                Clear Search
                             </Button>
                         )}
                     </CardContent>
                 </Card>
               )}
               <div className="text-center mt-16">
-                <h3 className="font-headline text-2xl font-bold">{t('products_custom_order_title')}</h3>
+                <h3 className="font-headline text-2xl font-bold">Need a Custom Order?</h3>
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-                  {t('products_custom_order_subtitle')}
+                  For bulk orders, unique requirements, or product combinations, contact us for a personalized quote. Our team is ready to build the perfect package for you.
                 </p>
                 <Button asChild variant="outline" size="lg" className="mt-6">
-                  <Link href="/contact">{t('products_button_contact_sales')}</Link>
+                  <Link href="/contact">Contact Sales</Link>
                 </Button>
               </div>
             </div>

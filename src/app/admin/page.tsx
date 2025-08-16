@@ -119,27 +119,12 @@ export default async function AdminDashboardPage() {
                 <header className="mb-8 flex justify-between items-start">
                     <div>
                         <h1 className="font-headline text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
-                        <p className="text-muted-foreground">Manage your products, submissions, and site settings.</p>
+                        <p className="text-muted-foreground">Manage your products and submissions.</p>
                     </div>
                      <LogoutButton />
                 </header>
 
                 <div className="grid gap-8">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <div>
-                                <CardTitle>Site Settings</CardTitle>
-                                <CardDescription>Manage global content, languages, and theme settings.</CardDescription>
-                            </div>
-                             <Button asChild size="sm">
-                                <Link href="/admin/settings">
-                                    <Settings className="mr-2" />
-                                    Go to Settings
-                                </Link>
-                            </Button>
-                        </CardHeader>
-                    </Card>
-
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div>

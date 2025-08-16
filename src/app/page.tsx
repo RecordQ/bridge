@@ -2,19 +2,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Usb, Box, PenTool, Package } from "lucide-react";
+import { ArrowRight, Usb, Box, PenTool, CheckCircle, Star, Users, Zap } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { useSiteData } from "@/hooks/useSiteData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageLayout } from "@/components/layout/PageLayout";
-import { EditableText, EditableWrapper } from "@/components/admin/settings/Editable";
+import { Card, CardContent } from "@/components/ui/card";
 
 
 function getIconForProduct(name: string) {
@@ -22,14 +20,13 @@ function getIconForProduct(name: string) {
   if (lowerCaseName.includes('usb')) return Usb;
   if (lowerCaseName.includes('box')) return Box;
   if (lowerCaseName.includes('pen')) return PenTool;
-  return Package;
+  return Zap;
 }
 
 export default function Home() {
   const [topProducts, setTopProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { t } = useSiteData();
 
   useEffect(() => {
     async function getTopProducts() {
@@ -74,161 +71,144 @@ export default function Home() {
     router.push('/contact');
   };
 
+  const features = [
+    {
+      icon: CheckCircle,
+      title: "Premium Quality",
+      description: "Only the best materials for products that last and impress."
+    },
+    {
+      icon: Star,
+      title: "Endless Customization",
+      description: "Your vision, your logo, your brand. We make it happen."
+    },
+    {
+      icon: Users,
+      title: "Corporate & Personal",
+      description: "Perfect for large-scale branding or unique personal gifts."
+    }
+  ];
+
   return (
     <PageLayout>
-      <main className="flex-1">
+      <main className="flex-1 overflow-hidden">
           {/* Hero Section */}
         <section 
-          className="relative py-32 md:py-48 flex items-center justify-center min-h-screen"
+          className="relative py-32 md:py-48 flex items-center justify-center min-h-[90vh]"
         >
           <div className="container mx-auto text-center relative z-10 px-4">
+             <div className="inline-block bg-primary/10 text-primary border border-primary/20 rounded-full px-4 py-1 font-medium text-sm mb-4">
+                We turn ideas into tangible brand assets
+             </div>
             <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground">
-               <EditableText fieldType="text" translationKey="home_hero_title" styleKeys={{color: "home_hero_title_color", fontSize: "home_hero_title_font_size"}} />
+               Elevate Your Brand
             </h1>
-            <p className="max-w-2xl mx-auto text-lg md:text-xl text-foreground/80 mb-8">
-              <EditableText fieldType="textarea" translationKey="home_hero_subtitle" styleKeys={{color: "home_hero_subtitle_color", fontSize: "home_hero_subtitle_font_size"}} />
+            <p className="max-w-2xl mx-auto mt-4 text-lg md:text-xl text-foreground/70 mb-8">
+              Bridge Ltd offers premium, customizable products to help your brand shine. From tech gadgets to elegant gift solutions, we bring your vision to life.
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4">
-              <EditableWrapper 
-                fieldType="button" 
-                translationKey="button_explore_products" 
-                styleKeys={{
-                  backgroundColor: "button_explore_products_bg_color", 
-                  color: "button_explore_products_text_color", 
-                  fontSize: "button_explore_products_font_size",
-                  borderRadius: "button_explore_products_shape",
-                  borderColor: "button_explore_products_outline_color",
-                }}
-              >
-                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href="/products"><EditableText fieldType="text" translationKey="button_explore_products" noEditModeUI={true} /></Link>
-                </Button>
-              </EditableWrapper>
-               <EditableWrapper 
-                fieldType="button" 
-                translationKey="button_request_quote" 
-                styleKeys={{
-                  backgroundColor: "button_request_quote_bg_color", 
-                  color: "button_request_quote_text_color", 
-                  fontSize: "button_request_quote_font_size",
-                  borderRadius: "button_request_quote_shape",
-                  borderColor: "button_request_quote_outline_color",
-                }}
-               >
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/contact"><EditableText fieldType="text" translationKey="button_request_quote" noEditModeUI={true} /></Link>
-                </Button>
-              </EditableWrapper>
+              <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-7 px-8">
+                <Link href="/products">Explore Products</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="text-lg py-7 px-8 border-2">
+                <Link href="/contact">Request a Quote <ArrowRight className="ml-2" /></Link>
+              </Button>
             </div>
           </div>
         </section>
 
-        {/* Introduction Section */}
-        <section className="py-16 md:py-24 bg-transparent">
-          <div className="container mx-auto text-center px-4">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
-                <EditableText fieldType="text" translationKey="home_intro_title" styleKeys={{color: "home_intro_title_color", fontSize: "home_intro_title_font_size"}} />
-              </h2>
-              <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg">
-                  <EditableText fieldType="textarea" translationKey="home_intro_subtitle" styleKeys={{color: "home_intro_subtitle_color", fontSize: "home_intro_subtitle_font_size"}} />
-              </p>
-          </div>
+        {/* Features Section */}
+        <section className="py-16 md:py-24 bg-background">
+            <div className="container mx-auto px-4">
+                <div className="grid md:grid-cols-3 gap-8 text-center">
+                    {features.map((feature, index) => (
+                        <div key={index}>
+                           <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 mx-auto mb-4 border-2 border-primary/20">
+                               <feature.icon className="w-8 h-8 text-primary" />
+                           </div>
+                           <h3 className="text-xl font-bold font-headline mb-2">{feature.title}</h3>
+                           <p className="text-foreground/70">{feature.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </section>
 
+
         {/* Products Section */}
-        <section id="products" className="py-16 md:py-24 bg-transparent">
+        <section id="products" className="py-16 md:py-24 bg-card border-y">
           <div className="container mx-auto px-4">
-            <h2 className="font-headline text-3xl md:text-4xl font-bold text-center mb-12">
-                <EditableText fieldType="text" translationKey="home_products_title" styleKeys={{color: "home_products_title_color", fontSize: "home_products_title_font_size"}} />
-            </h2>
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
+                  Our Signature Products
+              </h2>
+               <p className="text-lg text-foreground/70">
+                  Discover our curated selection of top-tier products, ready for your branding.
+              </p>
+            </div>
+            
             {loading ? (
-                <div className="grid md:grid-cols-3 gap-8">
-                  <Skeleton className="h-96 w-full" />
-                  <Skeleton className="h-96 w-full" />
-                  <Skeleton className="h-96 w-full" />
+                <div className="grid md:grid-cols-3 gap-8 mt-12">
+                  <Skeleton className="h-96 w-full rounded-2xl" />
+                  <Skeleton className="h-96 w-full rounded-2xl" />
+                  <Skeleton className="h-96 w-full rounded-2xl" />
                 </div>
             ) : (
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-3 gap-8 mt-12">
                 {topProducts.map((product) => {
                   const Icon = getIconForProduct(product.name);
                   return (
-                    <div key={product.id} className="block group cursor-pointer" onClick={() => handleQuoteClick(product.id)}>
-                      <Card className="overflow-hidden h-full hover:shadow-2xl hover:border-primary transition-all duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
-                        <CardHeader>
-                          <div className="flex items-center gap-4">
-                            <Icon className="w-8 h-8 text-accent" />
-                            <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="aspect-video overflow-hidden rounded-md mb-4">
-                            <Image
-                              src={product.image}
-                              alt={product.name}
-                              width={600}
-                              height={400}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              data-ai-hint={product.name}
-                            />
-                          </div>
-                          <CardDescription>{product.description}</CardDescription>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    <Card key={product.id} className="group overflow-hidden rounded-2xl bg-background/50 border-2 border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+                      <CardContent className="p-0">
+                        <div className="aspect-video overflow-hidden">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={600}
+                            height={400}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            data-ai-hint={product.name}
+                          />
+                        </div>
+                        <div className="p-6">
+                            <h3 className="font-headline text-xl font-bold mb-2">{product.name}</h3>
+                            <p className="text-foreground/70 text-sm mb-4 h-10">{product.description}</p>
+                            <Button onClick={() => handleQuoteClick(product.id)} className="w-full">
+                                Get a Quote
+                            </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )
                 })}
               </div>
             )}
             {topProducts.length > 0 && (
               <div className="text-center mt-12">
-                <EditableWrapper 
-                    fieldType="button" 
-                    translationKey="button_show_more" 
-                    styleKeys={{
-                        backgroundColor: "button_show_more_bg_color", 
-                        color: "button_show_more_text_color", 
-                        fontSize: "button_show_more_font_size",
-                        borderRadius: "button_show_more_shape",
-                        borderColor: "button_show_more_outline_color",
-                    }}
-                >
-                  <Button asChild size="lg" variant="outline">
+                  <Button asChild size="lg" variant="ghost">
                     <Link href="/products">
-                        <EditableText fieldType="text" translationKey="button_show_more" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />
+                        View All Products <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                </EditableWrapper>
               </div>
             )}
           </div>
         </section>
         
         {/* CTA Section */}
-        <section className="py-16 md:py-24 bg-transparent">
+        <section className="py-16 md:py-32">
           <div className="container mx-auto text-center px-4">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
-                <EditableText fieldType="text" translationKey="home_cta_title" styleKeys={{color: "home_cta_title_color", fontSize: "home_cta_title_font_size"}} />
+                Ready to Create Something Amazing?
               </h2>
-              <p className="max-w-3xl mx-auto text-muted-foreground md:text-lg mb-8">
-                  <EditableText fieldType="textarea" translationKey="home_cta_subtitle" styleKeys={{color: "home_cta_subtitle_color", fontSize: "home_cta_subtitle_font_size"}} />
+              <p className="max-w-2xl mx-auto text-muted-foreground text-lg mb-8">
+                  Let's collaborate on your next project. Our team is ready to help you design the perfect custom products for your brand.
               </p>
-              <EditableWrapper 
-                fieldType="button" 
-                translationKey="button_contact_us" 
-                styleKeys={{
-                    backgroundColor: 'button_contact_us_bg_color', 
-                    color: 'button_contact_us_text_color', 
-                    fontSize: "button_contact_us_font_size",
-                    borderRadius: "button_contact_us_shape",
-                    borderColor: "button_contact_us_outline_color",
-                }}
-              >
-                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg py-7 px-8">
                     <Link href="/contact">
-                        <EditableText fieldType="text" translationKey="button_contact_us" noEditModeUI={true} /> <ArrowRight className="ml-2 h-5 w-5" />
+                        Contact Us Today <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                 </Button>
-              </EditableWrapper>
           </div>
         </section>
       </main>

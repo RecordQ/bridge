@@ -3,25 +3,14 @@
 
 import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { useSiteData } from '@/hooks/useSiteData';
 
 const ThreeScene = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-  const { siteData, isLoading } = useSiteData();
-  const config = siteData?.theme.threeScene;
-
-  // Effect to update background color when it changes
-  useEffect(() => {
-    if (rendererRef.current && config?.backgroundColor) {
-        rendererRef.current.setClearColor(config.backgroundColor, 1);
-    }
-  }, [config?.backgroundColor]);
 
   useEffect(() => {
-    if (!mountRef.current || isLoading || !config) return;
+    if (!mountRef.current) return;
     
-    // Prevent re-initialization
     if (rendererRef.current) return;
 
     const scene = new THREE.Scene();
@@ -30,14 +19,14 @@ const ThreeScene = () => {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(config.backgroundColor || '#000000', 1);
+    renderer.setClearColor(0x0a192f, 1);
     mountRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
     // Planet
     const planetGeometry = new THREE.SphereGeometry(100, 32, 32);
     const planetMaterial = new THREE.MeshStandardMaterial({ 
-        color: config.planetColor,
+        color: 0x4a90e2,
         roughness: 0.8,
         metalness: 0.1 
     });
@@ -48,7 +37,7 @@ const ThreeScene = () => {
     // Moon
     const moonGeometry = new THREE.SphereGeometry(30, 32, 32);
     const moonMaterial = new THREE.MeshStandardMaterial({ 
-        color: config.moonColor,
+        color: 0xcccccc,
         roughness: 0.9
     });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
@@ -65,8 +54,8 @@ const ThreeScene = () => {
         spin: 1,
         randomness: 1.8,
         randomnessPower: 3,
-        insideColor: config.galaxyInsideColor,
-        outsideColor: config.galaxyOutsideColor,
+        insideColor: 0xff6030,
+        outsideColor: 0x1b3984,
     };
     
     // Background Stars (far)
@@ -165,8 +154,8 @@ const ThreeScene = () => {
 
     const nebulaVertices: number[] = [];
     const nebulaColors: number[] = [];
-    const nebulaBaseColor1 = new THREE.Color(config.nebulaColor1);
-    const nebulaBaseColor2 = new THREE.Color(config.nebulaColor2);
+    const nebulaBaseColor1 = new THREE.Color(0x6a0dad); // Purple
+    const nebulaBaseColor2 = new THREE.Color(0xdc143c); // Crimson
     
     for (let i = 0; i < 50000; i++) {
         const x = THREE.MathUtils.randFloatSpread(2500);
@@ -251,7 +240,7 @@ const ThreeScene = () => {
         rendererRef.current = null;
       }
     };
-  }, [isLoading, config]);
+  }, []);
 
 
   return <div ref={mountRef} className="fixed top-0 left-0 w-full h-full -z-10" />;

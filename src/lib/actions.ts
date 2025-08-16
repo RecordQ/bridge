@@ -3,12 +3,9 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, writeBatch, getDocs, setDoc, getDoc } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, getDocs, setDoc } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { Language } from "./types";
-import { defaultTranslations } from "./config";
-
 
 // ========= CONTACT FORM ACTION =========
 
@@ -89,13 +86,13 @@ const productSchema = z.object({
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
 
-export type ProductActionState = {
+export type AddProductState = {
     status: "success" | "error" | "idle";
     message: string;
     errors?: Record<string, string>;
 }
 
-export async function addProductAction(prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
+export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
     const validatedFields = productSchema.safeParse({
         name: formData.get("name"),
         price: formData.get("price"),
@@ -143,7 +140,7 @@ export async function addProductAction(prevState: ProductActionState, formData: 
 }
 
 
-export async function editProductAction(productId: string, prevState: ProductActionState, formData: FormData): Promise<ProductActionState> {
+export async function editProductAction(productId: string, prevState: AddProductState, formData: FormData): Promise<AddProductState> {
     const validatedFields = productSchema.safeParse({
         name: formData.get("name"),
         price: formData.get("price"),
@@ -201,154 +198,5 @@ export async function deleteProductAction(productId: string) {
     } catch (error) {
         console.error("Error deleting product:", error);
         return { status: "error", message: "Failed to delete product." };
-    }
-}
-
-// ========= SETTINGS ACTIONS =========
-
-export type LanguageActionState = { status: 'idle' | 'success' | 'error', message: string };
-
-export async function saveLanguagesAction(prevState: LanguageActionState, formData: FormData): Promise<LanguageActionState> {
-    const languagesMap: Map<number, Partial<Language>> = new Map();
-    let defaultIndex = -1;
-
-    for (const [key, value] of formData.entries()) {
-        const match = key.match(/languages\.(\d+)\.(.+)/);
-        if (match) {
-            const index = parseInt(match[1], 10);
-            const prop = match[2];
-            
-            if (!languagesMap.has(index)) {
-                languagesMap.set(index, {});
-            }
-            const lang = languagesMap.get(index)!;
-
-            if (prop === 'default') {
-                if (value === 'on') {
-                    defaultIndex = index;
-                }
-            } else {
-                (lang as any)[prop] = value as string;
-            }
-        }
-    }
-    
-    if (defaultIndex === -1 && languagesMap.size > 0) {
-        const firstLangIndex = languagesMap.keys().next().value;
-        const firstLang = languagesMap.get(firstLangIndex);
-        if (firstLang) {
-          defaultIndex = firstLangIndex;
-        }
-    }
-    
-    if (defaultIndex === -1 && formData.get("languages[0].default") !== "on") {
-       return { status: 'error', message: "At least one of the languages must be default." };
-    }
-
-
-    const languages: Language[] = [];
-    for (const [index, partialLang] of languagesMap.entries()) {
-        const lang: Language = {
-            id: partialLang.id || '',
-            name: partialLang.name || '',
-            default: index === defaultIndex
-        };
-        languages.push(lang);
-    }
-    
-    if (languages.filter(l => l.default).length > 1) {
-        return { status: 'error', message: "Only one language can be set as default." };
-    }
-     if (languages.some(l => !l.id || !l.name)) {
-        return { status: 'error', message: "All languages must have a name and a 2-letter code." };
-    }
-     if (new Set(languages.map(l => l.id)).size !== languages.length) {
-        return { status: 'error', message: "Language codes must be unique." };
-    }
-
-    try {
-        const batch = writeBatch(db);
-        const existingLangsSnapshot = await getDocs(collection(db, 'languages'));
-        const existingLangIds = existingLangsSnapshot.docs.map(d => d.id);
-        const newLangIds = languages.map(l => l.id);
-
-        for (const langId of existingLangIds) {
-            if (!newLangIds.includes(langId)) {
-                batch.delete(doc(db, 'languages', langId));
-                batch.delete(doc(db, 'translations', langId));
-            }
-        }
-
-        for (const lang of languages) {
-            const langRef = doc(db, 'languages', lang.id);
-            batch.set(langRef, { name: lang.name, default: lang.default });
-            
-            if(!existingLangIds.includes(lang.id)) {
-                const translationRef = doc(db, 'translations', lang.id);
-                batch.set(translationRef, defaultTranslations);
-            }
-        }
-        
-        await batch.commit();
-        revalidatePath('/admin/settings', 'layout');
-        return { status: 'success', message: "Languages saved successfully." };
-    } catch (error) {
-        console.error("Error saving languages:", error);
-        return { status: 'error', message: "An error occurred while saving languages." };
-    }
-}
-
-export type TranslationActionState = { status: 'idle' | 'success' | 'error', message: string };
-
-export async function saveTranslationsAction(prevState: TranslationActionState, formData: FormData): Promise<TranslationActionState> {
-    const langCode = formData.get('langCode') as string;
-    if (!langCode) {
-        return { status: 'error', message: "Language code is missing." };
-    }
-    
-    const translations: Record<string, string> = {};
-    for (const [key, value] of formData.entries()) {
-        if (key.startsWith('translations.')) {
-            const translationKey = key.substring(13); // "translations." is 13 chars
-            translations[translationKey] = value as string;
-        }
-    }
-
-    if (Object.keys(translations).length === 0) {
-        return { status: 'error', message: 'No translation changes to save.' };
-    }
-
-    try {
-        const translationRef = doc(db, 'translations', langCode);
-        await setDoc(translationRef, translations, { merge: true });
-        revalidatePath('/admin/settings', 'layout');
-        return { status: 'success', message: `Translations for '${langCode}' saved.` };
-    } catch (error) {
-        console.error("Error saving translations:", error);
-        return { status: 'error', message: 'Failed to save translations.' };
-    }
-}
-
-
-export type ThemeActionState = { status: 'idle' | 'success' | 'error', message: string };
-export async function saveThemeAction(prevState: ThemeActionState, formData: FormData): Promise<ThemeActionState> {
-    const themeData: any = { colors: {}, threeScene: {} };
-    for (const [key, value] of formData.entries()) {
-        if (key.startsWith('colors.')) {
-            themeData.colors[key.substring(7)] = value;
-        } else if (key.startsWith('threeScene.')) {
-            themeData.threeScene[key.substring(11)] = value;
-        }
-    }
-
-    try {
-        const themeRef = doc(db, 'theme', 'config');
-        await setDoc(themeRef, themeData, { merge: true });
-        revalidatePath('/admin/settings', 'layout');
-        revalidatePath('/', 'layout');
-        return { status: 'success', message: "Theme updated successfully." };
-    } catch (error) {
-        console.error("Error saving theme:", error);
-        return { status: 'error', message: "Failed to save theme." };
     }
 }

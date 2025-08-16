@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { askQuestion, type AskQuestionInput } from '@/ai/flows/ai-chatbot';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from './ui/avatar';
-import { useSiteData } from '@/hooks/useSiteData';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -23,7 +22,6 @@ export function Chatbot() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { t } = useSiteData();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -47,7 +45,7 @@ export function Chatbot() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error asking question:", error);
-      const errorMessage: Message = { role: 'assistant', content: t('chatbot_error') };
+      const errorMessage: Message = { role: 'assistant', content: "Sorry, I'm having trouble connecting. Please try again later." };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -69,18 +67,18 @@ export function Chatbot() {
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
         )}
       >
-        <Card className="flex flex-col h-[60vh] shadow-2xl">
+        <Card className="flex flex-col h-[60vh] shadow-2xl bg-card/80 backdrop-blur-lg">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-headline flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-accent" />
-              {t('chatbot_title')}
+              AI Assistant
             </CardTitle>
           </CardHeader>
           <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.length === 0 && (
                 <div className="text-center text-muted-foreground p-4">
-                  {t('chatbot_greeting')}
+                  Ask me anything about our products!
                 </div>
               )}
               {messages.map((message, index) => (
@@ -90,7 +88,7 @@ export function Chatbot() {
                        <AvatarFallback className='bg-primary text-primary-foreground'><Bot size={20} /></AvatarFallback>
                     </Avatar>
                   )}
-                  <div className={cn("rounded-lg px-4 py-2 max-w-[80%] break-words", message.role === 'user' ? 'bg-accent text-accent-foreground' : 'bg-muted')}>
+                  <div className={cn("rounded-lg px-4 py-2 max-w-[80%] break-words", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                     <p className="text-sm">{message.content}</p>
                   </div>
                 </div>
@@ -112,7 +110,7 @@ export function Chatbot() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={t('chatbot_input_placeholder')}
+                placeholder="Type your message..."
                 disabled={isLoading}
               />
               <Button type="submit" size="icon" disabled={isLoading}>
