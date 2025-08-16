@@ -8,16 +8,24 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
+import sharp from "sharp";
+
 
 // ========= FILE UPLOAD UTILITY =========
 async function uploadImage(imageFile: File): Promise<string> {
-    const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-    const fileExtension = imageFile.name.split('.').pop();
-    const fileName = `${randomUUID()}.${fileExtension}`;
+    const originalBuffer = Buffer.from(await imageFile.arrayBuffer());
+
+    // Resize and convert image to WebP
+    const resizedBuffer = await sharp(originalBuffer)
+        .resize({ width: 1200, withoutEnlargement: true }) // Resize to max 1200px width
+        .webp({ quality: 80 }) // Convert to WebP with 80% quality
+        .toBuffer();
+
+    const fileName = `${randomUUID()}.webp`;
     const storageRef = ref(storage, `products/${fileName}`);
 
-    await uploadBytes(storageRef, fileBuffer, {
-        contentType: imageFile.type,
+    await uploadBytes(storageRef, resizedBuffer, {
+        contentType: 'image/webp',
     });
 
     return await getDownloadURL(storageRef);
@@ -108,8 +116,8 @@ const imageFileSchema = z.instanceof(File).refine(
     (file) => file.size === 0 || file.type.startsWith("image/"), // Allow empty file, otherwise check for image MIME type
     "Only image files are allowed."
 ).refine(
-    (file) => file.size < 4 * 1024 * 1024, // 4MB size limit
-    "Image must be less than 4MB."
+    (file) => file.size < 10 * 1024 * 1024, // 10MB size limit
+    "Image must be less than 10MB."
 );
 
 
