@@ -103,10 +103,21 @@ const productSchema = z.object({
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
 });
 
+// A Zod schema for the image file itself, to be used for validation.
+const imageFileSchema = z.instanceof(File).refine(
+    (file) => file.size === 0 || file.type.startsWith("image/"), // Allow empty file, otherwise check for image MIME type
+    "Only image files are allowed."
+).refine(
+    (file) => file.size < 4 * 1024 * 1024, // 4MB size limit
+    "Image must be less than 4MB."
+);
+
+
 export type AddProductState = {
     status: "success" | "error" | "idle";
     message: string;
     errors?: Record<string, string>;
+    redirect?: string;
 }
 
 export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
@@ -116,10 +127,19 @@ export async function addProductAction(prevState: AddProductState, formData: For
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: imageFile.size > 0 ? imageFile : "https://placehold.co/600x400.png",
+        image: imageFile,
         description: formData.get("description"),
         features: formData.get("features"),
     };
+    
+    const validatedImage = imageFileSchema.safeParse(imageFile);
+    if (!validatedImage.success) {
+        return {
+            status: "error",
+            message: "Please correct the image error.",
+            errors: { image: validatedImage.error.issues[0].message },
+        }
+    }
     
     const validatedFields = productSchema.safeParse(validationData);
 
@@ -138,8 +158,8 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
-        let imageUrl = "https://placehold.co/600x400.png";
-        if (validatedFields.data.image instanceof File && validatedFields.data.image.size > 0) {
+        let imageUrl = "https://placehold.co/600x400.png"; // Default placeholder
+        if (validatedFields.data.image.size > 0) {
             imageUrl = await uploadImage(validatedFields.data.image);
         }
 
@@ -181,6 +201,15 @@ export async function editProductAction(productId: string, prevState: AddProduct
         description: formData.get("description"),
         features: formData.get("features"),
     };
+    
+    const validatedImage = imageFileSchema.safeParse(imageFile);
+    if (!validatedImage.success) {
+        return {
+            status: "error",
+            message: "Please correct the image error.",
+            errors: { image: validatedImage.error.issues[0].message },
+        }
+    }
     
     const validatedFields = productSchema.safeParse(validationData);
 

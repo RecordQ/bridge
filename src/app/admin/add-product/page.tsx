@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LoaderCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -27,6 +27,7 @@ function SubmitButton() {
 
 export default function AddProductPage() {
     const router = useRouter();
+    const {toast} = useToast();
     const [state, formAction, isPending] = useActionState<AddProductState, FormData>(addProductAction, {
         status: "idle",
         message: "",
@@ -40,7 +41,9 @@ export default function AddProductPage() {
                 description: state.message,
             });
             // The action handles redirection, but as a fallback:
-            router.push('/admin');
+            if (state.redirect) {
+                router.push(state.redirect);
+            }
         } else if (state.status === "error") {
             toast({
                 title: "Error",
@@ -48,7 +51,7 @@ export default function AddProductPage() {
                 variant: "destructive",
             });
         }
-    }, [state, router]);
+    }, [state, router, toast]);
 
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
@@ -65,7 +68,7 @@ export default function AddProductPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6" encType="multipart/form-data">
+                    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="name">Product Name</Label>
                             <Input id="name" name="name" placeholder="e.g., Custom USB Drive" disabled={isPending} />

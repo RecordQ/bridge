@@ -3,7 +3,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { deleteProductAction, editProductAction } from "@/lib/actions";
+import { deleteProductAction, editProductAction, type AddProductState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { LoaderCircle, Trash, Edit } from "lucide-react";
 import { type Product } from "@/lib/types";
 import Image from "next/image";
@@ -30,7 +30,7 @@ function SubmitButton({ text, pendingText }: { text: string, pendingText: string
 export function EditProductDialog({ product }: { product: Product }) {
     const [open, setOpen] = useState(false);
     const editActionWithId = editProductAction.bind(null, product.id);
-    const [state, formAction, isPending] = useActionState(editActionWithId, {
+    const [state, formAction, isPending] = useActionState<AddProductState, FormData>(editActionWithId, {
         status: "idle",
         message: "",
         errors: {},
@@ -50,7 +50,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                 variant: "destructive",
             });
         }
-    }, [state]);
+    }, [state, toast]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -67,7 +67,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                         Make changes to the product details here. Click save when you're done.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4" encType="multipart/form-data">
+                <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
                     <input type="hidden" name="existingImage" value={product.image} />
                      <div className="space-y-2">
                         <Label htmlFor="name">Product Name</Label>
@@ -132,6 +132,7 @@ export function EditProductDialog({ product }: { product: Product }) {
 
 export function DeleteProductDialog({ productId, productName }: { productId: string, productName: string }) {
     const [open, setOpen] = useState(false);
+    const { toast } = useToast();
 
     const handleDelete = async () => {
         const result = await deleteProductAction(productId);
