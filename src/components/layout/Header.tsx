@@ -32,11 +32,11 @@ export function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         <div className="mr-auto flex items-center">
           <Link href="/" className="flex items-center space-x-2">
-            <Rocket className="h-6 w-6 text-accent" />
+            <Rocket className="h-6 w-6 text-cyan-500" />
             <span className="font-bold font-headline text-lg">Bridge Ltd</span>
           </Link>
         </div>
@@ -44,7 +44,7 @@ export function Header() {
           <NavLinkItems />
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <Button asChild className="hidden md:flex bg-primary text-primary-foreground hover:bg-primary/90">
+          <Button asChild className="hidden md:flex">
              <Link href="/contact">Get a Quote</Link>
           </Button>
           <Button
