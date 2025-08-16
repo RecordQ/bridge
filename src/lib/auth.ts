@@ -43,6 +43,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const userSnapshot = await getDocs(usersCol);
 
         if (userSnapshot.empty) {
+            // If no users exist, create a default admin user
             const defaultAdminPasswordHash = createHash('sha512').update('password').digest('hex');
             await addDoc(usersCol, { username: 'admin', password: defaultAdminPasswordHash });
         }
@@ -75,7 +76,3 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         return { status: "error", message: "An unexpected error occurred. Please try again." };
     }
 }
-
-// Logout is now a purely client-side action (clearing local storage)
-// so logoutAction is no longer needed here.
-

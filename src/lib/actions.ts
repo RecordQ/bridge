@@ -184,7 +184,7 @@ export async function addProductAction(prevState: AddProductState, formData: For
         revalidatePath('/');
 
     } catch (error) {
-        console.error("Error adding product: ", error);
+        console.error("Error adding product to database:", error);
         return {
             status: "error",
             message: "Failed to add product to database. Please try again.",
@@ -258,7 +258,7 @@ export async function editProductAction(productId: string, prevState: AddProduct
         };
 
     } catch (error) {
-        console.error("Error updating product: ", error);
+        console.error("Error updating product in database:", error);
         return {
             status: "error",
             message: "Failed to update product. Please try again.",
