@@ -154,7 +154,7 @@ export async function addProductAction(prevState: AddProductState, formData: For
         console.error("Error adding product to database:", error);
         return {
             status: "error",
-            message: `Failed to add product to database. Please try again.`,
+            message: `Failed to add product to database. Please try again. ${error}`,
             errors: {},
         }
     }
