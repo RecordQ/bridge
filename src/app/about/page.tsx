@@ -29,19 +29,17 @@ export default function AboutPage() {
   return (
     <PageLayout>
         <main className="flex-1 bg-transparent">
-          {/* Hero Section */}
           <section 
             className="relative py-24 md:py-40" 
           >
             <div className="container mx-auto text-center relative z-10 px-4">
-              <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">About Bridge Ltd</h1>
-              <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+              <h1 className="font-headline text-4xl md:text-6xl font-bold text-foreground">About Bridge Ltd</h1>
+              <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
                 Connecting brands to their audience through stellar customized products.
               </p>
             </div>
           </section>
 
-          {/* Company History Section */}
           <section className="py-16 md:py-24 bg-transparent">
             <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center px-4">
               <div>
@@ -65,12 +63,11 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Mission, Vision, Values Section */}
           <section className="py-16 md:py-24 bg-transparent">
             <div className="container mx-auto px-4">
               <div className="grid md:grid-cols-3 gap-8">
                 {values.map((value) => (
-                  <Card key={value.title} className="text-center bg-card/50 backdrop-blur-sm border border-border/20">
+                  <Card key={value.title} className="text-center bg-card border">
                     <CardHeader>
                       <div className="mx-auto bg-primary/10 text-primary rounded-full w-16 h-16 flex items-center justify-center mb-4">
                         <value.icon className="w-8 h-8"/>

@@ -92,9 +92,8 @@ export default function Home() {
   return (
     <PageLayout>
       <main className="flex-1 overflow-hidden">
-          {/* Hero Section */}
         <section 
-          className="relative py-32 md:py-48 flex items-center justify-center min-h-[90vh]"
+          className="relative py-32 md:py-48 flex items-center justify-center min-h-[80vh]"
         >
           <div className="container mx-auto text-center relative z-10 px-4">
              <div className="inline-block bg-primary/10 text-primary border border-primary/20 rounded-full px-4 py-1 font-medium text-sm mb-4">
@@ -117,7 +116,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Section */}
         <section className="py-16 md:py-24 bg-background">
             <div className="container mx-auto px-4">
                 <div className="grid md:grid-cols-3 gap-8 text-center">
@@ -134,9 +132,7 @@ export default function Home() {
             </div>
         </section>
 
-
-        {/* Products Section */}
-        <section id="products" className="py-16 md:py-24 bg-card border-y">
+        <section id="products" className="py-16 md:py-24 bg-secondary/50 border-y">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">
@@ -158,7 +154,7 @@ export default function Home() {
                 {topProducts.map((product) => {
                   const Icon = getIconForProduct(product.name);
                   return (
-                    <Card key={product.id} className="group overflow-hidden rounded-2xl bg-background/50 border-2 border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+                    <Card key={product.id} className="group overflow-hidden rounded-2xl bg-background border-2 border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
                       <CardContent className="p-0">
                         <div className="aspect-video overflow-hidden">
                           <Image
@@ -195,7 +191,6 @@ export default function Home() {
           </div>
         </section>
         
-        {/* CTA Section */}
         <section className="py-16 md:py-32">
           <div className="container mx-auto text-center px-4">
               <h2 className="font-headline text-3xl md:text-4xl font-bold mb-4">

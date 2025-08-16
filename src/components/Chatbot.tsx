@@ -67,7 +67,7 @@ export function Chatbot() {
           isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
         )}
       >
-        <Card className="flex flex-col h-[60vh] shadow-2xl bg-card/80 backdrop-blur-lg">
+        <Card className="flex flex-col h-[60vh] shadow-2xl bg-card/80 backdrop-blur-lg border">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-headline flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-accent" />

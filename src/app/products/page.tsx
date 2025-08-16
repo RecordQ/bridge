@@ -17,20 +17,20 @@ import { PageLayout } from '@/components/layout/PageLayout';
 
 function ProductSkeleton() {
     return (
-        <Card className="flex flex-col h-full bg-card/50 backdrop-blur-sm border border-border/20">
+        <Card className="flex flex-col h-full">
             <CardHeader>
-                <Skeleton className="aspect-video w-full mb-4 rounded-lg bg-muted/50" />
-                <Skeleton className="h-8 w-3/4 mb-2 bg-muted/50" />
-                <Skeleton className="h-4 w-full bg-muted/50" />
-                <Skeleton className="h-10 w-1/2 mt-2 bg-muted/50" />
+                <Skeleton className="aspect-video w-full mb-4 rounded-lg bg-muted" />
+                <Skeleton className="h-8 w-3/4 mb-2 bg-muted" />
+                <Skeleton className="h-4 w-full bg-muted" />
+                <Skeleton className="h-10 w-1/2 mt-2 bg-muted" />
             </CardHeader>
             <CardContent className="flex-grow space-y-3">
-                <Skeleton className="h-4 w-full bg-muted/50" />
-                <Skeleton className="h-4 w-5/6 bg-muted/50" />
-                <Skeleton className="h-4 w-full bg-muted/50" />
+                <Skeleton className="h-4 w-full bg-muted" />
+                <Skeleton className="h-4 w-5/6 bg-muted" />
+                <Skeleton className="h-4 w-full bg-muted" />
             </CardContent>
             <CardFooter>
-                <Skeleton className="h-10 w-full bg-muted/50" />
+                <Skeleton className="h-10 w-full bg-muted" />
             </CardFooter>
         </Card>
     )
@@ -102,8 +102,8 @@ export default function ProductsPage() {
             className="relative py-24 md:py-40"
           >
             <div className="container mx-auto text-center relative z-10 px-4">
-              <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Our Products</h1>
-              <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+              <h1 className="font-headline text-4xl md:text-6xl font-bold text-foreground">Our Products</h1>
+              <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
                 Find the perfect customizable products for your budget. No hidden fees, just stellar value.
               </p>
             </div>
@@ -133,7 +133,7 @@ export default function ProductsPage() {
               ) : filteredProducts.length > 0 ? (
                 <div className="grid lg:grid-cols-3 gap-8 items-start">
                   {filteredProducts.map((tier) => (
-                    <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300 bg-card/50 backdrop-blur-sm border border-border/20">
+                    <Card key={tier.id} className="flex flex-col h-full hover:border-primary transition-colors duration-300">
                       <CardHeader>
                         <div className="aspect-video mb-4 overflow-hidden rounded-lg">
                           <Image
@@ -171,7 +171,7 @@ export default function ProductsPage() {
                   ))}
                 </div>
               ) : (
-                 <Card className="text-center py-12 bg-card/50 backdrop-blur-sm border border-border/20">
+                 <Card className="text-center py-12">
                     <CardHeader>
                         <div className="mx-auto bg-muted rounded-full w-24 h-24 flex items-center justify-center mb-4">
                             <Package className="w-12 h-12 text-muted-foreground" />

@@ -7,7 +7,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <title>Bridge Ltd - Customizable Products</title>
         <meta name="description" content="High-quality customizable products like USBs, gift boxes, and pens for corporate and personal use." />

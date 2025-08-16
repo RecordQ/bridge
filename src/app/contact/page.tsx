@@ -81,7 +81,7 @@ function ContactPageForm() {
   const selectedProduct = products.find(p => p.id === selectedProductId);
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border border-border/20">
+    <Card>
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Send us a Message</CardTitle>
         <CardDescription>Fill out the form and we'll get back to you shortly.</CardDescription>
@@ -137,8 +137,8 @@ export default function ContactPage() {
           className="relative py-24 md:py-40"
         >
           <div className="container mx-auto text-center relative z-10 px-4">
-            <h1 className="font-headline text-4xl md:text-6xl font-bold text-white">Get In Touch</h1>
-            <p className="mt-4 text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+            <h1 className="font-headline text-4xl md:text-6xl font-bold text-foreground">Get In Touch</h1>
+            <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
               Have a question or a project in mind? We'd love to hear from you.
             </p>
           </div>
