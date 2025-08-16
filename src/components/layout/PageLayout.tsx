@@ -3,7 +3,6 @@
 
 import type { ReactNode } from "react";
 import { Header } from "./Header";
-import { Footer } from "./Footer";
 import { Chatbot } from "../Chatbot";
 import { ThreeScene } from "../ThreeScene";
 
@@ -14,7 +13,6 @@ export function PageLayout({ children }: { children: ReactNode }) {
             <ThreeScene />
             <Header />
             {children}
-            <Footer />
             <Chatbot />
         </div>
     );
