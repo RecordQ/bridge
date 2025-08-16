@@ -37,7 +37,7 @@ export function Header() {
         <div className="mr-auto flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Rocket className="h-6 w-6 text-cyan-500" />
-            <span className="font-bold font-headline text-lg">Bridge Ltd</span>
+            <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
           </Link>
         </div>
         <nav className="hidden items-center space-x-6 text-sm md:flex">
