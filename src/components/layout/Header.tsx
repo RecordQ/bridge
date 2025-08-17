@@ -38,23 +38,18 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         
-        {/* Desktop Layout - Rebuilt with CSS Grid */}
-        <div className="hidden md:grid w-full grid-cols-3 items-center">
-          {/* Left Column */}
-          <div className="flex justify-start">
-            <Link href="/" className="flex items-center space-x-2">
-                <Rocket className="h-6 w-6 text-cyan-500" />
-                <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
-            </Link>
-          </div>
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full items-center justify-between">
+          <Link href="/" className="flex items-center space-x-2">
+              <Rocket className="h-6 w-6 text-cyan-500" />
+              <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+          </Link>
 
-          {/* Center Column */}
-          <nav className="flex justify-center">
+          <nav className="flex items-center gap-6">
             <NavLinkItems />
           </nav>
 
-          {/* Right Column */}
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end">
             <Button asChild>
                 <Link href="/contact">Get a Quote</Link>
             </Button>
