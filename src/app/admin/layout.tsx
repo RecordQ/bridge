@@ -6,44 +6,39 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
 
-function AdminApp({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // If auth state is done loading and user is not authenticated,
-    // and they are not already on the login page, redirect them.
-    if (!isAuthLoading && !isAuthenticated && pathname !== '/admin/login') {
-      router.replace('/admin/login');
+    // If authentication is done loading and the user is not authenticated,
+    // and they are trying to access a page other than the login page, redirect them.
+    if (!isAuthLoading && !isAuthenticated && pathname !== "/admin/login") {
+      router.replace("/admin/login");
     }
   }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-  // While checking auth, show a loader unless we're on the login page.
-  // The login page can be rendered without waiting for auth check.
-  if (isAuthLoading && pathname !== '/admin/login') {
+  // While checking auth, show a loader for any page except the login page.
+  // The login page should render immediately.
+  if (isAuthLoading && pathname !== "/admin/login") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
       </div>
     );
   }
-  
-  // If not authenticated and trying to access a protected page,
-  // this prevents a flash of content before the redirect in the useEffect.
-  // The layout will just show a loader until the redirect happens.
-  if (!isAuthenticated && pathname !== '/admin/login') {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <LoaderCircle className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-  
-  // If we get here, the user is either authenticated or is on the login page.
-  return <>{children}</>;
-}
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminApp>{children}</AdminApp>
+  // If the user is authenticated OR they are on the login page, render the children.
+  // This prevents a flash of protected content for unauthenticated users before the redirect.
+  if (isAuthenticated || pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  // Fallback loader for the brief moment before the redirect effect runs for unauthenticated users.
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background">
+      <LoaderCircle className="h-8 w-8 animate-spin" />
+    </div>
+  );
 }

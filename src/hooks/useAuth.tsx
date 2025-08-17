@@ -1,4 +1,4 @@
-
+// src/hooks/useAuth.tsx
 "use client";
 
 import {
@@ -29,17 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const checkAuth = useCallback(() => {
+    // This function runs only on the client
     setIsLoading(true);
     try {
       const username = localStorage.getItem(USERNAME_KEY);
       const hash = localStorage.getItem(PASSWORD_HASH_KEY);
-      if (username && hash) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      setIsAuthenticated(!!(username && hash));
     } catch (error) {
-      console.error("Could not access local storage:", error);
+      console.error("Could not access localStorage:", error);
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
@@ -49,11 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkAuth();
     
-    // Listen to storage changes to sync across tabs
     const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === USERNAME_KEY || event.key === PASSWORD_HASH_KEY) {
-            checkAuth();
-        }
+      if (event.key === USERNAME_KEY || event.key === PASSWORD_HASH_KEY) {
+        checkAuth();
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -66,15 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USERNAME_KEY, username);
     localStorage.setItem(PASSWORD_HASH_KEY, passwordHash);
     setIsAuthenticated(true);
-    // Use replace to avoid the login page in browser history
     router.replace("/admin");
   }, [router]);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(() => {
     localStorage.removeItem(USERNAME_KEY);
     localStorage.removeItem(PASSWORD_HASH_KEY);
     setIsAuthenticated(false);
-    // Use replace to prevent user from navigating back to the protected page
     router.replace("/admin/login");
   }, [router]);
 

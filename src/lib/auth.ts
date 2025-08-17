@@ -1,3 +1,4 @@
+// src/lib/auth.ts
 'use server'
 
 import { z } from "zod";
@@ -50,9 +51,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
 
-        const passwordMatch = passwordHash === userData.password;
-
-        if (!passwordMatch) {
+        if (passwordHash !== userData.password) {
             return { status: "error", message: "Invalid username or password." };
         }
         

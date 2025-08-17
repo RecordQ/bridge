@@ -1,3 +1,4 @@
+// src/app/admin/login/page.tsx
 "use client";
 
 import { useActionState, useEffect } from "react";
@@ -20,21 +21,22 @@ export default function AdminLoginPage() {
     message: "",
   });
 
+  // Effect to redirect if the user is already logged in.
   useEffect(() => {
-    // If the user is already authenticated, redirect them away from the login page.
     if (isAuthenticated) {
-        router.replace('/admin');
+      router.replace('/admin');
     }
   }, [isAuthenticated, router]);
 
+  // Effect to handle the result of the form submission.
   useEffect(() => {
     if (state.status === "success" && state.username && state.passwordHash) {
       toast({
         title: "Login Successful",
         description: "Redirecting to admin dashboard...",
       });
-      // The login function from useAuth will handle setting state and redirection
-      login(state.username, state.passwordHash); 
+      // The login function from useAuth handles setting state and redirection.
+      login(state.username, state.passwordHash);
     } else if (state.status === "error") {
       toast({
         title: "Login Failed",
@@ -44,7 +46,7 @@ export default function AdminLoginPage() {
     }
   }, [state, login, toast]);
 
-  // Don't render the form if the user is already authenticated and a redirect is imminent
+  // While the user is authenticated and redirecting, don't show the login form.
   if (isAuthenticated) {
     return null;
   }
@@ -54,10 +56,10 @@ export default function AdminLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-2xl">Admin Panel Login</CardTitle>
-
-          <CardDescription>Enter your credentials to access the dashboard.
-           <br/>
-           <span className="text-xs text-muted-foreground">(Default: admin/password)</span>
+          <CardDescription>
+            Enter your credentials to access the dashboard.
+            <br/>
+            <span className="text-xs text-muted-foreground">(Default: admin/password)</span>
           </CardDescription>
         </CardHeader>
         <CardContent>
