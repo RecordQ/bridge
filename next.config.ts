@@ -42,7 +42,18 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_UPLOAD_ENDPOINT: process.env.NEXT_PUBLIC_UPLOAD_ENDPOINT,
-  }
+  },
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    config.module.rules.push({
+      test: /pdf\.worker\.js$/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'static/chunks/[name].[hash][ext]',
+      },
+    });
+    return config;
+  },
 };
 
 export default nextConfig;

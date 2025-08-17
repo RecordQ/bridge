@@ -2,12 +2,63 @@
 // src/app/catalogue/page.tsx
 "use client";
 
+import { useState } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import { LoaderCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Configure the worker
+// The path is slightly different in Next.js compared to other bundlers
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
 
 export default function CataloguePage() {
   const originalPdfUrl = "https://web.quaxicron.com/download/cat.pdf";
+
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
+  
+  function changePage(offset: number) {
+    setPageNumber(prevPageNumber => prevPageNumber + offset);
+  }
+
+  function previousPage() {
+    changePage(-1);
+  }
+
+  function nextPage() {
+    changePage(1);
+  }
+
+  const LoadingSpinner = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <LoaderCircle className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Loading Catalogue...</p>
+    </div>
+  );
+
+  const ErrorMessage = () => (
+     <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-destructive/10 rounded-lg">
+        <p className="mb-4 text-destructive font-semibold">Could not load the PDF.</p>
+        <p className="mb-4 text-muted-foreground">The file may be unavailable or your connection may be limited.</p>
+        <Button asChild>
+            <a href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
+                Try Opening in New Tab
+            </a>
+        </Button>
+    </div>
+  )
 
   return (
     <PageLayout>
@@ -24,14 +75,49 @@ export default function CataloguePage() {
         </section>
         <section className="pb-24">
             <div className="container mx-auto px-4 flex flex-col items-center">
-                 <div className="w-full max-w-4xl p-8 bg-card/80 border rounded-lg shadow-lg text-center">
-                    <h2 className="font-headline text-2xl mb-4">View Our Full Catalogue</h2>
-                     <p className="mb-6 text-muted-foreground">Click the button below to open our complete PDF catalogue in a new tab. It contains our full range of products and customization options.</p>
-                      <Button asChild size="lg">
-                        <Link href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
-                            Open Catalogue
-                        </Link>
-                    </Button>
+                <div className="w-full max-w-4xl bg-card/80 border rounded-lg shadow-lg">
+                    <div className="p-4 border-b flex items-center justify-between">
+                         <Button
+                            variant="outline"
+                            disabled={pageNumber <= 1}
+                            onClick={previousPage}
+                        >
+                            <ChevronLeft className="mr-2" />
+                            Previous
+                        </Button>
+                         {numPages && (
+                             <p className="text-sm font-medium text-muted-foreground">
+                                Page {pageNumber} of {numPages}
+                            </p>
+                         )}
+                         <Button
+                            variant="outline"
+                            disabled={!numPages || pageNumber >= numPages}
+                            onClick={nextPage}
+                        >
+                           Next
+                           <ChevronRight className="ml-2" />
+                        </Button>
+                    </div>
+                    <div className="flex justify-center p-4">
+                       <Document 
+                          file={originalPdfUrl} 
+                          onLoadSuccess={onDocumentLoadSuccess}
+                          loading={<LoadingSpinner />}
+                          error={<ErrorMessage />}
+                          className="flex justify-center"
+                        >
+                            <div className="max-w-full overflow-x-auto">
+                               <Page 
+                                 pageNumber={pageNumber}
+                                 renderAnnotationLayer={false}
+                                 renderTextLayer={false}
+                                 loading={<Skeleton className="h-[800px] w-[566px]"/>}
+                                 width={Math.min(window.innerWidth * 0.8, 800)}
+                               />
+                            </div>
+                        </Document>
+                    </div>
                 </div>
             </div>
         </section>
