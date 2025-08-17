@@ -4,14 +4,14 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Menu, Mountain } from 'lucide-react';
+import { Menu, Mountain, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const navLinks = [
     { href: "/products", label: "Products" },
-    { href: "/catalogue", label: "Catalogue" },
+    { href: "https://web.quaxicron.com/download/cat.pdf", label: "Catalogue", target: "_blank" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
 ];
@@ -40,14 +40,17 @@ export function Header() {
             <nav className="flex justify-center items-center gap-6">
             {navLinks.map((link) => (
                 <Link 
-                key={link.href} 
-                href={link.href} 
-                className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === link.href ? "text-primary" : "text-muted-foreground"
-                )}
+                  key={link.href} 
+                  href={link.href} 
+                  target={link.target}
+                  rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
+                  className={cn(
+                      "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1",
+                      pathname === link.href ? "text-primary" : "text-muted-foreground"
+                  )}
                 >
-                {link.label}
+                  {link.label}
+                  {link.target === "_blank" && <ExternalLink className="h-3 w-3" />}
                 </Link>
             ))}
             </nav>
@@ -88,13 +91,16 @@ export function Header() {
                     <Link
                       key={link.href}
                       href={link.href}
+                      target={link.target}
+                      rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
                       onClick={closeMobileMenu}
                       className={cn(
-                        "text-lg font-medium transition-colors hover:text-primary",
+                        "text-lg font-medium transition-colors hover:text-primary flex items-center gap-2",
                         pathname === link.href ? "text-primary" : "text-foreground"
                       )}
                     >
                       {link.label}
+                       {link.target === "_blank" && <ExternalLink className="h-4 w-4" />}
                     </Link>
                   ))}
                 </nav>
