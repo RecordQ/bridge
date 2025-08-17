@@ -100,7 +100,7 @@ async function uploadImage(image: File): Promise<string> {
         const filename = await response.text();
         const baseUrl = new URL(uploadUrl);
         
-        return `${baseUrl.protocol}//${baseUrl.host}/download/${filename}`;
+        return `${baseUrl.protocol}//${baseUrl.hostname}:${baseUrl.port}/download/${filename}`;
         
     } catch (error) {
         console.error("Error uploading image to custom endpoint:", error);
