@@ -13,8 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function PdfViewer() {
-  // The PDF now needs to be placed in the `public` directory of your project.
-  const localPdfUrl = "/cat.pdf";
+  const originalPdfUrl = "https://web.quaxicron.com/download/cat.pdf";
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
@@ -57,9 +56,9 @@ export default function PdfViewer() {
   const ErrorMessage = () => (
      <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-destructive/10 rounded-lg">
         <p className="mb-4 text-destructive font-semibold">Could not load the PDF.</p>
-        <p className="mb-4 text-muted-foreground">Please ensure `cat.pdf` has been uploaded to the `public` folder in your project.</p>
+        <p className="mb-4 text-muted-foreground">The PDF could not be fetched from the server. Please try opening it directly.</p>
         <Button asChild>
-            <a href={localPdfUrl} target="_blank" rel="noopener noreferrer">
+            <a href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
                 Try Opening Directly
             </a>
         </Button>
@@ -93,7 +92,7 @@ export default function PdfViewer() {
         </div>
         <div className="flex justify-center p-4">
            <Document 
-              file={localPdfUrl} 
+              file={originalPdfUrl} 
               onLoadSuccess={onDocumentLoadSuccess}
               loading={<LoadingSpinner />}
               error={<ErrorMessage />}
