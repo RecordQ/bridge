@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function CataloguePage() {
-  const pdfUrl = "https://web.quaxicron.com/download/cat.pdf";
+  const originalPdfUrl = "https://web.quaxicron.com/download/cat.pdf";
+  // Use Google's PDF viewer to bypass potential embedding restrictions
+  const embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(originalPdfUrl)}&embedded=true`;
 
   return (
     <PageLayout>
@@ -22,16 +24,22 @@ export default function CataloguePage() {
         <section className="pb-24">
             <div className="container mx-auto px-4">
                  <div className="w-full h-[80vh] bg-card/80 border rounded-lg overflow-hidden shadow-lg">
-                    <object data={pdfUrl} type="application/pdf" width="100%" height="100%">
+                    <iframe
+                        src={embedUrl}
+                        width="100%"
+                        height="100%"
+                        title="Bridge Ltd Catalogue"
+                        className="border-0"
+                    >
                         <div className="flex flex-col items-center justify-center h-full text-center p-8">
                             <p className="mb-4 text-muted-foreground">It looks like your browser doesn't support embedded PDFs.</p>
                             <Button asChild>
-                                <Link href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                                <Link href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
                                     Download Catalogue Instead
                                 </Link>
                             </Button>
                         </div>
-                    </object>
+                    </iframe>
                 </div>
             </div>
         </section>
