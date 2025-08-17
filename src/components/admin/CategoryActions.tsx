@@ -75,8 +75,8 @@ export function AddCategoryDialog() {
     
     const iconList = useMemo(() => {
         return lucideIcons && typeof lucideIcons === 'object'
-            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-            : [];
+            ? Object.keys(lucideIcons).filter(key => /^[A-Z]/.test(key) && key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+            : ["Package"];
     }, []);
 
     useEffect(() => {
@@ -143,8 +143,8 @@ export function EditCategoryDialog({ category }: { category: Category }) {
 
      const iconList = useMemo(() => {
         return lucideIcons && typeof lucideIcons === 'object'
-            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-            : [];
+            ? Object.keys(lucideIcons).filter(key => /^[A-Z]/.test(key) && key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+            : ["Package"];
     }, []);
 
     useEffect(() => {
