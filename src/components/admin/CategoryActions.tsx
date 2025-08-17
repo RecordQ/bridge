@@ -1,3 +1,4 @@
+
 // src/components/admin/CategoryActions.tsx
 "use client";
 
@@ -9,15 +10,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, Package } from "lucide-react";
-import * as lucideIcons from 'lucide-react';
+import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home } from "lucide-react";
 import { type Category } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 
+// Manual mapping of string names to Lucide components
+const icons: Record<string, LucideIcon> = {
+    Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home,
+    // Add other frequently used icons here
+};
+
 const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
-    const LucideIcon = (lucideIcons as Record<string, LucideIcon>)[name];
-    if (!LucideIcon) return <Package {...props} />; // fallback icon
+    const LucideIcon = icons[name] || Package; // Fallback to Package icon
     return <LucideIcon {...props} />;
 };
 
@@ -73,11 +78,8 @@ export function AddCategoryDialog() {
         message: "",
     });
     
-    const iconList = useMemo(() => {
-        return lucideIcons && typeof lucideIcons === 'object'
-            ? Object.keys(lucideIcons).filter(key => /^[A-Z]/.test(key) && key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-            : ["Package"];
-    }, []);
+    // A hardcoded, curated list of icons to prevent runtime errors.
+    const iconList = useMemo(() => Object.keys(icons), []);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -141,11 +143,8 @@ export function EditCategoryDialog({ category }: { category: Category }) {
         message: "",
     });
 
-     const iconList = useMemo(() => {
-        return lucideIcons && typeof lucideIcons === 'object'
-            ? Object.keys(lucideIcons).filter(key => /^[A-Z]/.test(key) && key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-            : ["Package"];
-    }, []);
+     // A hardcoded, curated list of icons to prevent runtime errors.
+    const iconList = useMemo(() => Object.keys(icons), []);
 
     useEffect(() => {
         if (state.status === "success") {
