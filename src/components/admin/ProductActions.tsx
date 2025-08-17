@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoaderCircle, Trash, Edit } from "lucide-react";
 import { type Product } from "@/lib/types";
 import Image from "next/image";
+import { ImageCropper } from "./ImageCropper";
 
 function SubmitButton({ text, pendingText }: { text: string, pendingText: string }) {
     const { pending } = useFormStatus();
@@ -31,15 +32,28 @@ export function EditProductDialog({ product }: { product: Product }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const editActionWithId = editProductAction.bind(null, product.id);
+    const [croppedImage, setCroppedImage] = useState<File | null>(null);
+
     const [state, formAction, isPending] = useActionState<AddProductState, FormData>(editActionWithId, {
         status: "idle",
         message: "",
         errors: {},
     });
 
+     const handleFormAction = (formData: FormData) => {
+        if (croppedImage) {
+            formData.set('image', croppedImage, croppedImage.name);
+        } else {
+            // If no new image is selected, don't send an image field at all
+            formData.delete('image');
+        }
+        formAction(formData);
+    }
+
     useEffect(() => {
         if (state.status === "success") {
             setOpen(false);
+            setCroppedImage(null);
             toast({
                 title: "Success!",
                 description: state.message,
@@ -68,7 +82,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                         Make changes to the product details here. Click save when you're done.
                     </DialogDescription>
                 </DialogHeader>
-                <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                <form action={handleFormAction} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
                      <div className="space-y-2">
                         <Label htmlFor="name">Product Name</Label>
                         <Input id="name" name="name" defaultValue={product.name} disabled={isPending} />
@@ -106,7 +120,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <Label htmlFor="image">New Product Image (Optional)</Label>
-                        <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
+                        <ImageCropper onCrop={setCroppedImage} aspect={16 / 9} />
                         {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">
@@ -121,7 +135,7 @@ export function EditProductDialog({ product }: { product: Product }) {
                     </div>
                     <DialogFooter className="md:col-span-2">
                         <DialogClose asChild>
-                            <Button type="button" variant="secondary">Cancel</Button>
+                            <Button type="button" variant="secondary" onClick={() => setCroppedImage(null)}>Cancel</Button>
                         </DialogClose>
                         <SubmitButton text="Save Changes" pendingText="Saving..." />
                     </DialogFooter>

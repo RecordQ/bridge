@@ -136,13 +136,13 @@ export type AddProductState = {
 }
 
 export async function addProductAction(prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const imageFile = formData.get("image") as File;
+    const imageFile = formData.get("image") as File | null;
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: imageFile.size > 0 ? imageFile : undefined,
+        image: imageFile && imageFile.size > 0 ? imageFile : undefined,
         description: formData.get("description"),
         features: formData.get("features"),
     };
@@ -195,13 +195,13 @@ export async function addProductAction(prevState: AddProductState, formData: For
 
 
 export async function editProductAction(productId: string, prevState: AddProductState, formData: FormData): Promise<AddProductState> {
-    const imageFile = formData.get("image") as File;
+    const imageFile = formData.get("image") as File | null;
     const validationData = {
         name: formData.get("name"),
         price: formData.get("price"),
         priceUnit: formData.get("priceUnit"),
         status: formData.get("status"),
-        image: imageFile.size > 0 ? imageFile : undefined,
+        image: imageFile && imageFile.size > 0 ? imageFile : undefined,
         description: formData.get("description"),
         features: formData.get("features"),
     };

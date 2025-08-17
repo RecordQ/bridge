@@ -1,7 +1,7 @@
 // src/app/admin/add-product/page.tsx
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { addProductAction, type AddProductState } from "@/lib/actions";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LoaderCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
+import { ImageCropper } from "@/components/admin/ImageCropper";
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -27,6 +28,8 @@ function SubmitButton() {
 export default function AddProductPage() {
     const router = useRouter();
     const {toast} = useToast();
+    const [croppedImage, setCroppedImage] = useState<File | null>(null);
+
     const [state, formAction, isPending] = useActionState<AddProductState, FormData>(addProductAction, {
         status: "idle",
         message: "",
@@ -48,6 +51,15 @@ export default function AddProductPage() {
             });
         }
     }, [state, router, toast]);
+    
+    const handleFormAction = (formData: FormData) => {
+        if (croppedImage) {
+            formData.set('image', croppedImage, croppedImage.name);
+        } else {
+            formData.delete('image');
+        }
+        formAction(formData);
+    }
 
     return (
         <div className="min-h-screen bg-muted/40 p-4 sm:p-8 flex items-center justify-center">
@@ -64,7 +76,7 @@ export default function AddProductPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <form action={formAction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <form action={handleFormAction} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="name">Product Name</Label>
                             <Input id="name" name="name" placeholder="e.g., Custom USB Drive" disabled={isPending} />
@@ -95,7 +107,7 @@ export default function AddProductPage() {
                         </div>
                          <div className="md:col-span-2 space-y-2">
                             <Label htmlFor="image">Product Image</Label>
-                            <Input id="image" name="image" type="file" accept="image/*" disabled={isPending} />
+                            <ImageCropper onCrop={setCroppedImage} aspect={16 / 9} />
                              {state.errors?.image && <p className="text-sm text-destructive mt-1">{state.errors.image}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">
