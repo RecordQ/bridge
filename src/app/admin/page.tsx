@@ -4,27 +4,19 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical, type LucideIcon, type LucideProps, Home } from "lucide-react";
-import * as lucideIcons from 'lucide-react';
+import { PlusCircle, MoreVertical, type LucideProps, Home } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteProductDialog, EditProductDialog } from "@/components/admin/ProductActions";
 import LogoutButton from "@/components/admin/LogoutButton";
 import { type Product, type Submission, type Category } from "@/lib/types";
-import { Submission } from "@/lib/types";
 import { ViewSubmissionDialog } from "@/components/admin/SubmissionActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog, EditCategoryDialog, DeleteCategoryDialog } from "@/components/admin/CategoryActions";
-import { Suspense, type FC } from "react";
+import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
-    const LucideIcon = (lucideIcons as Record<string, LucideIcon>)[name];
-    if (!LucideIcon) return null;
-    return <LucideIcon {...props} />;
-};
-
+import { Icon } from "@/components/shared/Icon";
 
 async function getProducts(): Promise<Product[]> {
     try {

@@ -10,28 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { 
-    LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, 
-    Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home, Wrench, Shirt, Computer, Car, Camera, Sprout, Heart, Trophy, Book, Watch,
-    Pizza, Gamepad2, Headphones, Paintbrush, Mic, FlaskConical, Beaker, Plane, Ship, Train, Bus, Bike, Building, Banknote, CreditCard, Wallet, BarChart, PieChart, Landmark, Globe, Cloud, Sun, Moon, Wind, Leaf, Droplets, Flame, Music, Video, Image as ImageIcon, FileText, Folder, HardDrive, MousePointer, Keyboard, Speaker, Tv, Smartphone, Tablet, Laptop, Monitor, Coffee, Wine, Utensils, Baby, Bone, ToyBrick, Puzzle, Award, Medal, Rocket, Key, Lock, Shield, Settings, Power, Hammer
-} from "lucide-react";
+import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps } from "lucide-react";
 import { type Category } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
-
-// Manual mapping of string names to Lucide components
-const icons: Record<string, LucideIcon> = {
-    Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home, Wrench, Shirt, Computer, Car, Camera, Sprout, Heart, Trophy, Book, Watch,
-    Pizza, Gamepad2, Headphones, Paintbrush, Mic, FlaskConical, Beaker, Plane, Ship, Train, Bus, Bike, Building, Banknote, CreditCard, Wallet, BarChart, PieChart, Landmark, Globe, Cloud, Sun, Moon, Wind, Leaf, Droplets, Flame, Music, Video, "Image": ImageIcon, FileText, Folder, HardDrive, MousePointer, Keyboard, Speaker, Tv, Smartphone, Tablet, Laptop, Monitor, Coffee, Wine, Utensils, Baby, Bone, ToyBrick, Puzzle, Award, Medal, Rocket, Key, Lock, Shield, Settings, Power, Hammer
-};
-
-const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
-    const LucideIcon = icons[name] || Package; // Fallback to Package icon
-    return <LucideIcon {...props} />;
-};
+import { Icon, iconList } from "../shared/Icon";
 
 
-function SubmitButton({ text, pendingText, icon: Icon }: { text: string, pendingText: string, icon: LucideIcon }) {
+function SubmitButton({ text, pendingText, icon: Icon }: { text: string, pendingText: string, icon: React.ElementType }) {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending}>
@@ -40,7 +26,9 @@ function SubmitButton({ text, pendingText, icon: Icon }: { text: string, pending
     )
 }
 
-function IconPicker({ iconList, selectedIcon, setSelectedIcon }: { iconList: string[], selectedIcon: string, setSelectedIcon: (icon: string) => void }) {
+function IconPicker({ selectedIcon, setSelectedIcon }: { selectedIcon: string, setSelectedIcon: (icon: string) => void }) {
+    const icons = useMemo(() => iconList.sort(), []);
+    
     return (
         <div>
             <input type="hidden" name="icon" value={selectedIcon} />
@@ -53,7 +41,7 @@ function IconPicker({ iconList, selectedIcon, setSelectedIcon }: { iconList: str
             </div>
              <ScrollArea className="h-72 w-full rounded-md border">
                 <div className="p-4 grid grid-cols-5 gap-2">
-                {iconList.map((iconName) => (
+                {icons.map((iconName) => (
                     <Button
                         key={iconName}
                         variant="ghost"
@@ -81,9 +69,6 @@ export function AddCategoryDialog() {
         status: "idle",
         message: "",
     });
-    
-    // A hardcoded, curated list of icons to prevent runtime errors.
-    const iconList = useMemo(() => Object.keys(icons).sort(), []);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -118,7 +103,7 @@ export function AddCategoryDialog() {
                     </div>
                      <div className="space-y-2">
                         <Label>Icon</Label>
-                        <IconPicker iconList={iconList} selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
+                        <IconPicker selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
                         {state.errors?.icon && <p className="text-sm text-destructive mt-1">{state.errors.icon}</p>}
                     </div>
                     <DialogFooter>
@@ -146,9 +131,6 @@ export function EditCategoryDialog({ category }: { category: Category }) {
         status: "idle",
         message: "",
     });
-
-     // A hardcoded, curated list of icons to prevent runtime errors.
-    const iconList = useMemo(() => Object.keys(icons).sort(), []);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -186,7 +168,7 @@ export function EditCategoryDialog({ category }: { category: Category }) {
                     </div>
                      <div className="space-y-2">
                         <Label>Icon</Label>
-                        <IconPicker iconList={iconList} selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
+                        <IconPicker selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
                         {state.errors?.icon && <p className="text-sm text-destructive mt-1">{state.errors.icon}</p>}
                     </div>
                     <DialogFooter>

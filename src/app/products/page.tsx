@@ -15,6 +15,7 @@ import { Product, Category } from '@/lib/types';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { cn } from '@/lib/utils';
+import { Icon } from '@/components/shared/Icon';
 
 function ProductSkeleton() {
     return (
@@ -133,15 +134,18 @@ export default function ProductsPage() {
                         key="All" 
                         variant={selectedCategory === 'All' ? 'default' : 'outline'}
                         onClick={() => setSelectedCategory('All')}
+                        className="gap-2"
                     >
-                        All
+                        All Products
                     </Button>
                     {categories.map(category => (
                         <Button 
                             key={category.id} 
                             variant={selectedCategory === category.name ? 'default' : 'outline'}
                             onClick={() => setSelectedCategory(category.name)}
+                            className="gap-2"
                         >
+                            <Icon name={category.icon} className="h-4 w-4" />
                             {category.name}
                         </Button>
                     ))}
