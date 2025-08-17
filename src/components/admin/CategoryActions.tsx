@@ -1,7 +1,7 @@
 // src/components/admin/CategoryActions.tsx
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { addCategoryAction, editCategoryAction, deleteCategoryAction, type CategoryFormState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,6 @@ import * as lucideIcons from 'lucide-react';
 import { type Category } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
-
-const iconList = lucideIcons && typeof lucideIcons === 'object' 
-    ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-    : [];
 
 const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
     const LucideIcon = (lucideIcons as Record<string, LucideIcon>)[name];
@@ -36,6 +32,12 @@ function SubmitButton({ text, pendingText, icon: Icon }: { text: string, pending
 }
 
 function IconPicker({ selectedIcon, setSelectedIcon }: { selectedIcon: string, setSelectedIcon: (icon: string) => void }) {
+    const iconList = useMemo(() => {
+        return lucideIcons && typeof lucideIcons === 'object'
+            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+            : [];
+    }, []);
+
     return (
         <div>
             <input type="hidden" name="icon" value={selectedIcon} />
