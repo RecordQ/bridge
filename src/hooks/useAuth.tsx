@@ -28,35 +28,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  const checkAuth = useCallback(() => {
-    // This function runs only on the client
-    setIsLoading(true);
+  // Runs once on component mount to check auth status from localStorage
+  useEffect(() => {
     try {
       const username = localStorage.getItem(USERNAME_KEY);
       const hash = localStorage.getItem(PASSWORD_HASH_KEY);
-      setIsAuthenticated(!!(username && hash));
+      if (username && hash) {
+        setIsAuthenticated(true);
+      }
     } catch (error) {
       console.error("Could not access localStorage:", error);
-      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    checkAuth();
-    
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === USERNAME_KEY || event.key === PASSWORD_HASH_KEY) {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [checkAuth]);
 
   const login = useCallback((username: string, passwordHash: string) => {
     localStorage.setItem(USERNAME_KEY, username);
@@ -71,6 +56,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     router.replace("/admin/login");
   }, [router]);
+  
+  // Sync auth state across tabs
+  useEffect(() => {
+    const handleStorageChange = () => {
+        try {
+            const username = localStorage.getItem(USERNAME_KEY);
+            const hash = localStorage.getItem(PASSWORD_HASH_KEY);
+            setIsAuthenticated(!!(username && hash));
+        } catch (error) {
+            console.error("Could not access localStorage:", error);
+            setIsAuthenticated(false);
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const value = {
     isAuthenticated,

@@ -19,8 +19,7 @@ function SubmitButton() {
     const { pending } = useFormStatus();
     return (
         <Button type="submit" disabled={pending} className="w-full">
-            {pending ? <LoaderCircle className="animate-spin" /> : <PlusCircle />}
-            Add Product
+            {pending ? <LoaderCircle className="animate-spin" /> : <><PlusCircle className="mr-2" />Add Product</>}
         </Button>
     )
 }
@@ -40,10 +39,7 @@ export default function AddProductPage() {
                 title: "Success!",
                 description: state.message,
             });
-            // The action handles redirection, but as a fallback:
-            if (state.redirect) {
-                router.push(state.redirect);
-            }
+            // The action now handles redirection via redirect()
         } else if (state.status === "error") {
             toast({
                 title: "Error",

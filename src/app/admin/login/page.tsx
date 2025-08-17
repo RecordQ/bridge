@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
     message: "",
   });
 
-  // Effect to redirect if the user is already logged in.
+  // Effect to redirect if the user is already authenticated.
   useEffect(() => {
     if (isAuthenticated) {
       router.replace('/admin');
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
     }
   }, [state, login, toast]);
 
-  // While the user is authenticated and redirecting, don't show the login form.
+  // Don't render the login form if already authenticated, let the redirect effect run.
   if (isAuthenticated) {
     return null;
   }
@@ -67,12 +67,12 @@ export default function AdminLoginPage() {
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input id="username" name="username" placeholder="admin" required disabled={isPending} />
-               {state?.errors?.username && <p className="text-sm text-destructive mt-1">{state.errors.username}</p>}
+               {state?.errors?.username && <p className="text-sm text-destructive mt-1">{state.errors.username[0]}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" placeholder="password" required disabled={isPending} />
-               {state?.errors?.password && <p className="text-sm text-destructive mt-1">{state.errors.password}</p>}
+               {state?.errors?.password && <p className="text-sm text-destructive mt-1">{state.errors.password[0]}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (
