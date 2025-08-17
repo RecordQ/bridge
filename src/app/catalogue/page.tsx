@@ -11,12 +11,8 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { LoaderCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Configure the worker
-// The path is slightly different in Next.js compared to other bundlers
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+// Configure the worker to use a CDN
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
 export default function CataloguePage() {
@@ -28,7 +24,10 @@ export default function CataloguePage() {
 
   useEffect(() => {
     const handleResize = () => {
-      setPageWidth(Math.min(window.innerWidth * 0.8, 800));
+      // Ensure this code only runs on the client
+      if (typeof window !== 'undefined') {
+          setPageWidth(Math.min(window.innerWidth * 0.8, 800));
+      }
     };
     window.addEventListener('resize', handleResize);
     handleResize(); // Set initial size
