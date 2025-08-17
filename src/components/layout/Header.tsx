@@ -34,16 +34,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
-        <div className="mr-6 flex items-center">
+        <div className="flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Rocket className="h-6 w-6 text-cyan-500" />
             <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
           </Link>
         </div>
-        <nav className="hidden items-center space-x-6 text-sm md:flex">
+        <nav className="hidden items-center space-x-6 text-sm md:flex md:flex-1 md:justify-center">
           <NavLinkItems />
         </nav>
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex items-center justify-end md:w-auto">
           <Button asChild className="hidden md:flex">
              <Link href="/contact">Get a Quote</Link>
           </Button>

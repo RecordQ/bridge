@@ -97,7 +97,7 @@ export function ImageCropper({ onCrop, aspect = 1 }: ImageCropperProps) {
       setPreviewUrl(URL.createObjectURL(croppedFile));
       
       setOpen(false);
-    }, 'image/webp', 0.85); // Convert to WebP with quality 85%
+    }, 'image/webp', 1); // Convert to WebP
   }
 
   const handleRemoveImage = () => {

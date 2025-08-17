@@ -74,7 +74,7 @@ function SubmissionsTable({ submissions }: { submissions: Submission[] }) {
                 <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Product</TableHead>
+                    <TableHead>Products</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
