@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.tsx
 "use client";
 
@@ -11,6 +10,7 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
 
 const USERNAME_KEY = "app_username";
 const PASSWORD_HASH_KEY = "app_password_hash";
