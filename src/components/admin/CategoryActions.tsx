@@ -9,17 +9,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon } from "lucide-react";
+import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, Package } from "lucide-react";
 import * as lucideIcons from 'lucide-react';
 import { type Category } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-const iconList = Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"));
+const iconList = lucideIcons && typeof lucideIcons === 'object' 
+    ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+    : [];
 
 const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
     const LucideIcon = (lucideIcons as Record<string, LucideIcon>)[name];
-    if (!LucideIcon) return <lucideIcons.Package {...props} />; // fallback icon
+    if (!LucideIcon) return <Package {...props} />; // fallback icon
     return <LucideIcon {...props} />;
 };
 
