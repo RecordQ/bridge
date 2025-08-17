@@ -13,13 +13,16 @@ import { redirect } from "next/navigation";
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Please enter a valid email address."),
-  product: z.string().min(1, "Please select a product."),
+  products: z.string().min(1, "Please select at least one product."),
   message: z.string().min(10, "Message must be at least 10 characters."),
 });
 
 export type ContactFormState = {
     message: string;
     status: "success" | "error" | "idle";
+    errors?: {
+        product?: string;
+    }
 };
 
 export async function submitContactForm(
@@ -29,7 +32,7 @@ export async function submitContactForm(
   const validatedFields = contactFormSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
-    product: formData.get("product"),
+    products: formData.get("products"),
     message: formData.get("message"),
   });
 
@@ -38,15 +41,20 @@ export async function submitContactForm(
     return {
       message: `There was an error with your submission: ${errorMessages}`,
       status: "error",
+      errors: validatedFields.error.flatten().fieldErrors,
     };
   }
 
   try {
-    await addDoc(collection(db, "submissions"), {
-      ...validatedFields.data,
-      createdAt: serverTimestamp(),
-      status: 'New',
-    });
+    const submissionData = {
+        name: validatedFields.data.name,
+        email: validatedFields.data.email,
+        product: validatedFields.data.products, // The field is named 'product' in the database
+        message: validatedFields.data.message,
+        createdAt: serverTimestamp(),
+        status: 'New',
+    };
+    await addDoc(collection(db, "submissions"), submissionData);
     
     revalidatePath("/admin");
     return {

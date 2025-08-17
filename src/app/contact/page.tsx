@@ -14,10 +14,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Phone, MapPin, LoaderCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Mail, Phone, MapPin, LoaderCircle, ChevronsUpDown, XIcon } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 
 function SubmitButton() {
@@ -29,6 +32,73 @@ function SubmitButton() {
   );
 }
 
+function MultiSelectProducts({ products, loading, initialSelectedIds }: { products: Product[], loading: boolean, initialSelectedIds: string[] }) {
+    const [open, setOpen] = useState(false);
+    const [selectedProducts, setSelectedProducts] = useState<Product[]>(() => {
+        return products.filter(p => initialSelectedIds.includes(p.id));
+    });
+
+    useEffect(() => {
+        setSelectedProducts(products.filter(p => initialSelectedIds.includes(p.id)));
+    }, [initialSelectedIds, products]);
+
+    const handleToggle = (product: Product) => {
+        setSelectedProducts(prev =>
+            prev.some(p => p.id === product.id)
+                ? prev.filter(p => p.id !== product.id)
+                : [...prev, product]
+        );
+    };
+
+    if (loading) {
+        return <Skeleton className="h-10 w-full" />;
+    }
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <input type="hidden" name="products" value={selectedProducts.map(p => p.name).join(', ')} />
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between font-normal text-muted-foreground"
+                >
+                    <div className="flex-1 text-left">
+                        {selectedProducts.length > 0 ? (
+                             <div className="flex flex-wrap gap-1">
+                                {selectedProducts.map(p => (
+                                    <Badge key={p.id} variant="secondary">{p.name}</Badge>
+                                ))}
+                             </div>
+                        ) : (
+                            "Select products..."
+                        )}
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+                <div className="p-2 space-y-1">
+                    {products.map((product) => (
+                        <Label
+                            key={product.id}
+                            className="flex items-center gap-2 font-normal p-2 rounded-md hover:bg-accent"
+                        >
+                            <Checkbox
+                                checked={selectedProducts.some(p => p.id === product.id)}
+                                onCheckedChange={() => handleToggle(product)}
+                            />
+                            {product.name}
+                        </Label>
+                    ))}
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+
 function ContactPageForm() {
   const [state, formAction] = useActionState<ContactFormState, FormData>(submitContactForm, {
     message: "",
@@ -36,7 +106,7 @@ function ContactPageForm() {
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [initialSelectedIds, setInitialSelectedIds] = useState<string[]>([]);
 
   const formKey: Key = state.status === 'success' ? new Date().getTime() : 'contact-form';
   
@@ -46,7 +116,7 @@ function ContactPageForm() {
       
       const storedProductId = localStorage.getItem('selectedProductIdForQuote');
       if (storedProductId) {
-        setSelectedProductId(storedProductId);
+        setInitialSelectedIds([storedProductId]);
         localStorage.removeItem('selectedProductIdForQuote');
       }
 
@@ -73,12 +143,12 @@ function ContactPageForm() {
   useEffect(() => {
     if (state.status === "success") {
       toast({ title: "Success!", description: state.message });
+      setInitialSelectedIds([]);
     } else if (state.status === "error") {
       toast({ title: "Error", description: state.message, variant: "destructive" });
     }
   }, [state]);
 
-  const selectedProduct = products.find(p => p.id === selectedProductId);
 
   return (
     <Card className="bg-card/80 border">
@@ -97,30 +167,16 @@ function ContactPageForm() {
             <Input id="email" type="email" name="email" placeholder="your.email@example.com" required/>
           </div>
           <div>
-            <Label htmlFor="product">Product of Interest</Label>
-            {loadingProducts ? (
-              <Skeleton className="h-10 w-full" />
-            ) : (
-              <Select name="product" defaultValue={selectedProduct?.name} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map(product => (
-                    <SelectItem key={product.id} value={product.name}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <Label htmlFor="products">Products of Interest</Label>
+            <MultiSelectProducts products={products} loading={loadingProducts} initialSelectedIds={initialSelectedIds} />
+            {state.errors?.product && <p className="text-sm text-destructive mt-1">{state.errors.product}</p>}
           </div>
           <div>
             <Label htmlFor="message">Message</Label>
             <Textarea id="message" name="message" placeholder="How can we help you today?" rows={6} required minLength={10} />
           </div>
           <SubmitButton />
-          {state.status === 'error' && state.message && (
+          {state.status === 'error' && state.message && !state.errors && (
             <p className="text-destructive text-sm mt-2">{state.message}</p>
           )}
         </form>

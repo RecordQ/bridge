@@ -34,16 +34,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
-        <div className="flex items-center">
+        <div className="mr-6 flex items-center">
           <Link href="/" className="flex items-center space-x-2">
             <Rocket className="h-6 w-6 text-cyan-500" />
             <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
           </Link>
         </div>
-        <nav className="hidden items-center space-x-6 text-sm md:flex md:ml-6">
+        <nav className="hidden items-center space-x-6 text-sm md:flex">
           <NavLinkItems />
         </nav>
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex flex-1 items-center justify-end space-x-4">
           <Button asChild className="hidden md:flex">
              <Link href="/contact">Get a Quote</Link>
           </Button>
@@ -66,9 +66,16 @@ export function Header() {
           )}
         >
           <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-            <nav className="grid grid-flow-row auto-rows-max text-sm">
+             <Link href="/" className="flex items-center space-x-2">
+                <Rocket className="h-6 w-6 text-cyan-500" />
+                <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+            </Link>
+            <nav className="grid grid-flow-row auto-rows-max text-sm gap-4">
                 <NavLinkItems />
             </nav>
+            <Button asChild>
+                <Link href="/contact">Get a Quote</Link>
+            </Button>
           </div>
         </div>
       )}
