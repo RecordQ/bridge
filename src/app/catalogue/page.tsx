@@ -1,4 +1,7 @@
+
 // src/app/catalogue/page.tsx
+"use client";
+
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -30,16 +33,15 @@ export default function CataloguePage() {
                         height="100%"
                         title="Bridge Ltd Catalogue"
                         className="border-0"
-                    >
-                        <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                            <p className="mb-4 text-muted-foreground">It looks like your browser doesn't support embedded PDFs.</p>
-                            <Button asChild>
-                                <Link href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
-                                    Download Catalogue Instead
-                                </Link>
-                            </Button>
-                        </div>
-                    </iframe>
+                    />
+                </div>
+                <div className="text-center mt-4">
+                     <p className="mb-4 text-muted-foreground">If the catalogue does not load, you can view it directly.</p>
+                      <Button asChild>
+                        <Link href={originalPdfUrl} target="_blank" rel="noopener noreferrer">
+                            Open Catalogue in New Tab
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </section>
