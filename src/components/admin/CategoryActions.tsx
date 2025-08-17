@@ -31,13 +31,7 @@ function SubmitButton({ text, pendingText, icon: Icon }: { text: string, pending
     )
 }
 
-function IconPicker({ selectedIcon, setSelectedIcon }: { selectedIcon: string, setSelectedIcon: (icon: string) => void }) {
-    const iconList = useMemo(() => {
-        return lucideIcons && typeof lucideIcons === 'object'
-            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
-            : [];
-    }, []);
-
+function IconPicker({ iconList, selectedIcon, setSelectedIcon }: { iconList: string[], selectedIcon: string, setSelectedIcon: (icon: string) => void }) {
     return (
         <div>
             <input type="hidden" name="icon" value={selectedIcon} />
@@ -78,6 +72,12 @@ export function AddCategoryDialog() {
         status: "idle",
         message: "",
     });
+    
+    const iconList = useMemo(() => {
+        return lucideIcons && typeof lucideIcons === 'object'
+            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+            : [];
+    }, []);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -112,7 +112,7 @@ export function AddCategoryDialog() {
                     </div>
                      <div className="space-y-2">
                         <Label>Icon</Label>
-                        <IconPicker selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
+                        <IconPicker iconList={iconList} selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
                         {state.errors?.icon && <p className="text-sm text-destructive mt-1">{state.errors.icon}</p>}
                     </div>
                     <DialogFooter>
@@ -140,6 +140,12 @@ export function EditCategoryDialog({ category }: { category: Category }) {
         status: "idle",
         message: "",
     });
+
+     const iconList = useMemo(() => {
+        return lucideIcons && typeof lucideIcons === 'object'
+            ? Object.keys(lucideIcons).filter(key => key !== 'createLucideIcon' && key !== 'icons' && !key.endsWith("Factory"))
+            : [];
+    }, []);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -177,7 +183,7 @@ export function EditCategoryDialog({ category }: { category: Category }) {
                     </div>
                      <div className="space-y-2">
                         <Label>Icon</Label>
-                        <IconPicker selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
+                        <IconPicker iconList={iconList} selectedIcon={selectedIcon} setSelectedIcon={setSelectedIcon} />
                         {state.errors?.icon && <p className="text-sm text-destructive mt-1">{state.errors.icon}</p>}
                     </div>
                     <DialogFooter>
