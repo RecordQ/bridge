@@ -1,5 +1,11 @@
 import type { Timestamp } from "firebase/firestore";
 
+export type Category = {
+    id: string;
+    name: string;
+    icon: string;
+};
+
 export type Product = {
     id: string;
     name: string;
@@ -9,7 +15,7 @@ export type Product = {
     image: string;
     description: string;
     features: string[];
-    category: 'Tech' | 'Office' | 'Apparel' | 'Other';
+    category: string; // Now a string to match category name
     createdAt?: Timestamp;
 };
 

@@ -13,11 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { LoaderCircle, Trash, Edit } from "lucide-react";
-import { type Product } from "@/lib/types";
+import { type Product, type Category } from "@/lib/types";
 import Image from "next/image";
 import { ImageCropper } from "./ImageCropper";
 
-const categories: Product['category'][] = ['Tech', 'Office', 'Apparel', 'Other'];
 
 function SubmitButton({ text, pendingText }: { text: string, pendingText: string }) {
     const { pending } = useFormStatus();
@@ -30,7 +29,7 @@ function SubmitButton({ text, pendingText }: { text: string, pendingText: string
 
 // ========= EDIT PRODUCT DIALOG =========
 
-export function EditProductDialog({ product }: { product: Product }) {
+export function EditProductDialog({ product, allCategories }: { product: Product, allCategories: Category[] }) {
     const [open, setOpen] = useState(false);
     const { toast } = useToast();
     const editActionWithId = editProductAction.bind(null, product.id);
@@ -115,12 +114,12 @@ export function EditProductDialog({ product }: { product: Product }) {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Select name="category" defaultValue={product.category} disabled={isPending}>
+                        <Select name="category" defaultValue={product.category} disabled={isPending || allCategories.length === 0}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                {allCategories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                         {state.errors?.category && <p className="text-sm text-destructive mt-1">{state.errors.category}</p>}

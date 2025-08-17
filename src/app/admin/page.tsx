@@ -4,16 +4,26 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical } from "lucide-react";
+import { PlusCircle, MoreVertical, type LucideIcon, type LucideProps } from "lucide-react";
+import * as lucideIcons from 'lucide-react';
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteProductDialog, EditProductDialog } from "@/components/admin/ProductActions";
 import LogoutButton from "@/components/admin/LogoutButton";
-import { Product } from "@/lib/types";
+import { type Product, type Submission, type Category } from "@/lib/types";
 import { Submission } from "@/lib/types";
 import { ViewSubmissionDialog } from "@/components/admin/SubmissionActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddCategoryDialog, EditCategoryDialog, DeleteCategoryDialog } from "@/components/admin/CategoryActions";
+import { Suspense, type FC } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
+    const LucideIcon = (lucideIcons as Record<string, LucideIcon>)[name];
+    if (!LucideIcon) return null;
+    return <LucideIcon {...props} />;
+};
 
 
 async function getProducts(): Promise<Product[]> {
@@ -68,6 +78,20 @@ async function getSubmissions(): Promise<Submission[]> {
     }
 }
 
+async function getCategories(): Promise<Category[]> {
+     try {
+        const catCol = collection(db, 'categories');
+        const catSnapshot = await getDocs(query(catCol, orderBy('name')));
+        if (catSnapshot.empty) {
+            return [];
+        }
+        return catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+    }
+}
+
 function SubmissionsTable({ submissions }: { submissions: Submission[] }) {
     return (
         <Table>
@@ -107,8 +131,103 @@ function SubmissionsTable({ submissions }: { submissions: Submission[] }) {
     )
 }
 
-export default async function AdminDashboardPage() {
+function ProductTableSkeleton() {
+    return (
+        <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+        </div>
+    )
+}
+
+async function ProductsTable() {
     const products = await getProducts();
+    const categories = await getCategories();
+
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Product Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {products.length > 0 ? products.map((product) => (
+                    <TableRow key={product.id}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.category}</TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>
+                            <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
+                                {product.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                                <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <EditProductDialog product={product} allCategories={categories} />
+                                    <DeleteProductDialog productId={product.id} productName={product.name} />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                        <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    )
+}
+
+
+async function CategoriesTable() {
+    const categories = await getCategories();
+
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Icon</TableHead>
+                    <TableHead>Category Name</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                 {categories.length > 0 ? categories.map((cat) => (
+                    <TableRow key={cat.id}>
+                        <TableCell><Icon name={cat.icon} className="h-5 w-5" /></TableCell>
+                        <TableCell className="font-medium">{cat.name}</TableCell>
+                        <TableCell className="text-right">
+                             <div className="flex justify-end gap-2">
+                                <EditCategoryDialog category={cat} />
+                                <DeleteCategoryDialog categoryId={cat.id} categoryName={cat.name} />
+                             </div>
+                        </TableCell>
+                    </TableRow>
+                )) : (
+                    <TableRow>
+                        <TableCell colSpan={3} className="text-center">No categories found. Add one to get started.</TableCell>
+                    </TableRow>
+                )}
+            </TableBody>
+        </Table>
+    )
+}
+
+
+export default async function AdminDashboardPage() {
     const submissions = await getSubmissions();
 
     const newSubmissions = submissions.filter(sub => sub.status === 'New');
@@ -140,48 +259,24 @@ export default async function AdminDashboardPage() {
                             </Button>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Product Name</TableHead>
-                                        <TableHead>Category</TableHead>
-                                        <TableHead>Price</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {products.length > 0 ? products.map((product) => (
-                                        <TableRow key={product.id}>
-                                            <TableCell className="font-medium">{product.name}</TableCell>
-                                            <TableCell>{product.category}</TableCell>
-                                            <TableCell>${product.price.toFixed(2)}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
-                                                    {product.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <EditProductDialog product={product} />
-                                                        <DeleteProductDialog productId={product.id} productName={product.name} />
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                           <Suspense fallback={<ProductTableSkeleton />}>
+                             <ProductsTable />
+                           </Suspense>
+                        </CardContent>
+                    </Card>
+
+                     <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>Category Management</CardTitle>
+                                <CardDescription>Organize your products into categories.</CardDescription>
+                            </div>
+                           <AddCategoryDialog />
+                        </CardHeader>
+                        <CardContent>
+                           <Suspense fallback={<ProductTableSkeleton />}>
+                             <CategoriesTable />
+                           </Suspense>
                         </CardContent>
                     </Card>
 

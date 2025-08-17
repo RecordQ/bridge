@@ -122,7 +122,7 @@ const productSchema = z.object({
     price: z.coerce.number().min(0.01, "Price must be greater than 0."),
     priceUnit: z.string().min(1, "Price unit is required."),
     status: z.enum(['Active', 'Archived']),
-    category: z.enum(['Tech', 'Office', 'Apparel', 'Other']),
+    category: z.string().min(1, "Category is required."),
     image: z.instanceof(File).optional(),
     description: z.string().min(10, "Description must be at least 10 characters."),
     features: z.string().transform((str) => str.split('\n').map(s => s.trim()).filter(Boolean)),
@@ -272,5 +272,81 @@ export async function deleteProductAction(productId: string) {
     } catch (error) {
         console.error("Error deleting product:", error);
         return { status: "error", message: "Failed to delete product." };
+    }
+}
+
+// ========= CATEGORY ACTIONS =========
+
+const categorySchema = z.object({
+    name: z.string().min(2, "Category name must be at least 2 characters."),
+    icon: z.string().min(1, "An icon must be selected."),
+});
+
+export type CategoryFormState = {
+    status: "success" | "error" | "idle";
+    message: string;
+    errors?: {
+        name?: string;
+        icon?: string;
+    }
+};
+
+export async function addCategoryAction(prevState: CategoryFormState, formData: FormData): Promise<CategoryFormState> {
+    const validatedFields = categorySchema.safeParse({
+        name: formData.get("name"),
+        icon: formData.get("icon"),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            status: "error",
+            message: "Invalid data.",
+            errors: validatedFields.error.flatten().fieldErrors,
+        }
+    }
+    
+    try {
+        await addDoc(collection(db, 'categories'), validatedFields.data);
+        revalidatePath('/admin');
+        return { status: "success", message: `Category "${validatedFields.data.name}" added.` };
+    } catch (error) {
+        console.error("Error adding category:", error);
+        return { status: "error", message: "Failed to add category." };
+    }
+}
+
+export async function editCategoryAction(categoryId: string, prevState: CategoryFormState, formData: FormData): Promise<CategoryFormState> {
+    const validatedFields = categorySchema.safeParse({
+        name: formData.get("name"),
+        icon: formData.get("icon"),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            status: "error",
+            message: "Invalid data.",
+            errors: validatedFields.error.flatten().fieldErrors,
+        }
+    }
+    
+    try {
+        const categoryRef = doc(db, 'categories', categoryId);
+        await updateDoc(categoryRef, validatedFields.data);
+        revalidatePath('/admin');
+        return { status: "success", message: `Category "${validatedFields.data.name}" updated.` };
+    } catch (error) {
+        console.error("Error updating category:", error);
+        return { status: "error", message: "Failed to update category." };
+    }
+}
+
+export async function deleteCategoryAction(categoryId: string, categoryName: string) {
+     try {
+        await deleteDoc(doc(db, "categories", categoryId));
+        revalidatePath('/admin');
+        return { status: "success", message: `Category "${categoryName}" deleted.` };
+    } catch (error) {
+        console.error("Error deleting category:", error);
+        return { status: "error", message: "Failed to delete category." };
     }
 }

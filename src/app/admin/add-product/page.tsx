@@ -15,9 +15,11 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LoaderCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { ImageCropper } from "@/components/admin/ImageCropper";
-import { Product } from "@/lib/types";
+import { type Category } from "@/lib/types";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const categories: Product['category'][] = ['Tech', 'Office', 'Apparel', 'Other'];
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -32,12 +34,32 @@ export default function AddProductPage() {
     const router = useRouter();
     const {toast} = useToast();
     const [croppedImage, setCroppedImage] = useState<File | null>(null);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
 
     const [state, formAction, isPending] = useActionState<AddProductState, FormData>(addProductAction, {
         status: "idle",
         message: "",
         errors: {},
     });
+
+    useEffect(() => {
+        async function fetchCategories() {
+            setLoadingCategories(true);
+            try {
+                const catCol = collection(db, 'categories');
+                const catSnapshot = await getDocs(query(catCol, orderBy('name')));
+                const catList = catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+                setCategories(catList);
+            } catch (err) {
+                console.error("Error fetching categories:", err);
+                toast({ title: "Error", description: "Could not load categories.", variant: "destructive"});
+            } finally {
+                setLoadingCategories(false);
+            }
+        }
+        fetchCategories();
+    }, [toast]);
 
     useEffect(() => {
         if (state.status === "success") {
@@ -110,14 +132,16 @@ export default function AddProductPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="category">Category</Label>
-                            <Select name="category" defaultValue="Other" disabled={isPending}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                            {loadingCategories ? <Skeleton className="h-10 w-full" /> : (
+                                <Select name="category" disabled={isPending || categories.length === 0}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            )}
                             {state.errors?.category && <p className="text-sm text-destructive mt-1">{state.errors.category}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">

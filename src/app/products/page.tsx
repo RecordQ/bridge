@@ -11,12 +11,10 @@ import Image from "next/image";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Product } from '@/lib/types';
+import { Product, Category } from '@/lib/types';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { cn } from '@/lib/utils';
-
-const categories: (Product['category'] | 'All')[] = ['All', 'Tech', 'Office', 'Apparel', 'Other'];
 
 function ProductSkeleton() {
     return (
@@ -41,9 +39,10 @@ function ProductSkeleton() {
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<Product['category'] | 'All'>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const router = useRouter();
 
   useEffect(() => {
@@ -52,13 +51,8 @@ export default function ProductsPage() {
       try {
           const productsCol = collection(db, 'products');
           const q = query(productsCol, where("status", "==", "Active"), orderBy('createdAt', 'desc'));
-          const snapshot = await getDocs(q);
-          
-          if (snapshot.empty) {
-              setProducts([]);
-              return;
-          }
-          const productData = snapshot.docs.map(doc => {
+          const productSnapshot = await getDocs(q);
+          const productData = productSnapshot.docs.map(doc => {
               const data = doc.data();
               return {
                   id: doc.id,
@@ -73,9 +67,16 @@ export default function ProductsPage() {
               }
           });
           setProducts(productData);
+
+          const catCol = collection(db, 'categories');
+          const catSnapshot = await getDocs(query(catCol, orderBy('name')));
+          const catList = catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+          setCategories(catList);
+
       } catch (error) {
           console.error("Error fetching product tiers:", error);
           setProducts([]);
+          setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -128,13 +129,20 @@ export default function ProductsPage() {
                     </div>
                 </div>
                  <div className="mb-12 flex justify-center flex-wrap gap-2">
+                    <Button 
+                        key="All" 
+                        variant={selectedCategory === 'All' ? 'default' : 'outline'}
+                        onClick={() => setSelectedCategory('All')}
+                    >
+                        All
+                    </Button>
                     {categories.map(category => (
                         <Button 
-                            key={category} 
-                            variant={selectedCategory === category ? 'default' : 'outline'}
-                            onClick={() => setSelectedCategory(category)}
+                            key={category.id} 
+                            variant={selectedCategory === category.name ? 'default' : 'outline'}
+                            onClick={() => setSelectedCategory(category.name)}
                         >
-                            {category}
+                            {category.name}
                         </Button>
                     ))}
                 </div>

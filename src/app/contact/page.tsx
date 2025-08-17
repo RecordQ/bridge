@@ -5,8 +5,8 @@ import { useFormStatus } from "react-dom";
 import { useActionState, useEffect, useState, type Key } from "react";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import type { Product } from '@/lib/types';
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import type { Product, Category } from '@/lib/types';
 
 import { submitContactForm, type ContactFormState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Phone, MapPin, LoaderCircle, ChevronsUpDown, XIcon } from "lucide-react";
+import { Mail, Phone, MapPin, LoaderCircle, ChevronsUpDown, XIcon, Check } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
-type SelectableItem = { id: string; name: string };
+type SelectableItem = { id: string; name: string; category?: string; };
+
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -33,15 +35,25 @@ function SubmitButton() {
   );
 }
 
-function MultiSelectProducts({ items, loading, initialSelectedIds }: { items: SelectableItem[], loading: boolean, initialSelectedIds: string[] }) {
+function MultiSelectProducts({
+    products,
+    categories,
+    loading,
+    initialSelectedIds
+}: {
+    products: SelectableItem[],
+    categories: Category[],
+    loading: boolean,
+    initialSelectedIds: string[]
+}) {
     const [open, setOpen] = useState(false);
     const [selectedItems, setSelectedItems] = useState<SelectableItem[]>(() => {
-        return items.filter(p => initialSelectedIds.includes(p.id));
+        return products.filter(p => initialSelectedIds.includes(p.id));
     });
 
     useEffect(() => {
-        setSelectedItems(items.filter(p => initialSelectedIds.includes(p.id)));
-    }, [initialSelectedIds, items]);
+        setSelectedItems(products.filter(p => initialSelectedIds.includes(p.id)));
+    }, [initialSelectedIds, products]);
 
     const handleToggle = (item: SelectableItem) => {
         setSelectedItems(prev =>
@@ -50,6 +62,16 @@ function MultiSelectProducts({ items, loading, initialSelectedIds }: { items: Se
                 : [...prev, item]
         );
     };
+    
+    const categorizedProducts = useMemo(() => {
+        const customCategory: Category = { id: 'custom-cat', name: 'Other', icon: ''};
+        const allCategories = [...categories, customCategory];
+
+        return allCategories.map(cat => ({
+            ...cat,
+            products: products.filter(p => p.category === cat.name || (p.id === 'custom' && cat.id === 'custom-cat'))
+        })).filter(cat => cat.products.length > 0);
+    }, [products, categories]);
 
     if (loading) {
         return <Skeleton className="h-10 w-full" />;
@@ -63,7 +85,7 @@ function MultiSelectProducts({ items, loading, initialSelectedIds }: { items: Se
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between font-normal text-muted-foreground"
+                    className="w-full justify-between font-normal text-muted-foreground min-h-10 h-auto py-2"
                 >
                     <div className="flex-1 text-left">
                         {selectedItems.length > 0 ? (
@@ -79,21 +101,37 @@ function MultiSelectProducts({ items, loading, initialSelectedIds }: { items: Se
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-                <div className="p-2 space-y-1">
-                    {items.map((item) => (
-                        <Label
-                            key={item.id}
-                            className="flex items-center gap-2 font-normal p-2 rounded-md hover:bg-accent"
-                        >
-                            <Checkbox
-                                checked={selectedItems.some(p => p.id === item.id)}
-                                onCheckedChange={() => handleToggle(item)}
-                            />
-                            {item.name}
-                        </Label>
-                    ))}
-                </div>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder="Search products..." />
+                    <CommandList>
+                        <CommandEmpty>No products found.</CommandEmpty>
+                        {categorizedProducts.map((category) => (
+                           <CommandGroup key={category.id} heading={category.name}>
+                             {category.products.map((item) => (
+                                <CommandItem
+                                    key={item.id}
+                                    onSelect={() => {
+                                        handleToggle(item);
+                                        setOpen(true); // Keep popover open
+                                    }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <div className={cn(
+                                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                        selectedItems.some(p => p.id === item.id)
+                                        ? "bg-primary text-primary-foreground"
+                                        : "opacity-50 [&_svg]:invisible"
+                                    )}>
+                                       <Check className={cn("h-4 w-4")} />
+                                    </div>
+                                    {item.name}
+                                </CommandItem>
+                             ))}
+                           </CommandGroup>
+                        ))}
+                    </CommandList>
+                </Command>
             </PopoverContent>
         </Popover>
     );
@@ -105,15 +143,16 @@ function ContactPageForm() {
     message: "",
     status: "idle",
   });
-  const [selectableItems, setSelectableItems] = useState<SelectableItem[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [products, setProducts] = useState<SelectableItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const [initialSelectedIds, setInitialSelectedIds] = useState<string[]>([]);
 
   const formKey: Key = state.status === 'success' ? new Date().getTime() : 'contact-form';
   
   useEffect(() => {
     async function initializeForm() {
-      setLoadingProducts(true);
+      setLoading(true);
       
       const storedProductId = localStorage.getItem('selectedProductIdForQuote');
       if (storedProductId) {
@@ -124,20 +163,25 @@ function ContactPageForm() {
       try {
         const productsCol = collection(db, 'products');
         const q = query(productsCol, where("status", "==", "Active"));
-        const snapshot = await getDocs(q);
-        const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-        const customOption: SelectableItem = { id: 'custom', name: 'Custom Order' };
-        setSelectableItems([...productList, customOption]);
+        const productSnapshot = await getDocs(q);
+        const productList = productSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        const customOption: SelectableItem = { id: 'custom', name: 'Custom Order', category: 'Other' };
+        setProducts([...productList, customOption]);
+
+        const catCol = collection(db, 'categories');
+        const catSnapshot = await getDocs(query(catCol, orderBy('name')));
+        const catList = catSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}) as Category);
+        setCategories(catList);
 
       } catch (error) {
-        console.error("Failed to fetch products for contact form:", error);
+        console.error("Failed to fetch data for contact form:", error);
         toast({
           title: "Error",
           description: "Could not load products. Please try again later.",
           variant: "destructive",
         });
       } finally {
-        setLoadingProducts(false);
+        setLoading(false);
       }
     }
     initializeForm();
@@ -171,7 +215,7 @@ function ContactPageForm() {
           </div>
           <div>
             <Label htmlFor="products">Products of Interest</Label>
-            <MultiSelectProducts items={selectableItems} loading={loadingProducts} initialSelectedIds={initialSelectedIds} />
+            <MultiSelectProducts products={products} categories={categories} loading={loading} initialSelectedIds={initialSelectedIds} />
             {state.errors?.product && <p className="text-sm text-destructive mt-1">{state.errors.product}</p>}
           </div>
           <div>
