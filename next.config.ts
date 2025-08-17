@@ -25,6 +25,12 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
         port: '5000',
         pathname: '/download/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'website.quaxicron.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
