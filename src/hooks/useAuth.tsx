@@ -50,9 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
     
     // Listen to storage changes to sync across tabs
-    window.addEventListener('storage', checkAuth);
+    const handleStorageChange = () => {
+        checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
     return () => {
-      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [checkAuth]);
 

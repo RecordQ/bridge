@@ -12,12 +12,14 @@ function AdminApp({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Only redirect if authentication has been checked (isAuthLoading is false)
     if (!isAuthLoading && !isAuthenticated && pathname !== '/admin/login') {
       router.replace('/admin/login');
     }
   }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-  if (isAuthLoading) {
+  // If auth is loading, always show spinner unless we are on the login page
+  if (isAuthLoading && pathname !== '/admin/login') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
@@ -25,17 +27,17 @@ function AdminApp({ children }: { children: ReactNode }) {
     );
   }
   
-  const showContent = (isAuthenticated && pathname !== '/admin/login') || pathname === '/admin/login';
-
-  return (
-    <>
-      {showContent ? children : (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-          <LoaderCircle className="h-8 w-8 animate-spin" />
-        </div>
-      )}
-    </>
-  );
+  // Allow login page to be rendered without being authenticated
+  if (!isAuthenticated && pathname !== '/admin/login') {
+    // This will be caught by the useEffect and redirected, but this prevents flashing of content
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <LoaderCircle className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
