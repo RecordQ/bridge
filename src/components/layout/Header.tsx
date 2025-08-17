@@ -16,13 +16,16 @@ export function Header() {
     { href: "/contact", label: "Contact" },
   ];
 
-  const NavLinkItems = () => (
+  const NavLinkItems = ({ inMobileMenu = false }: { inMobileMenu?: boolean }) => (
     <>
       {navLinks.map((link) => (
         <Link
           key={link.href}
           href={link.href}
-          className="font-medium text-foreground/80 transition-colors hover:text-primary px-4 py-2 text-sm"
+          className={cn(
+            "font-medium text-foreground/80 transition-colors hover:text-primary",
+            inMobileMenu ? "block px-4 py-2 text-base" : "px-4 py-2 text-sm"
+          )}
           onClick={() => setIsMenuOpen(false)}
         >
           {link.label}
@@ -35,20 +38,27 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         
-        {/* Desktop Layout */}
-        <div className="hidden md:flex w-full items-center justify-between">
+        {/* Desktop Layout - Rebuilt with CSS Grid */}
+        <div className="hidden md:grid w-full grid-cols-3 items-center">
+          {/* Left Column */}
+          <div className="flex justify-start">
             <Link href="/" className="flex items-center space-x-2">
                 <Rocket className="h-6 w-6 text-cyan-500" />
                 <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
             </Link>
+          </div>
 
-            <nav className="flex items-center space-x-2">
-                <NavLinkItems />
-            </nav>
+          {/* Center Column */}
+          <nav className="flex justify-center">
+            <NavLinkItems />
+          </nav>
 
+          {/* Right Column */}
+          <div className="flex justify-end">
             <Button asChild>
                 <Link href="/contact">Get a Quote</Link>
             </Button>
+          </div>
         </div>
 
         {/* Mobile Layout */}
@@ -68,7 +78,7 @@ export function Header() {
         </div>
       </div>
       
-      {/* Mobile Menu */}
+      {/* Mobile Menu Panel */}
       {isMenuOpen && (
         <div
           className={cn(
@@ -77,16 +87,18 @@ export function Header() {
           )}
         >
           <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-             <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+             <Link href="/" className="flex items-center space-x-2 p-2" onClick={() => setIsMenuOpen(false)}>
                 <Rocket className="h-6 w-6 text-cyan-500" />
                 <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
             </Link>
-            <nav className="grid grid-flow-row auto-rows-max text-sm gap-4">
-                <NavLinkItems />
+            <nav className="grid grid-flow-row auto-rows-max text-sm gap-2">
+                <NavLinkItems inMobileMenu={true} />
             </nav>
-            <Button asChild onClick={() => setIsMenuOpen(false)}>
-                <Link href="/contact">Get a Quote</Link>
-            </Button>
+            <div className="mt-4">
+              <Button asChild onClick={() => setIsMenuOpen(false)} className="w-full">
+                  <Link href="/contact">Get a Quote</Link>
+              </Button>
+            </div>
           </div>
         </div>
       )}
