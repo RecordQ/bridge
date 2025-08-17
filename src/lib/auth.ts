@@ -2,11 +2,8 @@
 
 import { z } from "zod";
 import { createHash } from "crypto";
-
-// This is a mock implementation. In a real app, you'd query a database.
-const MOCK_USERS = [
-    { username: 'admin', passwordHash: createHash('sha512').update('password').digest('hex') }
-];
+import { db } from "./firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -42,13 +39,18 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
     const passwordHash = createHash('sha512').update(password).digest('hex');
     
     try {
-        const user = MOCK_USERS.find(u => u.username === username);
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
 
-        if (!user) {
+        if (querySnapshot.empty) {
             return { status: "error", message: "Invalid username or password." };
         }
 
-        const passwordMatch = passwordHash === user.passwordHash;
+        const userDoc = querySnapshot.docs[0];
+        const userData = userDoc.data();
+
+        const passwordMatch = passwordHash === userData.password;
 
         if (!passwordMatch) {
             return { status: "error", message: "Invalid username or password." };
@@ -58,7 +60,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
             status: "success",
             message: "Login Successful",
             username: username,
-            passwordHash: passwordHash,
+            passwordHash: userData.password,
         };
 
     } catch (error: any) {
