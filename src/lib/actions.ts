@@ -2,12 +2,10 @@
 "use server";
 
 import { z } from "zod";
-import { db, storage } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import sharp from "sharp";
 
 
 // ========= CONTACT FORM ACTION =========
@@ -80,21 +78,36 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
 // ========= PRODUCT ACTIONS =========
 
 async function uploadImage(image: File): Promise<string> {
-    const originalBuffer = await image.arrayBuffer();
+    const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_ENDPOINT;
+    if (!uploadUrl) {
+        throw new Error("Upload endpoint URL is not configured.");
+    }
 
-    // Resize and optimize the image
-    const optimizedBuffer = await sharp(originalBuffer)
-        .resize(1200, null, { withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toBuffer();
-    
-    const optimizedImageName = `${Date.now()}-${image.name.split('.')[0]}.webp`;
-    const storageRef = ref(storage, `products/${optimizedImageName}`);
-    
-    await uploadBytes(storageRef, optimizedBuffer, { contentType: 'image/webp' });
-    const downloadUrl = await getDownloadURL(storageRef);
-    return downloadUrl;
+    const formData = new FormData();
+    formData.append('file', image);
+
+    try {
+        const response = await fetch(uploadUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`File upload failed: ${response.statusText} - ${errorText}`);
+        }
+
+        const responseText = await response.text();
+        // Assuming the flask endpoint returns the URL of the uploaded file.
+        // If it just returns a success message, you might need to construct the URL manually.
+        // For now, we will assume the response text IS the URL or a success message to be stored.
+        return responseText;
+    } catch (error) {
+        console.error("Error uploading image to custom endpoint:", error);
+        throw error;
+    }
 }
+
 
 const productSchema = z.object({
     name: z.string().min(3, "Product name must be at least 3 characters."),
@@ -161,7 +174,7 @@ export async function addProductAction(prevState: AddProductState, formData: For
         revalidatePath('/');
 
     } catch (error: any) {
-        console.error("Firebase Error adding product to database:", error);
+        console.error("Error adding product to database:", error);
         return {
             status: "error",
             message: `Failed to add product to database. Please try again. ${error.message}`,
@@ -232,7 +245,7 @@ export async function editProductAction(productId: string, prevState: AddProduct
         console.error("Error updating product in database:", error);
         return {
             status: "error",
-            message: `Failed to update product. Please try again.`,
+            message: `Failed to update product. Please try again. ${error.message}`,
         }
     }
 }
