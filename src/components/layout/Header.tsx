@@ -35,28 +35,22 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         
-        {/* Desktop Layout - Rebuilt from scratch */}
+        {/* Desktop Layout - Rebuilt from scratch with a new strategy */}
         <div className="hidden md:flex w-full items-center">
-          {/* Left Section */}
-          <div className="flex-1 flex justify-start">
-             <Link href="/" className="flex items-center space-x-2">
-                <Rocket className="h-6 w-6 text-cyan-500" />
-                <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
-             </Link>
-          </div>
+          <Link href="/" className="flex items-center space-x-2">
+            <Rocket className="h-6 w-6 text-cyan-500" />
+            <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+          </Link>
 
-          {/* Center Section */}
-          <nav className="flex items-center space-x-6 text-sm">
+          <nav className="flex items-center space-x-6 text-sm mx-auto">
             <NavLinkItems />
           </nav>
 
-          {/* Right Section */}
-          <div className="flex-1 flex justify-end">
-            <Button asChild>
-                <Link href="/contact">Get a Quote</Link>
-            </Button>
-          </div>
+          <Button asChild>
+              <Link href="/contact">Get a Quote</Link>
+          </Button>
         </div>
+
 
         {/* Mobile Layout */}
         <div className="md:hidden flex w-full items-center justify-between">
@@ -84,14 +78,14 @@ export function Header() {
           )}
         >
           <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-             <Link href="/" className="flex items-center space-x-2">
+             <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
                 <Rocket className="h-6 w-6 text-cyan-500" />
                 <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
             </Link>
             <nav className="grid grid-flow-row auto-rows-max text-sm gap-4">
                 <NavLinkItems />
             </nav>
-            <Button asChild>
+            <Button asChild onClick={() => setIsMenuOpen(false)}>
                 <Link href="/contact">Get a Quote</Link>
             </Button>
           </div>
