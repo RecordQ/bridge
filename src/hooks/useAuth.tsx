@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.tsx
 "use client";
 
@@ -44,36 +45,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback((username: string, passwordHash: string) => {
-    localStorage.setItem(USERNAME_KEY, username);
-    localStorage.setItem(PASSWORD_HASH_KEY, passwordHash);
-    setIsAuthenticated(true);
-    router.replace("/admin");
+    try {
+        localStorage.setItem(USERNAME_KEY, username);
+        localStorage.setItem(PASSWORD_HASH_KEY, passwordHash);
+        setIsAuthenticated(true);
+        router.replace("/admin");
+    } catch (error) {
+        console.error("Could not access localStorage:", error);
+        toast({ title: "Login Error", description: "Could not save session. Please enable cookies/localStorage.", variant: "destructive" });
+    }
   }, [router]);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(USERNAME_KEY);
-    localStorage.removeItem(PASSWORD_HASH_KEY);
-    setIsAuthenticated(false);
-    router.replace("/admin/login");
+    try {
+        localStorage.removeItem(USERNAME_KEY);
+        localStorage.removeItem(PASSWORD_HASH_KEY);
+        setIsAuthenticated(false);
+        router.replace("/admin/login");
+    } catch (error) {
+        console.error("Could not access localStorage:", error);
+    }
   }, [router]);
   
   // Sync auth state across tabs
   useEffect(() => {
-    const handleStorageChange = () => {
-        try {
-            const username = localStorage.getItem(USERNAME_KEY);
-            const hash = localStorage.getItem(PASSWORD_HASH_KEY);
-            setIsAuthenticated(!!(username && hash));
-        } catch (error) {
-            console.error("Could not access localStorage:", error);
-            setIsAuthenticated(false);
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === USERNAME_KEY || event.key === PASSWORD_HASH_KEY) {
+            try {
+                const username = localStorage.getItem(USERNAME_KEY);
+                const hash = localStorage.getItem(PASSWORD_HASH_KEY);
+                const currentlyAuth = !!(username && hash);
+                if (isAuthenticated !== currentlyAuth) {
+                    setIsAuthenticated(currentlyAuth);
+                    if (!currentlyAuth) {
+                        router.replace('/admin/login');
+                    }
+                }
+            } catch (error) {
+                console.error("Could not access localStorage:", error);
+                setIsAuthenticated(false);
+            }
         }
     };
     window.addEventListener('storage', handleStorageChange);
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [isAuthenticated, router]);
 
   const value = {
     isAuthenticated,

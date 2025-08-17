@@ -1,3 +1,4 @@
+
 // src/app/admin/layout.tsx
 "use client";
 
@@ -35,5 +36,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   // Fallback for unauthenticated users, the useEffect will handle the redirect.
+  // This renders null briefly to prevent content flash before redirect.
   return null;
 }
