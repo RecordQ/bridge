@@ -39,8 +39,8 @@ export function ImageCropper({ onCrop, aspect = 1 }: ImageCropperProps) {
     const initialCrop = centerCrop(
       makeAspectCrop(
         {
-          unit: '%',
-          width: 90,
+          unit: 'px',
+          width: width, // Start with full width
         },
         aspect,
         width,
@@ -75,7 +75,7 @@ export function ImageCropper({ onCrop, aspect = 1 }: ImageCropperProps) {
       completedCrop.x * scaleX,
       completedCrop.y * scaleY,
       completedCrop.width * scaleX,
-      completed_crop.height * scaleY,
+      completedCrop.height * scaleY,
       0,
       0,
       canvas.width,
