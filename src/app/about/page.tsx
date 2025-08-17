@@ -52,7 +52,7 @@ export default function AboutPage() {
               </div>
               <div className="rounded-lg overflow-hidden shadow-2xl">
                 <Image 
-                  src="https://placehold.co/800x600.png"
+                  src="https://web.quaxicron.com/download/a.jpg"
                   alt="Bridge Ltd Workshop"
                   width={800}
                   height={600}

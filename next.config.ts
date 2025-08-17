@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'website.quaxicron.com',
+        hostname: 'web.quaxicron.com',
         port: '',
         pathname: '/**',
       }
