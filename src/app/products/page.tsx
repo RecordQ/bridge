@@ -1,7 +1,7 @@
 // src/app/products/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Product } from '@/lib/types';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { cn } from '@/lib/utils';
+
+const categories: (Product['category'] | 'All')[] = ['All', 'Tech', 'Office', 'Apparel', 'Other'];
 
 function ProductSkeleton() {
     return (
@@ -38,9 +41,9 @@ function ProductSkeleton() {
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<Product['category'] | 'All'>('All');
   const router = useRouter();
 
   useEffect(() => {
@@ -53,7 +56,6 @@ export default function ProductsPage() {
           
           if (snapshot.empty) {
               setProducts([]);
-              setFilteredProducts([]);
               return;
           }
           const productData = snapshot.docs.map(doc => {
@@ -67,14 +69,13 @@ export default function ProductsPage() {
                   priceUnit: data.priceUnit || '/ unit',
                   features: data.features || [],
                   status: data.status,
+                  category: data.category || 'Other',
               }
           });
           setProducts(productData);
-          setFilteredProducts(productData);
       } catch (error) {
           console.error("Error fetching product tiers:", error);
           setProducts([]);
-          setFilteredProducts([]);
       } finally {
         setLoading(false);
       }
@@ -82,13 +83,16 @@ export default function ProductsPage() {
     getProductTiers();
   }, []);
 
-  useEffect(() => {
-    const results = products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(results);
-  }, [searchTerm, products]);
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter(product =>
+        selectedCategory === 'All' || product.category === selectedCategory
+      )
+      .filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [products, searchTerm, selectedCategory]);
   
   const handleQuoteClick = (productId: string) => {
     localStorage.setItem('selectedProductIdForQuote', productId);
@@ -111,8 +115,8 @@ export default function ProductsPage() {
 
           <section className="py-16 md:py-24 bg-transparent">
             <div className="container mx-auto px-4">
-                <div className="mb-12 max-w-lg mx-auto">
-                     <div className="relative">
+                <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <div className="relative w-full max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                             type="search"
@@ -121,7 +125,18 @@ export default function ProductsPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10"
                         />
-                     </div>
+                    </div>
+                </div>
+                 <div className="mb-12 flex justify-center flex-wrap gap-2">
+                    {categories.map(category => (
+                        <Button 
+                            key={category} 
+                            variant={selectedCategory === category ? 'default' : 'outline'}
+                            onClick={() => setSelectedCategory(category)}
+                        >
+                            {category}
+                        </Button>
+                    ))}
                 </div>
                 
               {loading ? (
@@ -180,11 +195,11 @@ export default function ProductsPage() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground mt-2 whitespace-pre-line">
-                            Your search for "{searchTerm}" did not match any products. Try a different keyword or browse all products.
+                            Your search for "{searchTerm}" did not match any products in the "{selectedCategory}" category.
                         </p>
                         {searchTerm && (
-                            <Button variant="outline" className="mt-6" onClick={() => setSearchTerm("")}>
-                                Clear Search
+                            <Button variant="outline" className="mt-6" onClick={() => {setSearchTerm(""); setSelectedCategory("All")}}>
+                                Clear Search & Filters
                             </Button>
                         )}
                     </CardContent>

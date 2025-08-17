@@ -22,6 +22,7 @@ import { PageLayout } from '@/components/layout/PageLayout';
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
+type SelectableItem = { id: string; name: string };
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -32,21 +33,21 @@ function SubmitButton() {
   );
 }
 
-function MultiSelectProducts({ products, loading, initialSelectedIds }: { products: Product[], loading: boolean, initialSelectedIds: string[] }) {
+function MultiSelectProducts({ items, loading, initialSelectedIds }: { items: SelectableItem[], loading: boolean, initialSelectedIds: string[] }) {
     const [open, setOpen] = useState(false);
-    const [selectedProducts, setSelectedProducts] = useState<Product[]>(() => {
-        return products.filter(p => initialSelectedIds.includes(p.id));
+    const [selectedItems, setSelectedItems] = useState<SelectableItem[]>(() => {
+        return items.filter(p => initialSelectedIds.includes(p.id));
     });
 
     useEffect(() => {
-        setSelectedProducts(products.filter(p => initialSelectedIds.includes(p.id)));
-    }, [initialSelectedIds, products]);
+        setSelectedItems(items.filter(p => initialSelectedIds.includes(p.id)));
+    }, [initialSelectedIds, items]);
 
-    const handleToggle = (product: Product) => {
-        setSelectedProducts(prev =>
-            prev.some(p => p.id === product.id)
-                ? prev.filter(p => p.id !== product.id)
-                : [...prev, product]
+    const handleToggle = (item: SelectableItem) => {
+        setSelectedItems(prev =>
+            prev.some(p => p.id === item.id)
+                ? prev.filter(p => p.id !== item.id)
+                : [...prev, item]
         );
     };
 
@@ -56,7 +57,7 @@ function MultiSelectProducts({ products, loading, initialSelectedIds }: { produc
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <input type="hidden" name="products" value={selectedProducts.map(p => p.name).join(', ')} />
+            <input type="hidden" name="products" value={selectedItems.map(p => p.name).join(', ')} />
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -65,9 +66,9 @@ function MultiSelectProducts({ products, loading, initialSelectedIds }: { produc
                     className="w-full justify-between font-normal text-muted-foreground"
                 >
                     <div className="flex-1 text-left">
-                        {selectedProducts.length > 0 ? (
+                        {selectedItems.length > 0 ? (
                              <div className="flex flex-wrap gap-1">
-                                {selectedProducts.map(p => (
+                                {selectedItems.map(p => (
                                     <Badge key={p.id} variant="secondary">{p.name}</Badge>
                                 ))}
                              </div>
@@ -80,16 +81,16 @@ function MultiSelectProducts({ products, loading, initialSelectedIds }: { produc
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
                 <div className="p-2 space-y-1">
-                    {products.map((product) => (
+                    {items.map((item) => (
                         <Label
-                            key={product.id}
+                            key={item.id}
                             className="flex items-center gap-2 font-normal p-2 rounded-md hover:bg-accent"
                         >
                             <Checkbox
-                                checked={selectedProducts.some(p => p.id === product.id)}
-                                onCheckedChange={() => handleToggle(product)}
+                                checked={selectedItems.some(p => p.id === item.id)}
+                                onCheckedChange={() => handleToggle(item)}
                             />
-                            {product.name}
+                            {item.name}
                         </Label>
                     ))}
                 </div>
@@ -104,7 +105,7 @@ function ContactPageForm() {
     message: "",
     status: "idle",
   });
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectableItems, setSelectableItems] = useState<SelectableItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [initialSelectedIds, setInitialSelectedIds] = useState<string[]>([]);
 
@@ -125,7 +126,9 @@ function ContactPageForm() {
         const q = query(productsCol, where("status", "==", "Active"));
         const snapshot = await getDocs(q);
         const productList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-        setProducts(productList);
+        const customOption: SelectableItem = { id: 'custom', name: 'Custom Order' };
+        setSelectableItems([...productList, customOption]);
+
       } catch (error) {
         console.error("Failed to fetch products for contact form:", error);
         toast({
@@ -168,7 +171,7 @@ function ContactPageForm() {
           </div>
           <div>
             <Label htmlFor="products">Products of Interest</Label>
-            <MultiSelectProducts products={products} loading={loadingProducts} initialSelectedIds={initialSelectedIds} />
+            <MultiSelectProducts items={selectableItems} loading={loadingProducts} initialSelectedIds={initialSelectedIds} />
             {state.errors?.product && <p className="text-sm text-destructive mt-1">{state.errors.product}</p>}
           </div>
           <div>

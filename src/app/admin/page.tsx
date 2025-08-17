@@ -35,6 +35,7 @@ async function getProducts(): Promise<Product[]> {
                 image: data.image || '',
                 description: data.description || '',
                 features: features,
+                category: data.category || 'Other',
             }
         });
     } catch (error) {
@@ -143,6 +144,7 @@ export default async function AdminDashboardPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Product Name</TableHead>
+                                        <TableHead>Category</TableHead>
                                         <TableHead>Price</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -152,6 +154,7 @@ export default async function AdminDashboardPage() {
                                     {products.length > 0 ? products.map((product) => (
                                         <TableRow key={product.id}>
                                             <TableCell className="font-medium">{product.name}</TableCell>
+                                            <TableCell>{product.category}</TableCell>
                                             <TableCell>${product.price.toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
@@ -174,7 +177,7 @@ export default async function AdminDashboardPage() {
                                         </TableRow>
                                     )) : (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center">No products found. Add one to get started.</TableCell>
+                                            <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
                                         </TableRow>
                                     )}
                                 </TableBody>

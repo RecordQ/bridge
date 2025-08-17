@@ -11,6 +11,7 @@ import { useState } from 'react';
 
 const navLinks = [
     { href: "/products", label: "Products" },
+    { href: "/catalogue", label: "Catalogue" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
 ];
@@ -25,7 +26,7 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
       <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
         
-        {/* Desktop: 3-column grid */}
+        {/* Desktop: Grid layout */}
         <div className="hidden md:grid grid-cols-3 items-center w-full">
             {/* Left: Logo */}
             <div className="flex justify-start">
@@ -75,7 +76,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left">
                 <SheetHeader>
-                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <SheetTitle className="sr-only">Navigation</SheetTitle>
                 </SheetHeader>
               <div className="flex flex-col p-6">
                 <Link href="/" className="flex items-center gap-2 mb-8" onClick={closeMobileMenu}>

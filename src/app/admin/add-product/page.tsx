@@ -15,6 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LoaderCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { ImageCropper } from "@/components/admin/ImageCropper";
+import { Product } from "@/lib/types";
+
+const categories: Product['category'][] = ['Tech', 'Office', 'Apparel', 'Other'];
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -104,6 +107,18 @@ export default function AddProductPage() {
                                 </SelectContent>
                              </Select>
                             {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <Select name="category" defaultValue="Other" disabled={isPending}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            {state.errors?.category && <p className="text-sm text-destructive mt-1">{state.errors.category}</p>}
                         </div>
                          <div className="md:col-span-2 space-y-2">
                             <Label htmlFor="image">Product Image</Label>

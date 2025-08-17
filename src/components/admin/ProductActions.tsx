@@ -17,6 +17,8 @@ import { type Product } from "@/lib/types";
 import Image from "next/image";
 import { ImageCropper } from "./ImageCropper";
 
+const categories: Product['category'][] = ['Tech', 'Office', 'Apparel', 'Other'];
+
 function SubmitButton({ text, pendingText }: { text: string, pendingText: string }) {
     const { pending } = useFormStatus();
     return (
@@ -110,6 +112,18 @@ export function EditProductDialog({ product }: { product: Product }) {
                             </SelectContent>
                         </Select>
                         {state.errors?.status && <p className="text-sm text-destructive mt-1">{state.errors.status}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select name="category" defaultValue={product.category} disabled={isPending}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        {state.errors?.category && <p className="text-sm text-destructive mt-1">{state.errors.category}</p>}
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <Label>Current Image</Label>

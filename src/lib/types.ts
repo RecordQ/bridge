@@ -9,6 +9,7 @@ export type Product = {
     image: string;
     description: string;
     features: string[];
+    category: 'Tech' | 'Office' | 'Apparel' | 'Other';
     createdAt?: Timestamp;
 };
 
