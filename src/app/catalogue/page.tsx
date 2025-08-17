@@ -2,7 +2,7 @@
 // src/app/catalogue/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -24,6 +24,16 @@ export default function CataloguePage() {
 
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
+  const [pageWidth, setPageWidth] = useState(800);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setPageWidth(Math.min(window.innerWidth * 0.8, 800));
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Set initial size
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
@@ -113,7 +123,7 @@ export default function CataloguePage() {
                                  renderAnnotationLayer={false}
                                  renderTextLayer={false}
                                  loading={<Skeleton className="h-[800px] w-[566px]"/>}
-                                 width={Math.min(window.innerWidth * 0.8, 800)}
+                                 width={pageWidth}
                                />
                             </div>
                         </Document>
