@@ -1,27 +1,17 @@
+
 // src/app/catalogue/page.tsx
 "use client";
 
 import { PageLayout } from "@/components/layout/PageLayout";
-import dynamic from 'next/dynamic';
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
-const PdfViewer = dynamic(() => import('@/components/PdfViewer'), {
-  ssr: false,
-  loading: () => (
-     <div className="w-full max-w-4xl bg-card/80 border rounded-lg shadow-lg">
-        <div className="p-4 border-b flex items-center justify-between">
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-6 w-24" />
-            <Skeleton className="h-10 w-24" />
-        </div>
-        <div className="flex justify-center p-4">
-            <Skeleton className="h-[800px] w-full max-w-[566px]"/>
-        </div>
-    </div>
-  )
-});
 
 export default function CataloguePage() {
+  const catalogueUrl = "https://web.quaxicron.com/download/cat.pdf";
+
   return (
     <PageLayout>
       <main className="flex-1 bg-transparent backdrop-blur-sm">
@@ -37,7 +27,24 @@ export default function CataloguePage() {
         </section>
         <section className="pb-24">
             <div className="container mx-auto px-4 flex flex-col items-center">
-                <PdfViewer />
+                 <Card className="w-full max-w-lg text-center bg-card/80 border">
+                    <CardHeader>
+                        <div className="mx-auto bg-primary/10 text-primary rounded-full w-24 h-24 flex items-center justify-center mb-4 border border-primary/20">
+                            <FileText className="w-12 h-12" />
+                        </div>
+                        <CardTitle className="font-headline text-2xl">View Our 2024 Catalogue</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-muted-foreground mb-6">
+                            Our PDF viewer is currently unavailable. Please click the button below to open our catalogue in a new tab.
+                        </p>
+                        <Button asChild size="lg">
+                            <Link href={catalogueUrl} target="_blank" rel="noopener noreferrer">
+                                Open Catalogue <ExternalLink className="ml-2" />
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         </section>
       </main>
