@@ -97,11 +97,11 @@ async function uploadImage(image: File): Promise<string> {
             throw new Error(`File upload failed: ${response.statusText} - ${errorText}`);
         }
 
-        const responseText = await response.text();
-        // Assuming the flask endpoint returns the URL of the uploaded file.
-        // If it just returns a success message, you might need to construct the URL manually.
-        // For now, we will assume the response text IS the URL or a success message to be stored.
-        return responseText;
+        const filename = await response.text();
+        const baseUrl = new URL(uploadUrl);
+        
+        return `${baseUrl.protocol}//${baseUrl.hostname}:${baseUrl.port}/uploads/${filename}`;
+        
     } catch (error) {
         console.error("Error uploading image to custom endpoint:", error);
         throw error;
