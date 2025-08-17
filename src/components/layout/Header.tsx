@@ -33,36 +33,47 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        {/* Left Section */}
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <Rocket className="h-6 w-6 text-cyan-500" />
-            <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
-          </Link>
+      <div className="container flex h-16 items-center px-4">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full items-center">
+          {/* Left Section */}
+          <div className="flex-1 flex justify-start">
+            <Link href="/" className="flex items-center space-x-2">
+              <Rocket className="h-6 w-6 text-cyan-500" />
+              <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+            </Link>
+          </div>
+
+          {/* Center Section */}
+          <nav className="flex justify-center space-x-6 text-sm">
+            <NavLinkItems />
+          </nav>
+
+          {/* Right Section */}
+          <div className="flex-1 flex justify-end">
+            <Button asChild>
+              <Link href="/contact">Get a Quote</Link>
+            </Button>
+          </div>
         </div>
-        
-        {/* Center Section (Desktop) */}
-        <nav className="hidden md:flex flex-1 items-center justify-center space-x-6 text-sm">
-          <NavLinkItems />
-        </nav>
-        
-        {/* Right Section */}
-        <div className="flex items-center justify-end">
-          <Button asChild className="hidden md:flex">
-             <Link href="/contact">Get a Quote</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            className="md:hidden"
-            size="icon"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            <span className="sr-only">Toggle menu</span>
-          </Button>
+
+        {/* Mobile Layout */}
+        <div className="md:hidden flex w-full items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2">
+              <Rocket className="h-6 w-6 text-cyan-500" />
+              <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <span className="sr-only">Toggle menu</span>
+            </Button>
         </div>
       </div>
+      
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div
