@@ -50,8 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
     
     // Listen to storage changes to sync across tabs
-    const handleStorageChange = () => {
-        checkAuth();
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === USERNAME_KEY || event.key === PASSWORD_HASH_KEY) {
+            checkAuth();
+        }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -64,7 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USERNAME_KEY, username);
     localStorage.setItem(PASSWORD_HASH_KEY, passwordHash);
     setIsAuthenticated(true);
-    router.push("/admin");
+    // Use replace to avoid the login page in browser history
+    router.replace("/admin");
   }, [router]);
 
   const logout = useCallback(async () => {

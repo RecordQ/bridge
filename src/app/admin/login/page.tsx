@@ -21,6 +21,7 @@ export default function AdminLoginPage() {
   });
 
   useEffect(() => {
+    // If the user is already authenticated, redirect them away from the login page.
     if (isAuthenticated) {
         router.replace('/admin');
     }
@@ -32,6 +33,7 @@ export default function AdminLoginPage() {
         title: "Login Successful",
         description: "Redirecting to admin dashboard...",
       });
+      // The login function from useAuth will handle setting state and redirection
       login(state.username, state.passwordHash); 
     } else if (state.status === "error") {
       toast({
@@ -40,7 +42,12 @@ export default function AdminLoginPage() {
         variant: "destructive",
       });
     }
-  }, [state, login, toast, router]);
+  }, [state, login, toast]);
+
+  // Don't render the form if the user is already authenticated and a redirect is imminent
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

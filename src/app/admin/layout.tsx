@@ -1,7 +1,7 @@
 // src/app/admin/layout.tsx
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoaderCircle } from "lucide-react";
@@ -12,13 +12,15 @@ function AdminApp({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only redirect if authentication has been checked (isAuthLoading is false)
+    // If auth state is done loading and user is not authenticated,
+    // and they are not already on the login page, redirect them.
     if (!isAuthLoading && !isAuthenticated && pathname !== '/admin/login') {
       router.replace('/admin/login');
     }
   }, [isAuthenticated, isAuthLoading, router, pathname]);
 
-  // If auth is loading, always show spinner unless we are on the login page
+  // While checking auth, show a loader unless we're on the login page.
+  // The login page can be rendered without waiting for auth check.
   if (isAuthLoading && pathname !== '/admin/login') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -27,9 +29,10 @@ function AdminApp({ children }: { children: ReactNode }) {
     );
   }
   
-  // Allow login page to be rendered without being authenticated
+  // If not authenticated and trying to access a protected page,
+  // this prevents a flash of content before the redirect in the useEffect.
+  // The layout will just show a loader until the redirect happens.
   if (!isAuthenticated && pathname !== '/admin/login') {
-    // This will be caught by the useEffect and redirected, but this prevents flashing of content
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <LoaderCircle className="h-8 w-8 animate-spin" />
@@ -37,6 +40,7 @@ function AdminApp({ children }: { children: ReactNode }) {
     );
   }
   
+  // If we get here, the user is either authenticated or is on the login page.
   return <>{children}</>;
 }
 
