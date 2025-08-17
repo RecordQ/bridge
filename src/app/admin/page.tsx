@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical, type LucideIcon, type LucideProps } from "lucide-react";
+import { PlusCircle, MoreVertical, type LucideIcon, type LucideProps, Home } from "lucide-react";
 import * as lucideIcons from 'lucide-react';
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
@@ -241,7 +241,12 @@ export default async function AdminDashboardPage() {
                         <h1 className="font-headline text-3xl md:text-4xl font-bold">Admin Dashboard</h1>
                         <p className="text-muted-foreground">Manage your products and submissions.</p>
                     </div>
-                     <LogoutButton />
+                     <div className="flex items-center gap-2">
+                        <Button asChild variant="outline">
+                            <Link href="/"><Home className="mr-2"/>Return to Home</Link>
+                        </Button>
+                        <LogoutButton />
+                     </div>
                 </header>
 
                 <div className="grid gap-8">
