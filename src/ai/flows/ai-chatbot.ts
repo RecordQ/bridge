@@ -18,7 +18,7 @@ import { collection, getDocs } from "firebase/firestore";
 type Product = {
   name: string;
   description: string;
-  price: number;
+  price: string;
 };
 
 // Helper function to fetch products from Firestore
@@ -34,7 +34,7 @@ async function getProducts(): Promise<Product[]> {
             return {
                 name: data.name,
                 description: data.description,
-                price: data.price,
+                price: `$${Number(data.price).toFixed(2)}`,
             };
         }) as Product[];
     } catch (error) {
