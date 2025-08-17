@@ -1,4 +1,3 @@
-
 // src/components/layout/Header.tsx
 "use client";
 
@@ -23,7 +22,7 @@ export function Header() {
         <Link
           key={link.href}
           href={link.href}
-          className="font-medium text-foreground/80 transition-colors hover:text-primary px-4 py-2"
+          className="font-medium text-foreground/80 transition-colors hover:text-primary px-4 py-2 text-sm"
           onClick={() => setIsMenuOpen(false)}
         >
           {link.label}
@@ -34,25 +33,22 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container relative flex h-16 items-center px-4">
+      <div className="container flex h-16 items-center px-4">
         
-        {/* Desktop Layout - New Strategy */}
-        <div className="hidden md:flex w-full items-center">
-            {/* Centered Navigation */}
-            <nav className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-2 text-sm">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full items-center justify-between">
+            <Link href="/" className="flex items-center space-x-2">
+                <Rocket className="h-6 w-6 text-cyan-500" />
+                <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
+            </Link>
+
+            <nav className="flex items-center space-x-2">
                 <NavLinkItems />
             </nav>
-            
-            {/* Left and Right Side Elements */}
-            <div className="flex w-full items-center justify-between">
-                <Link href="/" className="flex items-center space-x-2">
-                    <Rocket className="h-6 w-6 text-cyan-500" />
-                    <span className="font-bold font-headline text-lg pl-2">Bridge Ltd</span>
-                </Link>
-                <Button asChild>
-                    <Link href="/contact">Get a Quote</Link>
-                </Button>
-            </div>
+
+            <Button asChild>
+                <Link href="/contact">Get a Quote</Link>
+            </Button>
         </div>
 
         {/* Mobile Layout */}
