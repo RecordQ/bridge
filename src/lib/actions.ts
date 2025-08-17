@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc, query, where, getDocs } from "firebase/firestore";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -306,6 +306,19 @@ export async function addCategoryAction(prevState: CategoryFormState, formData: 
     }
     
     try {
+        // Check for duplicate category name
+        const categoriesRef = collection(db, 'categories');
+        const q = query(categoriesRef, where("name", "==", validatedFields.data.name));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            return {
+                status: "error",
+                message: "A category with this name already exists.",
+                errors: { name: "A category with this name already exists." }
+            };
+        }
+
         await addDoc(collection(db, 'categories'), validatedFields.data);
         revalidatePath('/admin');
         return { status: "success", message: `Category "${validatedFields.data.name}" added.` };

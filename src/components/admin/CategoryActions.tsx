@@ -10,15 +10,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home } from "lucide-react";
+import { LoaderCircle, Trash, Edit, PlusCircle, type LucideProps, type LucideIcon, Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home, Wrench, Shirt, Computer, Car, Camera, Sprout, Heart, Trophy, Book, Watch } from "lucide-react";
 import { type Category } from "@/lib/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 // Manual mapping of string names to Lucide components
 const icons: Record<string, LucideIcon> = {
-    Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home,
-    // Add other frequently used icons here
+    Package, PenTool, Usb, Box, Briefcase, Gift, ShoppingCart, Tag, Star, Home, Wrench, Shirt, Computer, Car, Camera, Sprout, Heart, Trophy, Book, Watch
 };
 
 const Icon = ({ name, ...props }: { name: string } & LucideProps) => {
