@@ -54,6 +54,7 @@ export default function AdminLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-2xl">Admin Panel Login</CardTitle>
+
           <CardDescription>Enter your credentials to access the dashboard.
            <br/>
            <span className="text-xs text-muted-foreground">(Default: admin/password)</span>
