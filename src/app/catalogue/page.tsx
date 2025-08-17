@@ -11,7 +11,7 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import { LoaderCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Configure the worker to use a CDN
+// Configure the worker to use a CDN-hosted ES Module build
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 
