@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 const navLinks = [
     { href: "/products", label: "Products" },
-    { href: "https://web.quaxicron.com/download/cat.pdf", label: "Catalogue", target: "_blank" },
+    { href: process.env.NEXT_PUBLIC_ENDPOINT + "/download/cat.pdf", label: "Catalogue", target: "_blank" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
 ];

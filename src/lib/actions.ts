@@ -86,7 +86,7 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
 // ========= PRODUCT ACTIONS =========
 
 async function uploadImage(image: File): Promise<string> {
-    const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_ENDPOINT;
+    const uploadUrl = process.env.NEXT_PUBLIC_ENDPOINT;
     if (!uploadUrl) {
         throw new Error("Upload endpoint URL is not configured.");
     }
@@ -95,7 +95,7 @@ async function uploadImage(image: File): Promise<string> {
     formData.append('file', image);
 
     try {
-        const response = await fetch(uploadUrl, {
+        const response = await fetch(uploadUrl + "/upload", {
             method: 'POST',
             body: formData,
         });
@@ -106,9 +106,8 @@ async function uploadImage(image: File): Promise<string> {
         }
 
         const filename = await response.text();
-        const baseUrl = new URL(uploadUrl);
         
-        return `${baseUrl.protocol}//${baseUrl.hostname}:${baseUrl.port}/download/${filename}`;
+        return `${uploadUrl}/download/${filename}`;
         
     } catch (error) {
         console.error("Error uploading image to custom endpoint:", error);
