@@ -85,17 +85,14 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
 
 // ========= PRODUCT ACTIONS =========
 
-async function uploadImage(image: File): Promise<string> {
-    const uploadUrl = process.env.NEXT_PUBLIC_ENDPOINT;
-    if (!uploadUrl) {
-        throw new Error("Upload endpoint URL is not configured.");
-    }
-
+async function uploadImage(image: File): Promise<{ imageUrl: string; telegramMessageId: string; telegramChatId: string; telegramAccountId: string }> {
     const formData = new FormData();
     formData.append('file', image);
 
+    const baseUrl = process.env.NEXT_PUBLIC_ENDPOINT || '';
+
     try {
-        const response = await fetch(uploadUrl + "/upload", {
+        const response = await fetch(`${baseUrl}/api/telegram/upload`, {
             method: 'POST',
             body: formData,
         });
@@ -105,12 +102,22 @@ async function uploadImage(image: File): Promise<string> {
             throw new Error(`File upload failed: ${response.statusText} - ${errorText}`);
         }
 
-        const filename = await response.text();
-        
-        return `${uploadUrl}/download/${filename}`;
-        
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Upload failed');
+        }
+
+        const downloadUrl = `${baseUrl}/api/telegram/download/${data.messageId}`;
+
+        return {
+            imageUrl: downloadUrl,
+            telegramMessageId: data.messageId,
+            telegramChatId: data.chatId,
+            telegramAccountId: data.accountId,
+        };
     } catch (error) {
-        console.error("Error uploading image to custom endpoint:", error);
+        console.error("Error uploading image to Telegram:", error);
         throw error;
     }
 }
@@ -165,16 +172,18 @@ export async function addProductAction(prevState: AddProductState, formData: For
     }
 
     try {
-        let imageUrl = '';
-        if (validatedFields.data.image) {
-            imageUrl = await uploadImage(validatedFields.data.image);
-        }
-
-        const productData = {
+        let productData: Record<string, any> = {
             ...validatedFields.data,
-            image: imageUrl,
             createdAt: serverTimestamp(),
         };
+
+        if (validatedFields.data.image) {
+            const uploadResult = await uploadImage(validatedFields.data.image);
+            productData.image = uploadResult.imageUrl;
+            productData.telegramMessageId = uploadResult.telegramMessageId;
+            productData.telegramChatId = uploadResult.telegramChatId;
+            productData.telegramAccountId = uploadResult.telegramAccountId;
+        }
 
         await addDoc(collection(db, 'products'), productData);
 
@@ -229,13 +238,17 @@ export async function editProductAction(productId: string, prevState: AddProduct
         const productRef = doc(db, 'products', productId);
         let imageUrl: string | undefined = undefined;
 
+        const { image, ...restOfData } = validatedFields.data;
+        const updateData: Record<string, any> = { ...restOfData };
+
         if (validatedFields.data.image) {
-            imageUrl = await uploadImage(validatedFields.data.image);
+            const uploadResult = await uploadImage(validatedFields.data.image);
+            imageUrl = uploadResult.imageUrl;
+            updateData.telegramMessageId = uploadResult.telegramMessageId;
+            updateData.telegramChatId = uploadResult.telegramChatId;
+            updateData.telegramAccountId = uploadResult.telegramAccountId;
         }
         
-        const { image, ...restOfData } = validatedFields.data;
-        
-        const updateData: Record<string, any> = { ...restOfData };
         if (imageUrl !== undefined) {
             updateData.image = imageUrl;
         }

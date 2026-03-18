@@ -17,6 +17,9 @@ export type Product = {
     features: string[];
     category: string; // Now a string to match category name
     createdAt?: Timestamp;
+    telegramMessageId?: string;
+    telegramChatId?: string;
+    telegramAccountId?: string;
 };
 
 export type Submission = {
