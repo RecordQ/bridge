@@ -5,7 +5,7 @@ import { useFormStatus } from "react-dom";
 import { useActionState, useEffect, useState, type Key, useMemo } from "react";
 import { toast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore/lite";
 import type { Product, Category } from '@/lib/types';
 
 import { submitContactForm, type ContactFormState } from "@/lib/actions";

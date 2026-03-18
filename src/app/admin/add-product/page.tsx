@@ -17,7 +17,7 @@ import Link from "next/link";
 import { ImageCropper } from "@/components/admin/ImageCropper";
 import { type Category } from "@/lib/types";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, orderBy, query } from "firebase/firestore/lite";
 import { Skeleton } from "@/components/ui/skeleton";
 
 

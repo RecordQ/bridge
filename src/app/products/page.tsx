@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { CheckCircle2, Search, Package } from "lucide-react";
 import Image from "next/image";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where, orderBy } from "firebase/firestore/lite";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Product, Category } from '@/lib/types';
 import Link from 'next/link';

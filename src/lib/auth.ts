@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 import { db } from "./firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore/lite";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),

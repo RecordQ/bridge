@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, MoreVertical, type LucideProps, Home } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore/lite";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteProductDialog, EditProductDialog } from "@/components/admin/ProductActions";
 import LogoutButton from "@/components/admin/LogoutButton";
