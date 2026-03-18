@@ -2,7 +2,6 @@
 'use server'
 
 import { z } from "zod";
-import { createHash } from "crypto";
 import { db } from "./firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
@@ -22,6 +21,15 @@ export type LoginState = {
     }
 };
 
+async function hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
+
 export async function loginAction(prevState: LoginState, formData: FormData): Promise<LoginState> {
     const validatedFields = loginSchema.safeParse({
         username: formData.get('username'),
@@ -37,7 +45,7 @@ export async function loginAction(prevState: LoginState, formData: FormData): Pr
     }
     
     const { username, password } = validatedFields.data;
-    const passwordHash = createHash('sha512').update(password).digest('hex');
+    const passwordHash = await hashPassword(password);
     
     try {
         const usersRef = collection(db, "users");
