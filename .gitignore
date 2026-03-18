@@ -30,3 +30,6 @@ yarn-error.log*
 
 # Firebase
 service-account-key.json
+
+# OpenNext
+.open-next
