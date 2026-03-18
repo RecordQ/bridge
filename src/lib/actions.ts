@@ -85,14 +85,14 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
 
 // ========= PRODUCT ACTIONS =========
 
-async function uploadImage(image: File): Promise<{ imageUrl: string; telegramMessageId: string; telegramChatId: string; telegramAccountId: string }> {
+async function uploadImage(image: File): Promise<{ imageUrl: string; r2Key: string }> {
     const formData = new FormData();
     formData.append('file', image);
 
     const baseUrl = process.env.NEXT_PUBLIC_ENDPOINT || '';
 
     try {
-        const response = await fetch(`${baseUrl}/api/telegram/upload`, {
+        const response = await fetch(`${baseUrl}/api/upload`, {
             method: 'POST',
             body: formData,
         });
@@ -108,16 +108,14 @@ async function uploadImage(image: File): Promise<{ imageUrl: string; telegramMes
             throw new Error(data.error || 'Upload failed');
         }
 
-        const downloadUrl = `${baseUrl}/api/telegram/download/${data.messageId}`;
+        const downloadUrl = `${baseUrl}/api/download/${encodeURIComponent(data.key)}`;
 
         return {
             imageUrl: downloadUrl,
-            telegramMessageId: data.messageId,
-            telegramChatId: data.chatId,
-            telegramAccountId: data.accountId,
+            r2Key: data.key,
         };
     } catch (error) {
-        console.error("Error uploading image to Telegram:", error);
+        console.error("Error uploading image to R2:", error);
         throw error;
     }
 }
@@ -180,9 +178,7 @@ export async function addProductAction(prevState: AddProductState, formData: For
         if (validatedFields.data.image) {
             const uploadResult = await uploadImage(validatedFields.data.image);
             productData.image = uploadResult.imageUrl;
-            productData.telegramMessageId = uploadResult.telegramMessageId;
-            productData.telegramChatId = uploadResult.telegramChatId;
-            productData.telegramAccountId = uploadResult.telegramAccountId;
+            productData.r2Key = uploadResult.r2Key;
         }
 
         await addDoc(collection(db, 'products'), productData);
@@ -244,9 +240,7 @@ export async function editProductAction(productId: string, prevState: AddProduct
         if (validatedFields.data.image) {
             const uploadResult = await uploadImage(validatedFields.data.image);
             imageUrl = uploadResult.imageUrl;
-            updateData.telegramMessageId = uploadResult.telegramMessageId;
-            updateData.telegramChatId = uploadResult.telegramChatId;
-            updateData.telegramAccountId = uploadResult.telegramAccountId;
+            updateData.r2Key = uploadResult.r2Key;
         }
         
         if (imageUrl !== undefined) {

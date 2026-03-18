@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical, type LucideProps, Home, Settings } from "lucide-react";
+import { PlusCircle, MoreVertical, type LucideProps, Home } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -234,9 +234,6 @@ export default async function AdminDashboardPage() {
                         <p className="text-muted-foreground">Manage your products and submissions.</p>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Button asChild variant="outline" size="sm">
-                            <Link href="/admin/telegram"><Settings className="mr-2 h-4 w-4"/>Settings</Link>
-                        </Button>
                         <Button asChild variant="outline">
                             <Link href="/"><Home className="mr-2"/>Return to Home</Link>
                         </Button>
