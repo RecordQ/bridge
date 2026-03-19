@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+// @ts-ignore
+const getEnv = () => {
+  try {
+    return require('@opennextjs/cloudflare').getCloudflareContext().env;
+  } catch (e) {
+    return process.env;
+  }
+};
 
 
 export async function GET(
@@ -13,8 +20,8 @@ export async function GET(
     const decodedKey = decodeURIComponent(key);
 
     // Get the R2 bucket binding from the environment
-    const { env } = getCloudflareContext();
-    const bucket = (env?.NEXT_INC_CACHE_R2_BUCKET || process.env.NEXT_INC_CACHE_R2_BUCKET) as any;
+    const env = getEnv();
+    const bucket = (env?.NEXT_INC_CACHE_R2_BUCKET) as any;
     
     if (!bucket) {
       return NextResponse.json({ error: 'R2 bucket not configured' }, { status: 500 });

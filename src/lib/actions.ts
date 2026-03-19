@@ -41,7 +41,7 @@ export async function submitContactForm(
     return {
       message: `There was an error with your submission: ${errorMessages}`,
       status: "error",
-      errors: validatedFields.error.flatten().fieldErrors,
+      errors: { product: errorMessages }, // Flattened errors to match expected string field
     };
   }
 
@@ -56,7 +56,11 @@ export async function submitContactForm(
     };
     await addDoc(collection(db, "submissions"), submissionData);
     
-    revalidatePath("/admin");
+    try {
+        revalidatePath("/admin");
+    } catch (e) {
+        console.error("Revalidation failed:", e);
+    }
     return {
       message: "Thank you for your message! We will get back to you soon.",
       status: "success",
@@ -74,7 +78,11 @@ export async function updateSubmissionStatusAction(submissionId: string, status:
     try {
         const submissionRef = doc(db, 'submissions', submissionId);
         await updateDoc(submissionRef, { status });
-        revalidatePath('/admin');
+        try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         return { status: "success", message: "Submission status updated." };
     } catch (error) {
         console.error("Error updating submission:", error);
@@ -108,7 +116,7 @@ async function uploadImage(image: File): Promise<{ imageUrl: string; r2Key: stri
             throw new Error(data.error || 'Upload failed');
         }
 
-        const downloadUrl = `/api/download/${encodeURIComponent(data.key)}`;
+        const downloadUrl = `${baseUrl}/api/download/${encodeURIComponent(data.key)}`;
 
         return {
             imageUrl: downloadUrl,
@@ -183,9 +191,17 @@ export async function addProductAction(prevState: AddProductState, formData: For
 
         await addDoc(collection(db, 'products'), productData);
 
-        revalidatePath('/admin');
-        revalidatePath('/products');
-        revalidatePath('/');
+        try {
+            try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
+            revalidatePath('/products');
+            revalidatePath('/');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
 
     } catch (error: any) {
         console.error("Error adding product to database:", error);
@@ -249,9 +265,17 @@ export async function editProductAction(productId: string, prevState: AddProduct
 
         await updateDoc(productRef, updateData);
 
-        revalidatePath('/admin');
-        revalidatePath('/products');
-        revalidatePath('/');
+        try {
+            try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
+            revalidatePath('/products');
+            revalidatePath('/');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         
         return {
             status: 'success',
@@ -271,9 +295,17 @@ export async function editProductAction(productId: string, prevState: AddProduct
 export async function deleteProductAction(productId: string) {
     try {
         await deleteDoc(doc(db, "products", productId));
-        revalidatePath('/admin');
-        revalidatePath('/products');
-        revalidatePath('/');
+        try {
+            try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
+            revalidatePath('/products');
+            revalidatePath('/');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         return { status: "success", message: "Product deleted successfully." };
     } catch (error) {
         console.error("Error deleting product:", error);
@@ -307,8 +339,8 @@ export async function addCategoryAction(prevState: CategoryFormState, formData: 
         return {
             status: "error",
             message: "Invalid data.",
-            errors: validatedFields.error.flatten().fieldErrors,
-        }
+            errors: { name: "Invalid data." }
+        };
     }
     
     try {
@@ -326,7 +358,11 @@ export async function addCategoryAction(prevState: CategoryFormState, formData: 
         }
 
         await addDoc(collection(db, 'categories'), validatedFields.data);
-        revalidatePath('/admin');
+        try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         return { status: "success", message: `Category "${validatedFields.data.name}" added.` };
     } catch (error) {
         console.error("Error adding category:", error);
@@ -344,14 +380,18 @@ export async function editCategoryAction(categoryId: string, prevState: Category
         return {
             status: "error",
             message: "Invalid data.",
-            errors: validatedFields.error.flatten().fieldErrors,
+            errors: { name: "Invalid data." }
         }
     }
     
     try {
         const categoryRef = doc(db, 'categories', categoryId);
         await updateDoc(categoryRef, validatedFields.data);
-        revalidatePath('/admin');
+        try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         return { status: "success", message: `Category "${validatedFields.data.name}" updated.` };
     } catch (error) {
         console.error("Error updating category:", error);
@@ -362,7 +402,11 @@ export async function editCategoryAction(categoryId: string, prevState: Category
 export async function deleteCategoryAction(categoryId: string, categoryName: string) {
      try {
         await deleteDoc(doc(db, "categories", categoryId));
-        revalidatePath('/admin');
+        try {
+            revalidatePath('/admin');
+        } catch (e) {
+            console.error("Revalidation failed:", e);
+        }
         return { status: "success", message: `Category "${categoryName}" deleted.` };
     } catch (error) {
         console.error("Error deleting category:", error);
