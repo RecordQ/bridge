@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
         hostname: 'web.bridgegift.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'bridgegift.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'nextn.daryarecord.workers.dev',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

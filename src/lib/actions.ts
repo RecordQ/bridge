@@ -108,7 +108,7 @@ async function uploadImage(image: File): Promise<{ imageUrl: string; r2Key: stri
             throw new Error(data.error || 'Upload failed');
         }
 
-        const downloadUrl = `${baseUrl}/api/download/${encodeURIComponent(data.key)}`;
+        const downloadUrl = `/api/download/${encodeURIComponent(data.key)}`;
 
         return {
             imageUrl: downloadUrl,
