@@ -67,7 +67,9 @@ export default function AddProductPage() {
                 title: "Success!",
                 description: state.message,
             });
-            // The action now handles redirection via redirect()
+            if (state.redirect) {
+                router.push(state.redirect);
+            }
         } else if (state.status === "error") {
             toast({
                 title: "Error",

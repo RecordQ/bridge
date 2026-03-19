@@ -5,7 +5,6 @@ import { z } from "zod";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp, updateDoc, doc, deleteDoc, query, where, getDocs } from "firebase/firestore/lite";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 
 // ========= CONTACT FORM ACTION =========
@@ -212,7 +211,11 @@ export async function addProductAction(prevState: AddProductState, formData: For
         }
     }
     
-    redirect('/admin');
+    return {
+        status: "success",
+        message: "Product added successfully!",
+        redirect: "/admin",
+    };
 }
 
 

@@ -1,11 +1,13 @@
 // src/app/admin/page.tsx
+"use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, MoreVertical, type LucideProps, Home } from "lucide-react";
+import { PlusCircle, MoreVertical, Home } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, orderBy, type Timestamp } from "firebase/firestore/lite";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -15,114 +17,9 @@ import { type Product, type Submission, type Category } from "@/lib/types";
 import { ViewSubmissionDialog } from "@/components/admin/SubmissionActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddCategoryDialog, EditCategoryDialog, DeleteCategoryDialog } from "@/components/admin/CategoryActions";
-import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Icon } from "@/components/shared/Icon";
 
-async function getProducts(): Promise<Product[]> {
-    try {
-        const productsCol = collection(db, 'products');
-        const productSnapshot = await getDocs(query(productsCol, orderBy('createdAt', 'desc')));
-        if (productSnapshot.empty) {
-            return [];
-        }
-        return productSnapshot.docs.map(doc => {
-            const data = doc.data();
-            const features = Array.isArray(data.features) ? data.features : [];
-            return {
-                id: doc.id,
-                name: data.name || '',
-                price: data.price || 0,
-                status: data.status || 'Archived',
-                priceUnit: data.priceUnit || '',
-                image: data.image || '',
-                description: data.description || '',
-                features: features,
-                category: data.category || 'Other',
-            }
-        });
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        return [];
-    }
-}
-
-
-async function getSubmissions(): Promise<Submission[]> {
-    try {
-        const submissionsCol = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
-        const submissionSnapshot = await getDocs(submissionsCol);
-        return submissionSnapshot.docs.map(doc => {
-            const data = doc.data();
-            const createdAt = (data.createdAt as Timestamp)?.toDate() || new Date();
-            return {
-                id: doc.id,
-                name: data.name,
-                email: data.email,
-                product: data.product,
-                message: data.message,
-                date: createdAt.toLocaleDateString(),
-                status: data.status,
-            };
-        });
-    } catch (error) {
-        console.error("Error fetching submissions:", error);
-        return [];
-    }
-}
-
-async function getCategories(): Promise<Category[]> {
-     try {
-        const catCol = collection(db, 'categories');
-        const catSnapshot = await getDocs(query(catCol, orderBy('name')));
-        if (catSnapshot.empty) {
-            return [];
-        }
-        return catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
-    } catch (error) {
-        console.error("Error fetching categories:", error);
-        return [];
-    }
-}
-
-function SubmissionsTable({ submissions }: { submissions: Submission[] }) {
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Products</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                 {submissions.length > 0 ? submissions.map((submission) => (
-                    <TableRow key={submission.id}>
-                        <TableCell>{submission.name}</TableCell>
-                        <TableCell>{submission.email}</TableCell>
-                        <TableCell>{submission.product}</TableCell>
-                        <TableCell>{submission.date}</TableCell>
-                        <TableCell>
-                            <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
-                                {submission.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <ViewSubmissionDialog submission={submission} />
-                        </TableCell>
-                    </TableRow>
-                )) : (
-                    <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">No submissions in this category.</TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
-    )
-}
 
 function ProductTableSkeleton() {
     return (
@@ -134,94 +31,69 @@ function ProductTableSkeleton() {
     )
 }
 
-async function ProductsTable() {
-    const products = await getProducts();
-    const categories = await getCategories();
 
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Product Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {products.length > 0 ? products.map((product) => (
-                    <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
-                        <TableCell>
-                            <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
-                                {product.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <EditProductDialog product={product} allCategories={categories} />
-                                    <DeleteProductDialog productId={product.id} productName={product.name} />
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                )) : (
-                    <TableRow>
-                        <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
-    )
-}
+export default function AdminDashboardPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [submissions, setSubmissions] = useState<Submission[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true);
+            try {
+                // Fetch products
+                const productsCol = collection(db, 'products');
+                const productSnapshot = await getDocs(query(productsCol, orderBy('createdAt', 'desc')));
+                const productData = productSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const features = Array.isArray(data.features) ? data.features : [];
+                    return {
+                        id: doc.id,
+                        name: data.name || '',
+                        price: data.price || 0,
+                        status: data.status || 'Archived',
+                        priceUnit: data.priceUnit || '',
+                        image: data.image || '',
+                        description: data.description || '',
+                        features: features,
+                        category: data.category || 'Other',
+                    }
+                });
+                setProducts(productData);
 
-async function CategoriesTable() {
-    const categories = await getCategories();
+                // Fetch submissions
+                const submissionsCol = query(collection(db, 'submissions'), orderBy('createdAt', 'desc'));
+                const submissionSnapshot = await getDocs(submissionsCol);
+                const submissionData = submissionSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const createdAt = (data.createdAt as Timestamp)?.toDate() || new Date();
+                    return {
+                        id: doc.id,
+                        name: data.name,
+                        email: data.email,
+                        product: data.product,
+                        message: data.message,
+                        date: createdAt.toLocaleDateString(),
+                        status: data.status,
+                    };
+                });
+                setSubmissions(submissionData);
 
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Icon</TableHead>
-                    <TableHead>Category Name</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                 {categories.length > 0 ? categories.map((cat) => (
-                    <TableRow key={cat.id}>
-                        <TableCell><Icon name={cat.icon} className="h-5 w-5" /></TableCell>
-                        <TableCell className="font-medium">{cat.name}</TableCell>
-                        <TableCell className="text-right">
-                             <div className="flex justify-end gap-2">
-                                <EditCategoryDialog category={cat} />
-                                <DeleteCategoryDialog categoryId={cat.id} categoryName={cat.name} />
-                             </div>
-                        </TableCell>
-                    </TableRow>
-                )) : (
-                    <TableRow>
-                        <TableCell colSpan={3} className="text-center">No categories found. Add one to get started.</TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
-    )
-}
+                // Fetch categories
+                const catCol = collection(db, 'categories');
+                const catSnapshot = await getDocs(query(catCol, orderBy('name')));
+                const catData = catSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
+                setCategories(catData);
 
-
-export default async function AdminDashboardPage() {
-    const submissions = await getSubmissions();
+            } catch (error) {
+                console.error("Error fetching admin data:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchData();
+    }, []);
 
     const newSubmissions = submissions.filter(sub => sub.status === 'New');
     const contactedSubmissions = submissions.filter(sub => sub.status === 'Contacted');
@@ -257,9 +129,50 @@ export default async function AdminDashboardPage() {
                             </Button>
                         </CardHeader>
                         <CardContent>
-                           <Suspense fallback={<ProductTableSkeleton />}>
-                             <ProductsTable />
-                           </Suspense>
+                           {loading ? <ProductTableSkeleton /> : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Product Name</TableHead>
+                                        <TableHead>Category</TableHead>
+                                        <TableHead>Price</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {products.length > 0 ? products.map((product) => (
+                                        <TableRow key={product.id}>
+                                            <TableCell className="font-medium">{product.name}</TableCell>
+                                            <TableCell>{product.category}</TableCell>
+                                            <TableCell>${product.price.toFixed(2)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
+                                                    {product.status}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                    <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <EditProductDialog product={product} allCategories={categories} />
+                                                        <DeleteProductDialog productId={product.id} productName={product.name} />
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center">No products found. Add one to get started.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                           )}
                         </CardContent>
                     </Card>
 
@@ -272,9 +185,35 @@ export default async function AdminDashboardPage() {
                            <AddCategoryDialog />
                         </CardHeader>
                         <CardContent>
-                           <Suspense fallback={<ProductTableSkeleton />}>
-                             <CategoriesTable />
-                           </Suspense>
+                           {loading ? <ProductTableSkeleton /> : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Icon</TableHead>
+                                        <TableHead>Category Name</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                     {categories.length > 0 ? categories.map((cat) => (
+                                        <TableRow key={cat.id}>
+                                            <TableCell><Icon name={cat.icon} className="h-5 w-5" /></TableCell>
+                                            <TableCell className="font-medium">{cat.name}</TableCell>
+                                            <TableCell className="text-right">
+                                                 <div className="flex justify-end gap-2">
+                                                    <EditCategoryDialog category={cat} />
+                                                    <DeleteCategoryDialog categoryId={cat.id} categoryName={cat.name} />
+                                                 </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-center">No categories found. Add one to get started.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                           )}
                         </CardContent>
                     </Card>
 
@@ -284,18 +223,86 @@ export default async function AdminDashboardPage() {
                             <CardDescription>Recent messages from your customers.</CardDescription>
                         </CardHeader>
                         <CardContent>
+                           {loading ? <ProductTableSkeleton /> : (
                            <Tabs defaultValue="new">
                                <TabsList className="grid w-full grid-cols-2">
                                    <TabsTrigger value="new">New ({newSubmissions.length})</TabsTrigger>
                                    <TabsTrigger value="contacted">Contacted ({contactedSubmissions.length})</TabsTrigger>
                                </TabsList>
                                <TabsContent value="new">
-                                   <SubmissionsTable submissions={newSubmissions} />
+                                   <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Products</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                             {newSubmissions.length > 0 ? newSubmissions.map((submission) => (
+                                                <TableRow key={submission.id}>
+                                                    <TableCell>{submission.name}</TableCell>
+                                                    <TableCell>{submission.email}</TableCell>
+                                                    <TableCell>{submission.product}</TableCell>
+                                                    <TableCell>{submission.date}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
+                                                            {submission.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <ViewSubmissionDialog submission={submission} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            )) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="text-center h-24">No submissions in this category.</TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                </TabsContent>
                                <TabsContent value="contacted">
-                                   <SubmissionsTable submissions={contactedSubmissions} />
+                                   <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Products</TableHead>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                             {contactedSubmissions.length > 0 ? contactedSubmissions.map((submission) => (
+                                                <TableRow key={submission.id}>
+                                                    <TableCell>{submission.name}</TableCell>
+                                                    <TableCell>{submission.email}</TableCell>
+                                                    <TableCell>{submission.product}</TableCell>
+                                                    <TableCell>{submission.date}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={submission.status === 'New' ? 'default' : 'outline'}>
+                                                            {submission.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <ViewSubmissionDialog submission={submission} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            )) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="text-center h-24">No submissions in this category.</TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
                                </TabsContent>
                            </Tabs>
+                           )}
                         </CardContent>
                     </Card>
                 </div>
